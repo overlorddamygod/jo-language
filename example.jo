@@ -1,0 +1,14 @@
+const add = func(a int, b int) {
+    return a + b;
+}
+
+a = 1
+b = 2
+c = {
+    "a": a,
+    "b": func () {
+        print("hehe \" %d \" lol)
+    }),
+}
+sad$
+print(add(a,b));
