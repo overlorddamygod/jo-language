@@ -52,6 +52,27 @@ func (l *LiteralValue) Print() {
 	fmt.Println(*l)
 }
 
+type Identifier struct {
+	name  string
+	Type  string
+	Value string
+}
+
+func NewIdentifier(value string) *Identifier {
+	return &Identifier{
+		name:  "Identifier",
+		Type:  "Identifier",
+		Value: value,
+	}
+}
+
+func (i *Identifier) NodeName() string {
+	return i.name
+}
+func (i *Identifier) Print() {
+	fmt.Println(*i)
+}
+
 type Node interface {
 	NodeName() string
 	Print()

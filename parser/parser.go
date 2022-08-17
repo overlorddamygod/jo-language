@@ -1,6 +1,8 @@
 package parser
 
 import (
+	"fmt"
+
 	L "github.com/overlorddamygod/lexer/lexer"
 )
 
@@ -26,10 +28,59 @@ func (p *Parser) Parse() {
 	// 	}
 	// 	fmt.Printf("%s %s\n", token.Type, token.Literal)
 	// }
-	e := p.expression()
+	e := p.assignment()
 	e.Print()
 	// e.left()
 
+}
+
+func (p *Parser) identifier() (Node, error) {
+	identifier, err := p.lexer.NextToken()
+
+	if err != nil {
+		return nil, err
+	}
+	return NewIdentifier(identifier.Literal), nil
+}
+
+func (p *Parser) assignment() Node {
+	identifier, err := p.identifier()
+
+	if err != nil {
+		fmt.Println("EXPECTED identifier")
+		return nil
+	}
+
+	equals, err := p.lexer.NextToken()
+
+	if err != nil {
+
+	}
+
+	if !(equals.Type == L.OPERATOR && equals.Literal == "=") {
+		fmt.Println("EXPECTED =")
+		return nil
+	}
+
+	exp := p.expression()
+
+	if exp == nil {
+		fmt.Println("EXPECTED expression")
+		return nil
+	}
+
+	semicolon, err := p.lexer.NextToken()
+
+	if err != nil {
+
+	}
+
+	if !(semicolon.Type == L.PUNCTUATION && semicolon.Literal == L.SEMICOLON) {
+		fmt.Println("EXPECTED ;")
+		return nil
+	}
+
+	return NewBinaryExpression("ASSIGNMENT", identifier, exp)
 }
 
 // parse expression
@@ -54,7 +105,7 @@ func (p *Parser) factor() Node {
 
 		// p.lexer.NextToken()
 
-		if op_token.Type == L.OPERATOR || op_token.Literal == L.SLASH || op_token.Literal == L.ASTERISK {
+		if op_token.Type == L.OPERATOR && (op_token.Literal == L.SLASH || op_token.Literal == L.ASTERISK) {
 			// fmt.Println("OP")
 			p.lexer.NextToken()
 
@@ -112,7 +163,7 @@ func (p *Parser) term() Node {
 
 		// p.lexer.NextToken()
 
-		if op_token.Type == L.OPERATOR || op_token.Literal == L.PLUS || op_token.Literal == L.MINUS {
+		if op_token.Type == L.OPERATOR && (op_token.Literal == L.PLUS || op_token.Literal == L.MINUS) {
 			p.lexer.NextToken()
 			op_token.Print()
 
