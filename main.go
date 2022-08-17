@@ -5,6 +5,7 @@ import (
 	"os"
 
 	Lexer "github.com/overlorddamygod/lexer/lexer"
+	Parser "github.com/overlorddamygod/lexer/parser"
 )
 
 func main() {
@@ -23,4 +24,9 @@ func main() {
 		panic(err)
 	}
 	fmt.Println(tokens)
+
+	parser := Parser.NewParser(lexer)
+
+	parser.Parse()
+
 }

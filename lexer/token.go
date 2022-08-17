@@ -1,5 +1,7 @@
 package lexer
 
+import "fmt"
+
 type TokenType string
 
 const (
@@ -55,6 +57,10 @@ type Token struct {
 
 func NewToken(tokenType TokenType, literal string) Token {
 	return Token{Type: tokenType, Literal: literal, line: 0, col: 0}
+}
+
+func (t *Token) Print() {
+	fmt.Printf("%s %s\n", string(t.Type), t.Literal)
 }
 
 func IsKeyword(identifier string) bool {

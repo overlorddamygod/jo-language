@@ -6,17 +6,19 @@ import (
 )
 
 type Lexer struct {
-	source string
-	pos    int
-	size   int
-	line   int
-	col    int
-	tokens []Token
+	source     string
+	pos        int
+	size       int
+	line       int
+	col        int
+	tokens     []Token
+	token_pos  int
+	token_size int
 }
 
 func NewLexer(source string) *Lexer {
 	var tokens []Token = make([]Token, 0)
-	return &Lexer{source: source, pos: 0, size: len(source), line: 1, col: 0, tokens: tokens}
+	return &Lexer{source: source, pos: 0, size: len(source), line: 1, col: 0, tokens: tokens, token_pos: 0, token_size: 0}
 }
 
 func (l *Lexer) peek(offset int) (string, error) {
@@ -99,18 +101,52 @@ func (l *Lexer) getIdentifier() (string, error) {
 	return l.source[startPos:l.pos], nil
 }
 
+// func (l *Lexer) getNumberLiteral() (string, bool, error) {
+// 	startPos := l.pos
+
+// 	current, err := l.current()
+
+// 	if err != nil {
+// 		return "", false, err
+// 	}
+
+// 	hasDecimal := false
+
+// 	for IsDigit(current) || current == "." {
+
+// 		if current == "." {
+// 			if hasDecimal {
+// 				return "", hasDecimal, errors.New("failed parsing as number")
+// 			}
+// 			hasDecimal = true
+// 		}
+
+// 		l.advance()
+
+// 		current, err = l.current()
+
+// 		if err != nil {
+// 			return "", hasDecimal, err
+// 		}
+// 	}
+
+// 	return l.source[startPos:l.pos], hasDecimal, nil
+// }
+
 func (l *Lexer) getNumberLiteral() (string, bool, error) {
 	startPos := l.pos
-
-	current, err := l.current()
-
-	if err != nil {
-		return "", false, err
-	}
-
 	hasDecimal := false
 
-	for IsDigit(current) || current == "." {
+	for {
+		current, err := l.current()
+
+		if err != nil {
+			return l.source[startPos:l.pos], hasDecimal, nil
+		}
+
+		if !(IsDigit(current) || current == ".") {
+			return l.source[startPos:l.pos], hasDecimal, nil
+		}
 
 		if current == "." {
 			if hasDecimal {
@@ -120,15 +156,7 @@ func (l *Lexer) getNumberLiteral() (string, bool, error) {
 		}
 
 		l.advance()
-
-		current, err = l.current()
-
-		if err != nil {
-			return "", hasDecimal, err
-		}
 	}
-
-	return l.source[startPos:l.pos], hasDecimal, nil
 }
 
 func (l *Lexer) skipWhiteSpace() error {
@@ -172,13 +200,17 @@ func IsAlphaNumericWithUnderscore(s string) bool {
 
 func (l *Lexer) Lex() ([]Token, error) {
 	for l.pos < l.size {
+		fmt.Println("BEFORE SKIPPING", l.pos)
+
 		err := l.skipWhiteSpace()
+		fmt.Println("AFTER SKIPPING", l.pos, l.size)
 
 		if err != nil {
-			return l.tokens, err
+			break
 		}
 
 		currentChar, err := l.current()
+		fmt.Println(currentChar, l.pos)
 
 		if err != nil {
 			return l.tokens, err
@@ -202,6 +234,7 @@ func (l *Lexer) Lex() ([]Token, error) {
 
 		if IsDigit(currentChar) {
 			num, hasDecimal, err := l.getNumberLiteral()
+			fmt.Println("NUM", num, l.pos)
 			if err != nil {
 				return l.tokens, err
 			}
@@ -216,7 +249,11 @@ func (l *Lexer) Lex() ([]Token, error) {
 
 		switch currentChar {
 		case PLUS, MINUS, ASTERISK, SLASH, PERCENT:
+			fmt.Println("OPERATOR", currentChar, l.pos)
+
 			l.advanceWithToken(NewToken(OPERATOR, currentChar))
+			fmt.Println("OPERATOR", currentChar, l.pos)
+
 			continue
 
 		case ASSIGN, EQ:
@@ -261,7 +298,25 @@ func (l *Lexer) Lex() ([]Token, error) {
 		default:
 			return l.tokens, fmt.Errorf("-- Line: %d Col: %d Pos %d: Illegal Character `%s`", l.line, l.col, l.pos, currentChar)
 		}
+		fmt.Println("HERE")
 		l.advance()
 	}
+	l.appendToken(NewToken(EOF, "EOF"))
+	l.token_size = len(l.tokens)
 	return l.tokens, nil
+}
+
+func (l *Lexer) NextToken() (*Token, error) {
+	if l.token_pos >= l.token_size {
+		return nil, errors.New("EOT")
+	}
+	l.token_pos += 1
+	return &l.tokens[l.token_pos-1], nil
+}
+
+func (l *Lexer) PeekToken(offset int) (*Token, error) {
+	if l.token_pos+offset >= l.token_size {
+		return nil, errors.New("EOT")
+	}
+	return &l.tokens[l.token_pos+offset], nil
 }
