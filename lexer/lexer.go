@@ -37,23 +37,24 @@ func (l *Lexer) advance() {
 	l.col += 1
 }
 
-func (l *Lexer) advanceWithToken(token Token) {
-	l.tokens = append(l.tokens, token)
+func (l *Lexer) advanceWithToken(token *Token) {
+	l.tokens = append(l.tokens, *token)
 	l.pos += 1
 	l.col += 1
+	// token.End(l.col)
 }
 
-func (l *Lexer) appendToken(token Token) {
-	l.tokens = append(l.tokens, token)
+func (l *Lexer) appendToken(token *Token) {
+	l.tokens = append(l.tokens, *token)
 }
 
-func (l *Lexer) getStringLiteral() (string, error) {
+func (l *Lexer) getStringLiteral() (*Token, error) {
 	startPos := l.pos
 
 	current, err := l.current()
 
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	prev := current
 	l.advance()
@@ -62,7 +63,7 @@ func (l *Lexer) getStringLiteral() (string, error) {
 		current, err := l.current()
 
 		if err != nil {
-			return "", err
+			return NewToken(STRING, l.source[startPos:l.pos]).Line(l.line).Start(startPos + 1).End(l.pos), errors.New("expected '\"'")
 		}
 
 		if current == "\"" {
@@ -76,17 +77,16 @@ func (l *Lexer) getStringLiteral() (string, error) {
 
 		l.advance()
 	}
-
-	return l.source[startPos:l.pos], nil
+	return NewToken(STRING, l.source[startPos:l.pos]).Line(l.line).Start(startPos + 1).End(l.pos), nil
 }
 
-func (l *Lexer) getIdentifier() (string, error) {
+func (l *Lexer) getIdentifier() (*Token, error) {
 	startPos := l.pos
 
 	current, err := l.current()
 
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	for IsAlphaNumericWithUnderscore(current) {
 		l.advance()
@@ -94,11 +94,13 @@ func (l *Lexer) getIdentifier() (string, error) {
 		current, err = l.current()
 
 		if err != nil {
-			return "", err
+			return nil, err
 		}
 	}
 
-	return l.source[startPos:l.pos], nil
+	id := l.source[startPos:l.pos]
+
+	return NewToken(IDENTIFIER, id).Line(l.line).Start(startPos + 1).End(l.pos), nil
 }
 
 // func (l *Lexer) getNumberLiteral() (string, bool, error) {
@@ -133,24 +135,32 @@ func (l *Lexer) getIdentifier() (string, error) {
 // 	return l.source[startPos:l.pos], hasDecimal, nil
 // }
 
-func (l *Lexer) getNumberLiteral() (string, bool, error) {
+func (l *Lexer) getNumberLiteral() (*Token, error) {
 	startPos := l.pos
 	hasDecimal := false
-
+	var tokenType TokenType = INT
 	for {
 		current, err := l.current()
 
 		if err != nil {
-			return l.source[startPos:l.pos], hasDecimal, nil
+			if hasDecimal {
+				tokenType = FLOAT
+			}
+			return NewToken(tokenType, l.source[startPos:l.pos]).Line(l.line).Start(startPos + 1).End(l.pos), nil
 		}
 
 		if !(IsDigit(current) || current == ".") {
-			return l.source[startPos:l.pos], hasDecimal, nil
+			if hasDecimal {
+				tokenType = FLOAT
+			}
+			return NewToken(tokenType, l.source[startPos:l.pos]).Line(l.line).Start(startPos + 1).End(l.pos), nil
+
+			// return l.source[startPos:l.pos], hasDecimal, nil
 		}
 
 		if current == "." {
 			if hasDecimal {
-				return "", hasDecimal, errors.New("failed parsing as number")
+				return NewToken(tokenType, l.source[startPos:l.pos]).Line(l.line).Start(startPos + 1).End(l.pos), errors.New("failed parsing as number")
 			}
 			hasDecimal = true
 		}
@@ -169,8 +179,6 @@ func (l *Lexer) skipWhiteSpace() error {
 		if current == "\n" {
 			l.line += 1
 			l.col = 0
-		} else {
-			l.col += 1
 		}
 		l.advance()
 
@@ -200,17 +208,14 @@ func IsAlphaNumericWithUnderscore(s string) bool {
 
 func (l *Lexer) Lex() ([]Token, error) {
 	for l.pos < l.size {
-		fmt.Println("BEFORE SKIPPING", l.pos)
 
 		err := l.skipWhiteSpace()
-		fmt.Println("AFTER SKIPPING", l.pos, l.size)
 
 		if err != nil {
 			break
 		}
 
 		currentChar, err := l.current()
-		fmt.Println(currentChar, l.pos)
 
 		if err != nil {
 			return l.tokens, err
@@ -222,38 +227,26 @@ func (l *Lexer) Lex() ([]Token, error) {
 				return l.tokens, err
 			}
 
-			var tokenType TokenType = IDENTIFIER
-
-			if IsKeyword(identifier) {
-				tokenType = KEYWORD
+			if IsKeyword(identifier.Literal) {
+				identifier.SetType(KEYWORD)
 			}
 
-			l.appendToken(NewToken(tokenType, identifier))
+			l.appendToken(identifier)
 			continue
 		}
 
 		if IsDigit(currentChar) {
-			num, hasDecimal, err := l.getNumberLiteral()
-			fmt.Println("NUM", num, l.pos)
+			num, err := l.getNumberLiteral()
 			if err != nil {
-				return l.tokens, err
+				return l.tokens, fmt.Errorf("%s", MarkError(l.GetLine(num.line), num.line, num.start, l.col+1, err.Error()))
 			}
-			var tokenType TokenType = INT
-
-			if hasDecimal {
-				tokenType = FLOAT
-			}
-			l.appendToken(NewToken(tokenType, num))
+			l.appendToken(num)
 			continue
 		}
 
 		switch currentChar {
 		case PLUS, MINUS, ASTERISK, SLASH, PERCENT:
-			fmt.Println("OPERATOR", currentChar, l.pos)
-
-			l.advanceWithToken(NewToken(OPERATOR, currentChar))
-			fmt.Println("OPERATOR", currentChar, l.pos)
-
+			l.advanceWithToken(NewToken(OPERATOR, currentChar).Line(l.line).Start(l.col + 1).End(l.col + 1))
 			continue
 
 		case ASSIGN, EQ:
@@ -262,9 +255,9 @@ func (l *Lexer) Lex() ([]Token, error) {
 				break
 			}
 			if peek == "=" {
-				l.advanceWithToken(NewToken(OPERATOR, EQ))
+				l.advanceWithToken(NewToken(OPERATOR, EQ).Line(l.line).Start(l.col + 1).End(l.col + 2))
 			} else {
-				l.appendToken(NewToken(OPERATOR, ASSIGN))
+				l.appendToken(NewToken(OPERATOR, ASSIGN).Line(l.line).Start(l.col + 1).End(l.col + 1))
 			}
 			l.advance()
 			continue
@@ -277,33 +270,107 @@ func (l *Lexer) Lex() ([]Token, error) {
 			}
 
 			if peek == "=" {
-				l.advanceWithToken(NewToken(OPERATOR, NOT_EQ))
+				l.advanceWithToken(NewToken(OPERATOR, NOT_EQ).Line(l.line).Start(l.col + 1).End(l.col + 2))
 			} else {
-				l.appendToken(NewToken(OPERATOR, BANG))
+				l.appendToken(NewToken(OPERATOR, BANG).Line(l.line).Start(l.col + 1).End(l.col + 1))
 			}
 			l.advance()
 			continue
 		case LPAREN, RPAREN, LBRACE, RBRACE, COMMA, SEMICOLON, COLON, LT, GT:
-			l.advanceWithToken(NewToken(PUNCTUATION, currentChar))
+			l.advanceWithToken(NewToken(PUNCTUATION, currentChar).Line(l.line).Start(l.col + 1).End(l.col + 1))
 			continue
 		case DOUBLE_QUOTE:
-			strLiteral, err := l.getStringLiteral()
+			strLiteralToken, err := l.getStringLiteral()
 
 			if err != nil {
-				return l.tokens, err
+				line := l.GetLine(strLiteralToken.line)
+				fmt.Println(strLiteralToken.end, len(line))
+				end := strLiteralToken.end
+				if strLiteralToken.end >= len(line) {
+					end = len(line)
+				}
+				fmt.Println(strLiteralToken.start, end)
+				return l.tokens, fmt.Errorf("%s", MarkError(line, strLiteralToken.line, strLiteralToken.start, end, err.Error()))
 			}
 
-			l.appendToken(NewToken(STRING, strLiteral))
+			l.appendToken(strLiteralToken)
 			continue
 		default:
-			return l.tokens, fmt.Errorf("-- Line: %d Col: %d Pos %d: Illegal Character `%s`", l.line, l.col, l.pos, currentChar)
+			// l.GetLine(l.line)
+			err := fmt.Sprintf("Illegal Character `%s`", currentChar)
+			return l.tokens, fmt.Errorf("%s", MarkError(l.GetLine(l.line), l.line, l.col+1, l.col+1, err))
 		}
-		fmt.Println("HERE")
 		l.advance()
 	}
-	l.appendToken(NewToken(EOF, "EOF"))
+	l.appendToken(NewToken(EOF, "EOF").Line(l.line).Start(l.col + 1).End(l.col + 1))
 	l.token_size = len(l.tokens)
 	return l.tokens, nil
+}
+
+func MarkError(line string, lineNo int, start int, end int, msg string) string {
+	strlen := len(line)
+	formatStr := "%s\n"
+
+	for i := 0; i < strlen; i++ {
+		if string(line[i]) == "|" {
+			formatStr += " "
+			break
+		}
+		formatStr += " "
+	}
+
+	for i := 0; i < start; i++ {
+		formatStr += " "
+	}
+	// fmt.Println(start, end)
+	for i := start; i <= end; i++ {
+		formatStr += "^"
+	}
+
+	formatStr += "\n-- Line: %d Col: %d : %s\n"
+
+	return fmt.Sprintf(formatStr, line, lineNo, start, msg)
+}
+
+func (l *Lexer) GetLine(line int) string {
+
+	// fmt.Printf("Error on line %d\n", line)
+
+	// for i := 0; i < line; i++ {
+	// 	fmt.Println(l.source[i])
+	// }
+	src := ""
+	pos := 0
+	lineNo := 1
+	for {
+		// fmt.Println("HERE", lineNo, line)
+
+		if lineNo == line {
+			for {
+				if string(l.source[pos]) == "\n" || pos >= l.size {
+					return fmt.Sprintf(" %d | %s", line, src)
+				}
+				src += string(l.source[pos])
+				// fmt.Println(string(l.source[pos]))
+				pos++
+			}
+		}
+		// loop until we find a newline
+		if string(l.source[pos]) == "\n" {
+			// fmt.Println("line")
+
+			lineNo++
+		}
+
+		// src += l.source[l.pos]
+		pos++
+
+		if pos >= l.size {
+			break
+		}
+	}
+
+	return src
 }
 
 func (l *Lexer) NextToken() (*Token, error) {

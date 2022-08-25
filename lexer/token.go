@@ -52,11 +52,29 @@ type Token struct {
 	Type    TokenType
 	Literal string
 	line    int
-	col     int
+	start   int
+	end     int
 }
 
-func NewToken(tokenType TokenType, literal string) Token {
-	return Token{Type: tokenType, Literal: literal, line: 0, col: 0}
+func NewToken(tokenType TokenType, literal string) *Token {
+	return &Token{Type: tokenType, Literal: literal, line: 0, start: 0, end: 0}
+}
+
+func (t *Token) Line(line int) *Token {
+	t.line = line
+	return t
+}
+func (t *Token) Start(start int) *Token {
+	t.start = start
+	return t
+}
+func (t *Token) End(end int) *Token {
+	t.end = end
+	return t
+}
+func (t *Token) SetType(_type TokenType) *Token {
+	t.Type = _type
+	return t
 }
 
 func (t *Token) Print() {

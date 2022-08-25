@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 
+	Eval "github.com/overlorddamygod/lexer/eval"
 	Lexer "github.com/overlorddamygod/lexer/lexer"
 	Parser "github.com/overlorddamygod/lexer/parser"
 )
@@ -20,13 +21,17 @@ func main() {
 	tokens, err := lexer.Lex()
 	if err != nil {
 		fmt.Println(tokens)
-
-		panic(err)
+		fmt.Println(err)
+		return
+		// panic(err)
 	}
-	fmt.Println(tokens)
+	// fmt.Println(tokens)
 
 	parser := Parser.NewParser(lexer)
 
-	parser.Parse()
+	node := parser.Parse()
 
+	evaluator := Eval.NewEvaluator(node)
+
+	evaluator.Eval()
 }

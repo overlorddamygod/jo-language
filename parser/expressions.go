@@ -6,17 +6,17 @@ import "fmt"
 
 type BinaryExpression struct {
 	name  string
-	op    string
-	left  Node
-	right Node
+	Op    string
+	Left  Node
+	Right Node
 }
 
 func NewBinaryExpression(op string, left, right Node) *BinaryExpression {
 	return &BinaryExpression{
 		name:  "BinaryExpression",
-		op:    op,
-		left:  left,
-		right: right,
+		Op:    op,
+		Left:  left,
+		Right: right,
 	}
 }
 
@@ -26,9 +26,9 @@ func (b *BinaryExpression) NodeName() string {
 
 func (b *BinaryExpression) Print() {
 	fmt.Println(b.name)
-	fmt.Println(b.op)
-	b.left.Print()
-	b.right.Print()
+	fmt.Println(b.Op)
+	b.Left.Print()
+	b.Right.Print()
 }
 
 type LiteralValue struct {
