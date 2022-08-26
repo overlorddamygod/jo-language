@@ -10,7 +10,12 @@ import (
 )
 
 func main() {
-	dat, err := os.ReadFile("./example.jo")
+	if len(os.Args) == 1 {
+		fmt.Println("Filename not specified")
+		fmt.Println("Usage: jo <filename>")
+		return
+	}
+	dat, err := os.ReadFile(os.Args[1])
 
 	if err != nil {
 		panic(err)
@@ -30,6 +35,10 @@ func main() {
 	parser := Parser.NewParser(lexer)
 
 	node := parser.Parse()
+
+	// for _, s := range node {
+	// 	s.Print()
+	// }
 
 	evaluator := Eval.NewEvaluator(node)
 

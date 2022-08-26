@@ -14,21 +14,28 @@ const (
 	KEYWORD     = "KEYWORD"    // return, if, else, ...
 	INT         = "INT"        // 1343456
 	FLOAT       = "FLOAT"      // 12.34
+	BOOLEAN     = "BOOLEAN"    // true, false
 	STRING      = "STRING"     // "LOL 12312213"
 	OPERATOR    = "OPERATOR"
 	PUNCTUATION = "PUNCTUATION"
 )
 
 const (
-	ASSIGN   = "="
-	PLUS     = "+"
-	MINUS    = "-"
-	BANG     = "!"
-	ASTERISK = "*"
-	SLASH    = "/"
-	EQ       = "=="
-	NOT_EQ   = "!="
-	PERCENT  = "%"
+	ASSIGN    = "="
+	PLUS      = "+"
+	MINUS     = "-"
+	BANG      = "!"
+	ASTERISK  = "*"
+	SLASH     = "/"
+	EQ        = "=="
+	NOT_EQ    = "!="
+	PIPE      = "|"
+	AMPERSAND = "&"
+	OR        = "||"
+	AND       = "&&"
+	LT_EQ     = "<="
+	GT_EQ     = ">="
+	PERCENT   = "%"
 
 	// Delimiters
 	COMMA     = ","
@@ -46,6 +53,9 @@ const (
 	RBRACE   = "}"
 	LBRACKET = "["
 	RBRACKET = "]"
+
+	TRUE  = "true"
+	FALSE = "false"
 )
 
 type Token struct {
@@ -64,6 +74,7 @@ func (t *Token) Line(line int) *Token {
 	t.line = line
 	return t
 }
+
 func (t *Token) Start(start int) *Token {
 	t.start = start
 	return t

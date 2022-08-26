@@ -1,2 +1,7 @@
-a = 3 - 2 * 2;
-print(a);
+a = 2 + 2;
+
+if ( a % 2 == 0 ) {
+    print("a is even");
+} else {
+    print("a is odd");
+}
