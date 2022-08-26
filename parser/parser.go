@@ -1,6 +1,7 @@
 package parser
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/overlorddamygod/lexer/lexer"
@@ -45,19 +46,34 @@ func (p *Parser) Statements() []Node {
 
 func (p *Parser) statement() (Node, error) {
 	first, _ := p.lexer.PeekToken(0)
-	// fmt.Println(first)
-	if first.Literal == "if" {
-		// fmt.Println("IFFFFF")
-		return p.ifElse(), nil
-	}
 
+	switch first.Literal {
+	case "if":
+		return p.ifElse(), nil
+	case "for":
+		return p.For(), nil
+	}
 	second, _ := p.lexer.PeekToken(1)
 
 	if second.Literal == lexer.ASSIGN {
-		return p.assignment(), nil
+		return p.matchSemicolon(p.assignment())
 	}
 
-	return p.functionCall(), nil
+	return p.matchSemicolon(p.functionCall())
+}
+
+func (p *Parser) matchSemicolon(node Node) (Node, error) {
+	semicolon, err := p.lexer.NextToken()
+
+	if err != nil {
+
+	}
+
+	if !(semicolon.Type == L.PUNCTUATION && semicolon.Literal == L.SEMICOLON) {
+		fmt.Println("EXPECTED ;")
+		return nil, errors.New("expected ;")
+	}
+	return node, nil
 }
 
 func (p *Parser) functionCall() Node {
@@ -81,17 +97,6 @@ func (p *Parser) functionCall() Node {
 
 	if !(rightParenthesis.Type == L.PUNCTUATION && rightParenthesis.Literal == L.RPAREN) {
 		fmt.Println("EXPECTED )")
-		return nil
-	}
-
-	semicolon, err := p.lexer.NextToken()
-
-	if err != nil {
-
-	}
-
-	if !(semicolon.Type == L.PUNCTUATION && semicolon.Literal == L.SEMICOLON) {
-		fmt.Println("EXPECTED ;")
 		return nil
 	}
 
@@ -135,6 +140,70 @@ func (p *Parser) ifElse() Node {
 		ifStatement.Else(elseBlock)
 	}
 	return ifStatement
+}
+
+func (p *Parser) For() Node {
+	identifier, _ := p.lexer.NextToken()
+
+	if identifier.Literal != "for" {
+		fmt.Println("EXPECTED for")
+		return nil
+	}
+
+	leftParenthesis, _ := p.lexer.NextToken()
+
+	if !(leftParenthesis.Type == L.PUNCTUATION && leftParenthesis.Literal == L.LPAREN) {
+		fmt.Println("EXPECTED (")
+		return nil
+	}
+
+	assignment := p.assignment()
+
+	// fmt.Println(assignment)
+	// assignment.Print()
+
+	semicolon, err := p.lexer.NextToken()
+
+	// fmt.Println(semicolon)
+	if err != nil {
+
+	}
+
+	if !(semicolon.Type == L.PUNCTUATION && semicolon.Literal == L.SEMICOLON) {
+		fmt.Println("EXPECTED ;")
+		return nil
+	}
+
+	condition := p.expression()
+
+	// condition.Print()
+
+	semicolon, err = p.lexer.NextToken()
+	// fmt.Println("HERE", semicolon)
+	if err != nil {
+
+	}
+
+	if !(semicolon.Type == L.PUNCTUATION && semicolon.Literal == L.SEMICOLON) {
+		fmt.Println("EXPECTED ;")
+		return nil
+	}
+
+	exp := p.assignment()
+
+	// exp.Print()
+
+	rightParenthesis, _ := p.lexer.NextToken()
+
+	if !(rightParenthesis.Type == L.PUNCTUATION && rightParenthesis.Literal == L.RPAREN) {
+		fmt.Println("EXPECTED )")
+		return nil
+	}
+	// fmt.Println("HERE")
+
+	block := p.block()
+
+	return NewForStatement(assignment, condition, exp, block)
 }
 
 func (p *Parser) block() []Node {
@@ -195,16 +264,16 @@ func (p *Parser) assignment() Node {
 		return nil
 	}
 
-	semicolon, err := p.lexer.NextToken()
+	// semicolon, err := p.lexer.NextToken()
 
-	if err != nil {
+	// if err != nil {
 
-	}
+	// }
 
-	if !(semicolon.Type == L.PUNCTUATION && semicolon.Literal == L.SEMICOLON) {
-		fmt.Println("EXPECTED ;")
-		return nil
-	}
+	// if !(semicolon.Type == L.PUNCTUATION && semicolon.Literal == L.SEMICOLON) {
+	// 	fmt.Println("EXPECTED ;")
+	// 	return nil
+	// }
 
 	return NewAssignmentStatement(identifier, exp)
 }

@@ -60,7 +60,22 @@ func (e *Evaluator) EvalStatement(node parser.Node) {
 		} else {
 			e.EvalStatements(ifStatement.ElseBlock)
 		}
+	case "FOR":
+		forStatement := node.(*parser.ForStatement)
 
+		e.EvalStatement(forStatement.Initial)
+
+		for {
+			condition := e.EvalExpression(forStatement.Condition)
+
+			if !condition.GetBoolean() {
+				break
+			}
+
+			e.EvalStatements(forStatement.Block)
+
+			e.EvalStatement(forStatement.Expression)
+		}
 	default:
 		fmt.Println("UNKNOWN STATEMENT", node.NodeName())
 	}
@@ -120,6 +135,10 @@ func (e *Evaluator) EvalExpression(node parser.Node) parser.LiteralValue {
 			switch binaryExpression.Op {
 			case L.PLUS:
 				return parser.StringLiteral(left.GetString() + right.GetString())
+			case L.EQ:
+				return parser.BooleanLiteral(left.GetString() == right.GetString())
+			case L.NOT_EQ:
+				return parser.BooleanLiteral(left.GetString() != right.GetString())
 			}
 		}
 

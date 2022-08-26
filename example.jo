@@ -1,7 +1,9 @@
-a = 2 + 2;
+for (a = 1; a <= 10; a = a + 1) {
+    if ( a % 2 == 0 ) {
+        print("IS EVEN: " + "SAD " +  a);
+    }
+}
 
-if ( a % 2 == 0 ) {
-    print("a is even");
-} else {
-    print("a is odd");
+if ( "SAD" == "SAD" ) {
+    print("SAD ARE EQUAL");
 }

@@ -92,3 +92,44 @@ func (a *IfStatement) Print() {
 	// a.Identifier.Print()
 	// a.Expression.Print()
 }
+
+type ForStatement struct {
+	name       string
+	Initial    Node
+	Condition  Node
+	Expression Node
+	Block      []Node
+}
+
+func NewForStatement(Initial, Condition Node, Expression Node, Block []Node) *ForStatement {
+	return &ForStatement{
+		name:       "FOR",
+		Initial:    Initial,
+		Condition:  Condition,
+		Expression: Expression,
+		Block:      Block,
+		// ElseBlock: Else,
+	}
+}
+
+func (a *ForStatement) NodeName() string {
+	return a.name
+}
+
+func (a *ForStatement) Print() {
+	fmt.Println(a.name)
+	// a.Condition.Print()
+
+	// fmt.Println("IF")
+	// for _, i := range a.IfBlock {
+	// 	i.Print()
+	// }
+	// fmt.Println("ELSE")
+
+	// for _, i := range a.ElseBlock {
+	// 	i.Print()
+	// }
+	// fmt.Println("END IF")
+	// a.Identifier.Print()
+	// a.Expression.Print()
+}
