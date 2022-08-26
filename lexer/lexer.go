@@ -258,11 +258,42 @@ func (l *Lexer) Lex() ([]Token, error) {
 		}
 
 		switch currentChar {
-		case PLUS, MINUS, ASTERISK, SLASH, PERCENT:
+		case PLUS, MINUS, ASTERISK, PERCENT:
 			l.advance()
 			l.appendToken(l.getToken(OPERATOR, currentChar).Line(l.line).Start(l.col + 1).End(l.col + 1))
 			continue
 
+		case SLASH:
+			peek, err := l.peek(1)
+			if err != nil {
+				break
+			}
+			if peek == SLASH {
+				for currentChar != "\n" {
+					l.advance()
+					// if current == "\n" {
+					// 	l.line += 1
+					// 	l.col = 0
+					// }
+					if l.pos >= l.size {
+						break
+					}
+
+					currentChar, err = l.current()
+
+					// if err != nil {
+					// 	return err
+					// }
+				}
+				// l.advance()
+				// l.advance()
+				// l.appendToken(l.getToken(OPERATOR, EQ).Line(l.line).Start(l.col + 1).End(l.col + 2))
+				// l.appendToken(l.getToken(OPERATOR, EQ))
+			} else {
+				l.advance()
+				l.appendToken(l.getToken(OPERATOR, SLASH))
+			}
+			continue
 		case ASSIGN:
 			peek, err := l.peek(1)
 			if err != nil {

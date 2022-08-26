@@ -1,9 +1,18 @@
-for (a = 1; a <= 10; a = a + 1) {
-    if ( a % 2 == 0 ) {
-        print("IS EVEN: " + "SAD " +  a);
-    }
+name = "Pratham";
+
+if (name == "") {
+    name = "World";
 }
 
-if ( "SAD" == "SAD" ) {
-    print("SAD ARE EQUAL");
+helloworld = "Hello, " + name;
+
+// Printing Hello, World
+print(helloworld);
+
+for ( i = 0; i < 10; i = i + 1 ) {
+    if ( i % 2 == 0 ) {
+        print("is even " + i);
+    } else {
+        print("is odd " + i);
+    }
 }
