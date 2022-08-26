@@ -4,8 +4,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/overlorddamygod/lexer/lexer"
-	L "github.com/overlorddamygod/lexer/lexer"
+	L "github.com/overlorddamygod/jo/lexer"
 )
 
 type Parser struct {
@@ -21,7 +20,7 @@ func (p *Parser) Parse() []Node {
 	for {
 		token, _ := p.lexer.PeekToken(0)
 		// fmt.Println("SAD", token.Type)
-		if token.Type == lexer.EOF {
+		if token.Type == L.EOF {
 			break
 		}
 		st, _ := p.statement()
@@ -35,7 +34,7 @@ func (p *Parser) Statements() []Node {
 	for {
 		token, _ := p.lexer.PeekToken(0)
 		// fmt.Println("SAD", token.Type)
-		if token.Type == lexer.PUNCTUATION && token.Literal == L.RBRACE {
+		if token.Type == L.PUNCTUATION && token.Literal == L.RBRACE {
 			break
 		}
 		st, _ := p.statement()
@@ -55,7 +54,7 @@ func (p *Parser) statement() (Node, error) {
 	}
 	second, _ := p.lexer.PeekToken(1)
 
-	if second.Literal == lexer.ASSIGN {
+	if second.Literal == L.ASSIGN {
 		return p.matchSemicolon(p.assignment())
 	}
 

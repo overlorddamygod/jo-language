@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"math"
 
-	L "github.com/overlorddamygod/lexer/lexer"
-	"github.com/overlorddamygod/lexer/parser"
+	L "github.com/overlorddamygod/jo/lexer"
+	"github.com/overlorddamygod/jo/parser"
 )
 
 type Evaluator struct {

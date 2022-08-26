@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"os"
 
-	Eval "github.com/overlorddamygod/lexer/eval"
-	Lexer "github.com/overlorddamygod/lexer/lexer"
-	Parser "github.com/overlorddamygod/lexer/parser"
+	Eval "github.com/overlorddamygod/jo/eval"
+	Lexer "github.com/overlorddamygod/jo/lexer"
+	Parser "github.com/overlorddamygod/jo/parser"
 )
 
 func main() {
