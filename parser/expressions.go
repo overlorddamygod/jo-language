@@ -117,13 +117,15 @@ type Identifier struct {
 	name  string
 	Type  string
 	Value string
+	Token *L.Token
 }
 
-func NewIdentifier(value string) *Identifier {
+func NewIdentifier(value string, token *L.Token) *Identifier {
 	return &Identifier{
 		name:  "Identifier",
 		Type:  "Identifier",
 		Value: value,
+		Token: token,
 	}
 }
 

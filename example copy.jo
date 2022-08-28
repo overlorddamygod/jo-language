@@ -1,0 +1,17 @@
+name = "Pratham"
+
+print(name
+
+if (10 == 1) {
+    name = "World";
+    sad = "SAD";
+    print(sad);
+}
+
+// print(sad);
+
+for ( i = 0; i < 10; i = i + 1 ) {
+    print(i);
+}
+
+print(i);

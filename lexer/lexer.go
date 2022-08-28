@@ -104,7 +104,7 @@ func (l *Lexer) getIdentifier() (*Token, error) {
 		current, err = l.current()
 
 		if err != nil {
-			return nil, err
+			return l.getToken(IDENTIFIER, l.source[startPos:l.pos]), err
 		}
 	}
 
@@ -216,17 +216,13 @@ func IsAlphaNumericWithUnderscore(s string) bool {
 
 func (l *Lexer) Lex() ([]Token, error) {
 	for l.pos < l.size {
-		// fmt.Println("BEF", l.pos)
 		err := l.skipWhiteSpace()
 
 		if err != nil {
 			break
 		}
-		// fmt.Println("AF", l.pos)
 
 		l.start = l.col
-
-		// fmt.Println("LOL", l.pos)
 
 		currentChar, err := l.current()
 
@@ -235,10 +231,7 @@ func (l *Lexer) Lex() ([]Token, error) {
 		}
 
 		if IsLetter(currentChar) || currentChar == "_" {
-			identifier, err := l.getIdentifier()
-			if err != nil {
-				return l.tokens, err
-			}
+			identifier, _ := l.getIdentifier()
 
 			if IsKeyword(identifier.Literal) {
 				identifier.SetType(KEYWORD)
@@ -271,24 +264,12 @@ func (l *Lexer) Lex() ([]Token, error) {
 			if peek == SLASH {
 				for currentChar != "\n" {
 					l.advance()
-					// if current == "\n" {
-					// 	l.line += 1
-					// 	l.col = 0
-					// }
 					if l.pos >= l.size {
 						break
 					}
 
-					currentChar, err = l.current()
-
-					// if err != nil {
-					// 	return err
-					// }
+					currentChar, _ = l.current()
 				}
-				// l.advance()
-				// l.advance()
-				// l.appendToken(l.getToken(OPERATOR, EQ).Line(l.line).Start(l.col + 1).End(l.col + 2))
-				// l.appendToken(l.getToken(OPERATOR, EQ))
 			} else {
 				l.advance()
 				l.appendToken(l.getToken(OPERATOR, SLASH))
@@ -404,36 +385,24 @@ func (l *Lexer) Lex() ([]Token, error) {
 }
 
 func (l *Lexer) GetLine(line int) string {
-
-	// fmt.Printf("Error on line %d\n", line)
-
-	// for i := 0; i < line; i++ {
-	// 	fmt.Println(l.source[i])
-	// }
 	src := ""
 	pos := 0
 	lineNo := 1
 	for {
-		// fmt.Println("HERE", lineNo, line)
-
 		if lineNo == line {
 			for {
-				if string(l.source[pos]) == "\n" || pos >= l.size {
+				if pos == l.size-1 || string(l.source[pos]) == "\n" {
+					src += string(l.source[pos])
 					return fmt.Sprintf(" %d | %s", line, src)
 				}
 				src += string(l.source[pos])
-				// fmt.Println(string(l.source[pos]))
 				pos++
 			}
 		}
 		// loop until we find a newline
 		if string(l.source[pos]) == "\n" {
-			// fmt.Println("line")
-
 			lineNo++
 		}
-
-		// src += l.source[l.pos]
 		pos++
 
 		if pos >= l.size {

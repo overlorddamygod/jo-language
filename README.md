@@ -1,6 +1,6 @@
 # Jo Programming Language
 
-A toy programming language built with golang. (Syntax Same like javascript)
+A toy programming language built with golang.
 
 ---
 ### Usage
@@ -16,7 +16,7 @@ user@main:~$ ./jo example.jo
 ---
 ### Sample Program
 ```js
-name = "Pratham";
+name = "Overlord";
 
 if (name == "") {
     name = "World";

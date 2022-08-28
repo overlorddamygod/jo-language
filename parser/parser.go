@@ -1,8 +1,6 @@
 package parser
 
 import (
-	"errors"
-
 	L "github.com/overlorddamygod/jo/lexer"
 )
 
@@ -72,7 +70,7 @@ func (p *Parser) statement() (Node, error) {
 	functioncall, err := p.functionCall()
 
 	if err != nil {
-		return nil, errors.New("expected ;")
+		return nil, err
 	}
 	return p.matchSemicolon(functioncall)
 }
@@ -81,7 +79,7 @@ func (p *Parser) matchSemicolon(node Node) (Node, error) {
 	semicolon, err := p.lexer.NextToken()
 
 	if err != nil || !(semicolon.Type == L.PUNCTUATION && semicolon.Literal == L.SEMICOLON) {
-		return nil, errors.New("expected ;")
+		return nil, L.NewJoError(p.lexer, semicolon, "Expected ;")
 	}
 	return node, nil
 }
@@ -90,13 +88,13 @@ func (p *Parser) functionCall() (Node, error) {
 	functionName, err := p.identifier()
 
 	if err != nil {
-		return nil, errors.New("expected identifier")
+		return nil, err
 	}
 
 	leftParenthesis, err := p.lexer.NextToken()
 
 	if err != nil || !(leftParenthesis.Type == L.PUNCTUATION && leftParenthesis.Literal == L.LPAREN) {
-		return nil, errors.New("expected (")
+		return nil, L.NewJoError(p.lexer, leftParenthesis, "Expected (")
 	}
 
 	exp, err := p.expression()
@@ -108,7 +106,7 @@ func (p *Parser) functionCall() (Node, error) {
 	rightParenthesis, err := p.lexer.NextToken()
 
 	if err != nil || !(rightParenthesis.Type == L.PUNCTUATION && rightParenthesis.Literal == L.RPAREN) {
-		return nil, errors.New("expected )")
+		return nil, L.NewJoError(p.lexer, rightParenthesis, "Expected )")
 	}
 
 	return NewFunctionCallStatement(functionName, exp), nil
@@ -118,14 +116,14 @@ func (p *Parser) ifElse() (Node, error) {
 	identifier, err := p.lexer.NextToken()
 
 	if err != nil || identifier.Literal != "if" {
-		return nil, errors.New("expected if")
+		return nil, L.NewJoError(p.lexer, identifier, "Expected if")
 
 	}
 
 	leftParenthesis, err := p.lexer.NextToken()
 
 	if err != nil || !(leftParenthesis.Type == L.PUNCTUATION && leftParenthesis.Literal == L.LPAREN) {
-		return nil, errors.New("expected (")
+		return nil, L.NewJoError(p.lexer, leftParenthesis, "Expected (")
 	}
 
 	exp, err := p.expression()
@@ -137,7 +135,7 @@ func (p *Parser) ifElse() (Node, error) {
 	rightParenthesis, err := p.lexer.NextToken()
 
 	if err != nil || !(rightParenthesis.Type == L.PUNCTUATION && rightParenthesis.Literal == L.RPAREN) {
-		return nil, errors.New("expected )")
+		return nil, L.NewJoError(p.lexer, rightParenthesis, "Expected )")
 
 	}
 	// fmt.Println("HERE")
@@ -168,13 +166,13 @@ func (p *Parser) For() (Node, error) {
 	identifier, err := p.lexer.NextToken()
 
 	if err != nil || identifier.Literal != "for" {
-		return nil, errors.New("EXPECTED for")
+		return nil, L.NewJoError(p.lexer, identifier, "Expected for")
 	}
 
 	leftParenthesis, err := p.lexer.NextToken()
 
 	if err != nil || !(leftParenthesis.Type == L.PUNCTUATION && leftParenthesis.Literal == L.LPAREN) {
-		return nil, errors.New("EXPECTED (")
+		return nil, L.NewJoError(p.lexer, leftParenthesis, "Expected (")
 	}
 
 	assignment, err := p.assignment()
@@ -183,19 +181,16 @@ func (p *Parser) For() (Node, error) {
 		return nil, err
 	}
 
-	// fmt.Println(assignment)
-	// assignment.Print()
-
 	semicolon, err := p.lexer.NextToken()
 
 	if err != nil || !(semicolon.Type == L.PUNCTUATION && semicolon.Literal == L.SEMICOLON) {
-		return nil, errors.New("EXPECTED ;")
+		return nil, L.NewJoError(p.lexer, semicolon, "Expected ;")
 	}
 
 	condition, err := p.expression()
 
 	if err != nil {
-		return nil, errors.New("expected looping condition")
+		return nil, err
 	}
 
 	// condition.Print()
@@ -203,7 +198,7 @@ func (p *Parser) For() (Node, error) {
 	semicolon, err = p.lexer.NextToken()
 
 	if err != nil || !(semicolon.Type == L.PUNCTUATION && semicolon.Literal == L.SEMICOLON) {
-		return nil, errors.New("EXPECTED ;")
+		return nil, L.NewJoError(p.lexer, semicolon, "Expected ;")
 	}
 
 	exp, err := p.assignment()
@@ -216,7 +211,7 @@ func (p *Parser) For() (Node, error) {
 	rightParenthesis, err := p.lexer.NextToken()
 
 	if err != nil || !(rightParenthesis.Type == L.PUNCTUATION && rightParenthesis.Literal == L.RPAREN) {
-		return nil, errors.New("EXPECTED )")
+		return nil, L.NewJoError(p.lexer, semicolon, "Expected )")
 	}
 	// fmt.Println("HERE")
 
@@ -234,7 +229,7 @@ func (p *Parser) block() ([]Node, error) {
 
 	// fmt.Println("LEFTCURLY", leftCurly)
 	if err != nil || !(leftCurly.Type == L.PUNCTUATION && leftCurly.Literal == L.LBRACE) {
-		return nil, errors.New("expected {")
+		return nil, L.NewJoError(p.lexer, leftCurly, "Expected {")
 	}
 
 	// fmt.Println("BLOCK")
@@ -248,7 +243,7 @@ func (p *Parser) block() ([]Node, error) {
 	rightCurly, err := p.lexer.NextToken()
 
 	if err != nil || !(rightCurly.Type == L.PUNCTUATION && rightCurly.Literal == L.RBRACE) {
-		return nil, errors.New("expected }")
+		return nil, L.NewJoError(p.lexer, rightCurly, "Expected }")
 	}
 
 	return block, nil
@@ -257,23 +252,28 @@ func (p *Parser) block() ([]Node, error) {
 func (p *Parser) identifier() (Node, error) {
 	identifier, err := p.lexer.NextToken()
 
-	if err != nil {
-		return nil, err
+	if err != nil || identifier.Type == L.EOF {
+		return nil, L.NewJoError(p.lexer, identifier, "Expected identifier")
 	}
-	return NewIdentifier(identifier.Literal), nil
+
+	if L.IsKeyword(identifier.Literal) {
+		return nil, L.NewJoError(p.lexer, identifier, "Variable name cannot be a keyword")
+	}
+
+	return NewIdentifier(identifier.Literal, identifier), nil
 }
 
 func (p *Parser) assignment() (Node, error) {
 	identifier, err := p.identifier()
 
 	if err != nil {
-		return nil, errors.New("EXPECTED identifier")
+		return nil, err
 	}
 
 	equals, err := p.lexer.NextToken()
 
 	if err != nil || !(equals.Type == L.OPERATOR && equals.Literal == "=") {
-		return nil, errors.New("EXPECTED =")
+		return nil, L.NewJoError(p.lexer, equals, "Expected =")
 	}
 
 	exp, err := p.expression()
@@ -366,7 +366,7 @@ func (p *Parser) primary() (Node, error) {
 	token, err := p.lexer.NextToken()
 
 	if err != nil {
-		return nil, err
+		return nil, L.NewJoError(p.lexer, token, "Expected value")
 	}
 
 	if token.Type == L.STRING || token.Type == L.INT || token.Type == L.FLOAT {
@@ -381,8 +381,9 @@ func (p *Parser) primary() (Node, error) {
 
 	if token.Type == L.IDENTIFIER {
 		// token.Print()
-		return NewIdentifier(token.Literal), nil
+		return NewIdentifier(token.Literal, token), nil
 	}
+	// fmt.Println("HERE")
 
 	if token.Type == L.PUNCTUATION && token.Literal == L.LPAREN {
 		// token.Print()
@@ -395,10 +396,10 @@ func (p *Parser) primary() (Node, error) {
 		token, err := p.lexer.NextToken()
 
 		if err != nil || !(token.Type == L.PUNCTUATION && token.Literal == L.RPAREN) {
-			return nil, errors.New("expected )")
+			return nil, L.NewJoError(p.lexer, token, "Expected )")
 
 		}
 		return e, nil
 	}
-	return nil, errors.New("unexpected primary value")
+	return nil, L.NewJoError(p.lexer, token, "unexpected value")
 }

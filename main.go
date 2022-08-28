@@ -18,7 +18,8 @@ func main() {
 	dat, err := os.ReadFile(os.Args[1])
 
 	if err != nil {
-		panic(err)
+		fmt.Println("Unable to read file", dat)
+		return
 	}
 
 	lexer := Lexer.NewLexer(string(dat))
@@ -26,7 +27,7 @@ func main() {
 	tokens, err := lexer.Lex()
 	if err != nil {
 		fmt.Println(tokens)
-		fmt.Println("[Lexer]\n", err)
+		fmt.Println("[Lexer]\n\n", err)
 		return
 	}
 	// fmt.Println(tokens)
@@ -36,7 +37,7 @@ func main() {
 	node, err := parser.Parse()
 
 	if err != nil {
-		fmt.Println("[Parser]", err)
+		fmt.Println("[Parser]\n\n", err)
 		return
 	}
 
@@ -44,11 +45,11 @@ func main() {
 	// 	s.Print()
 	// }
 
-	evaluator := Eval.NewEvaluator(node)
+	evaluator := Eval.NewEvaluator(lexer, node)
 
 	err = evaluator.Eval()
 
 	if err != nil {
-		fmt.Printf("[Evaluator] %s", err)
+		fmt.Printf("[Evaluator]\n\n%s", err)
 	}
 }

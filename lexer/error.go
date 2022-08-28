@@ -22,7 +22,7 @@ func NewJoError(l *Lexer, token *Token, msg string) *JoError {
 
 func MarkError(line string, lineNo int, start int, end int, msg string) string {
 	strlen := len(line)
-	formatStr := "%s\n "
+	formatStr := "%s\n"
 
 	for i := 0; i <= strlen; i++ {
 		if string(line[i]) == "|" {
@@ -40,7 +40,7 @@ func MarkError(line string, lineNo int, start int, end int, msg string) string {
 		formatStr += "^"
 	}
 
-	formatStr += "\n-- Line: %d Col: %d : %s\n"
+	formatStr += " \n-- Line: %d Col: %d : %s\n"
 
 	return fmt.Sprintf(formatStr, line, lineNo, start, msg)
 }

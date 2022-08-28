@@ -10,15 +10,16 @@ import (
 )
 
 type Evaluator struct {
+	lexer       *L.Lexer
 	node        []parser.Node
 	global      *Environment
 	environment *Environment
 	// variables   map[string]parser.LiteralValue
 }
 
-func NewEvaluator(node []parser.Node) *Evaluator {
+func NewEvaluator(lexer *L.Lexer, node []parser.Node) *Evaluator {
 	env := NewEnvironment()
-	return &Evaluator{node: node, global: env, environment: env}
+	return &Evaluator{lexer: lexer, node: node, global: env, environment: env}
 }
 
 func (e *Evaluator) Eval() error {
@@ -206,7 +207,7 @@ func (e *Evaluator) EvalExpression(node parser.Node) (EnvironmentData, error) {
 
 		if err != nil {
 			// fmt.Println(err)
-			return nil, fmt.Errorf("variable ` %s ` not defined in this scope", variable.Value)
+			return nil, L.NewJoError(e.lexer, variable.Token, fmt.Sprintf("variable ` %s ` not defined in this scope", variable.Value))
 		}
 		return val, nil
 	default:
