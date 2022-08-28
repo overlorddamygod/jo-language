@@ -146,6 +146,10 @@ func (e *Evaluator) EvalStatement(node parser.Node) (EnvironmentData, error) {
 	case "ReturnStatement":
 		returnStmt := node.(*parser.ReturnStatement)
 
+		if returnStmt.Expression == nil {
+			return nil, nil
+		}
+
 		return e.EvalExpression(returnStmt.Expression)
 	default:
 		return nil, fmt.Errorf("unknown statement %s", node.NodeName())
@@ -274,15 +278,23 @@ func (e *Evaluator) functionCall(node parser.Node) (EnvironmentData, error) {
 
 	if functionName.Value == "print" {
 		output := ""
-		for _, arg := range functionCall.Arguments {
+		for i, arg := range functionCall.Arguments {
 			exp, err := e.EvalExpression(arg)
 
 			if err != nil {
 				return nil, err
 			}
 
-			expressionVal := exp.(LiteralData)
-			output += " " + expressionVal.Value
+			if i > 0 {
+				output += " "
+			}
+			expressionVal, ok := exp.(LiteralData)
+
+			if !ok {
+				output += "null"
+			} else {
+				output += expressionVal.Value
+			}
 		}
 		fmt.Println(output)
 		return nil, nil

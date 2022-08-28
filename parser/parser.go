@@ -15,6 +15,10 @@ func NewParser(lexer *L.Lexer) *Parser {
 }
 
 func (p *Parser) Parse() ([]Node, error) {
+	return p.program()
+}
+
+func (p *Parser) program() ([]Node, error) {
 	var declarations []Node = make([]Node, 0)
 	for {
 		token, _ := p.lexer.PeekToken(0)
@@ -22,7 +26,7 @@ func (p *Parser) Parse() ([]Node, error) {
 		if token.Type == L.EOF {
 			break
 		}
-		declaration, err := p.Declaration()
+		declaration, err := p.declaration()
 
 		if err != nil {
 			return declarations, err
@@ -32,7 +36,7 @@ func (p *Parser) Parse() ([]Node, error) {
 	return declarations, nil
 }
 
-func (p *Parser) Declaration() (Node, error) {
+func (p *Parser) declaration() (Node, error) {
 	first, _ := p.lexer.PeekToken(0)
 
 	switch first.Literal {
@@ -43,7 +47,7 @@ func (p *Parser) Declaration() (Node, error) {
 	// return nil, L.NewJoError(p.lexer, first, fmt.Sprintf("Unknown declaration ` %s `", first.Literal))
 }
 
-func (p *Parser) Statements() ([]Node, error) {
+func (p *Parser) statements() ([]Node, error) {
 	var statements []Node = make([]Node, 0)
 	for {
 		token, _ := p.lexer.PeekToken(0)
@@ -58,6 +62,22 @@ func (p *Parser) Statements() ([]Node, error) {
 		statements = append(statements, st)
 	}
 	return statements, nil
+}
+func (p *Parser) declarations() ([]Node, error) {
+	var declarations []Node = make([]Node, 0)
+	for {
+		token, _ := p.lexer.PeekToken(0)
+		// fmt.Println("SAD", token.Type)
+		if token.Type == L.PUNCTUATION && token.Literal == L.RBRACE {
+			break
+		}
+		dec, err := p.declaration()
+		if err != nil {
+			return declarations, err
+		}
+		declarations = append(declarations, dec)
+	}
+	return declarations, nil
 }
 
 func (p *Parser) statement() (Node, error) {
@@ -75,6 +95,9 @@ func (p *Parser) statement() (Node, error) {
 			return nil, err
 		}
 		return p.matchSemicolon(ret)
+		// TODO: ADD BLOCK STATEMENT
+		// case "{":
+		// return p.block()
 	}
 
 	exp, err := p.expression()
@@ -297,7 +320,7 @@ func (p *Parser) block() ([]Node, error) {
 
 	// fmt.Println("BLOCK")
 
-	block, err := p.Statements()
+	block, err := p.declarations()
 
 	if err != nil {
 		return nil, err
