@@ -2,6 +2,11 @@
 
 A toy programming language built with golang.
 
+Language Grammar in [`jo-grammar.cfg`](./jo-grammar.cfg)
+
+### References:
+* [Crafting Interpreters](https://craftinginterpreters.com/appendix-i.html)
+    
 ---
 ### Usage
 
@@ -18,21 +23,21 @@ user@main:~$ ./jo example.jo
 ```js
 name = "Overlord";
 
-if (name == "") {
+hasName = name == "";
+
+if (!!hasName) {
     name = "World";
 }
 
-helloworld = "Hello, " + name;
-
 // Printing Hello, World
-print(helloworld);
+print("Hello,", name);
 
 // Print if number is even or odd from 0 to 10
 for ( i = 0; i <= 10; i = i + 1 ) {
     if ( i % 2 == 0 ) {
-        print("is even " + i);
+        print("is even", i);
     } else {
-        print("is odd " + i);
+        print("is odd", i);
     }
 }
 ```

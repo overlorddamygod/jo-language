@@ -36,6 +36,9 @@ func main() {
 
 	node, err := parser.Parse()
 
+	// for _, s := range node {
+	// 	s.Print()
+	// }
 	if err != nil {
 		fmt.Println("[Parser]\n\n", err)
 		return

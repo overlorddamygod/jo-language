@@ -251,7 +251,7 @@ func (l *Lexer) Lex() ([]Token, error) {
 		}
 
 		switch currentChar {
-		case PLUS, MINUS, ASTERISK, PERCENT:
+		case ASTERISK, PERCENT:
 			l.advance()
 			l.appendToken(l.getToken(OPERATOR, currentChar).Line(l.line).Start(l.col + 1).End(l.col + 1))
 			continue
@@ -293,7 +293,7 @@ func (l *Lexer) Lex() ([]Token, error) {
 		case LT, GT:
 			peek, err := l.peek(1)
 			if err != nil {
-				break
+				// break
 			}
 			if peek == "=" {
 				l.advance()
@@ -312,7 +312,7 @@ func (l *Lexer) Lex() ([]Token, error) {
 		case PIPE, AMPERSAND:
 			peek, err := l.peek(1)
 			if err != nil {
-				break
+				// break
 			}
 			if peek == currentChar {
 				l.advance()
@@ -322,6 +322,27 @@ func (l *Lexer) Lex() ([]Token, error) {
 
 				if currentChar == AMPERSAND {
 					literal = AND
+				}
+				// l.appendToken(l.getToken(OPERATOR, EQ).Line(l.line).Start(l.col + 1).End(l.col + 2))
+				l.appendToken(l.getToken(OPERATOR, literal))
+			} else {
+				l.advance()
+				l.appendToken(l.getToken(OPERATOR, currentChar))
+			}
+			continue
+		case PLUS, MINUS:
+			peek, err := l.peek(1)
+			if err != nil {
+				// break
+			}
+			if peek == currentChar {
+				l.advance()
+				l.advance()
+
+				literal := UNARY_PLUS
+
+				if currentChar == MINUS {
+					literal = UNARY_MINUS
 				}
 				// l.appendToken(l.getToken(OPERATOR, EQ).Line(l.line).Start(l.col + 1).End(l.col + 2))
 				l.appendToken(l.getToken(OPERATOR, literal))

@@ -51,23 +51,9 @@ func (e *Evaluator) EvalStatement(node parser.Node) error {
 			return err
 		}
 		e.environment.Define(id.Value, exp)
-	case "FUNCTION_CALL":
-		functionCall := node.(*parser.FunctionCallStatement)
-
-		functionName := functionCall.Identifier.(*parser.Identifier)
-
-		if functionName.Value == "print" {
-			// fmt.Println("HERE")
-			exp, err := e.EvalExpression(functionCall.Expression)
-
-			if err != nil {
-				return err
-			}
-
-			expressionVal := exp.(LiteralData)
-
-			fmt.Println(expressionVal.Value)
-		}
+	case "FunctionCall":
+		_, err := e.functionCall(node)
+		return err
 	case "IF":
 		ifStatement := node.(*parser.IfStatement)
 
@@ -201,19 +187,59 @@ func (e *Evaluator) EvalExpression(node parser.Node) (EnvironmentData, error) {
 	case "LiteralValue":
 		literal := node.(*parser.LiteralValue)
 		return LiteralDataFromParserLiteral(*literal), nil
+	case "UnaryExpression":
+		unary := node.(*parser.UnaryExpression)
+
+		if unary.Op == L.BANG {
+			data, err := e.EvalExpression(unary.Identifier)
+			if err != nil {
+				return nil, err
+			}
+
+			value := data.(LiteralData)
+
+			return BooleanLiteral(!value.GetBoolean()), nil
+		}
+		return nil, L.NewJoError(e.lexer, unary.Token, "Unknown operator "+unary.Op)
 	case "Identifier":
 		variable := node.(*parser.Identifier)
 		val, err := e.environment.Get(variable.Value)
 
 		if err != nil {
 			// fmt.Println(err)
-			return nil, L.NewJoError(e.lexer, variable.Token, fmt.Sprintf("variable ` %s ` not defined in this scope", variable.Value))
+			return nil, L.NewJoError(e.lexer, variable.Token, fmt.Sprintf("Variable ` %s ` not defined in this scope", variable.Value))
 		}
 		return val, nil
+	case "FunctionCall":
+		fmt.Println("HERE")
+		return e.functionCall(node)
 	default:
 		return nil, errors.New("unknown nodename")
 	}
 	return nil, nil
+}
+
+func (e *Evaluator) functionCall(node parser.Node) (EnvironmentData, error) {
+	functionCall := node.(*parser.FunctionCall)
+
+	functionName := functionCall.Identifier.(*parser.Identifier)
+
+	if functionName.Value == "print" {
+		output := ""
+		for _, arg := range functionCall.Arguments {
+			exp, err := e.EvalExpression(arg)
+
+			if err != nil {
+				return nil, err
+			}
+
+			expressionVal := exp.(LiteralData)
+			output += " " + expressionVal.Value
+		}
+		fmt.Println(output)
+		return nil, nil
+	}
+	return nil, L.NewJoError(e.lexer, functionName.Token, fmt.Sprintf("unknown function ` %s `", functionName.Value))
 }
 
 func (e *Evaluator) begin() {

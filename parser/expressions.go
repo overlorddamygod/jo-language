@@ -36,6 +36,32 @@ func (b *BinaryExpression) Print() {
 	b.Right.Print()
 }
 
+type UnaryExpression struct {
+	name       string
+	Op         string
+	Identifier Node
+	Token      *L.Token
+}
+
+func NewUnaryExpression(op string, identifier Node, token *L.Token) *UnaryExpression {
+	return &UnaryExpression{
+		name:       "UnaryExpression",
+		Op:         op,
+		Identifier: identifier,
+		Token:      token,
+	}
+}
+
+func (b *UnaryExpression) NodeName() string {
+	return b.name
+}
+
+func (b *UnaryExpression) Print() {
+	fmt.Println(b.name)
+	fmt.Println(b.Op)
+	b.Identifier.Print()
+}
+
 type LiteralValue struct {
 	name           string
 	Type           string
@@ -139,4 +165,32 @@ func (i *Identifier) Print() {
 type Node interface {
 	NodeName() string
 	Print()
+}
+
+type FunctionCall struct {
+	name       string
+	Identifier Node
+	Arguments  []Node
+}
+
+func NewFunctionCall(identifier Node, arguments []Node) *FunctionCall {
+	return &FunctionCall{
+		name:       "FunctionCall",
+		Identifier: identifier,
+		Arguments:  arguments,
+	}
+}
+
+func (b *FunctionCall) NodeName() string {
+	return b.name
+}
+
+func (b *FunctionCall) Print() {
+	fmt.Println(b.name)
+	b.Identifier.Print()
+
+	fmt.Println("Arguments")
+	for _, s := range b.Arguments {
+		s.Print()
+	}
 }

@@ -56,23 +56,31 @@ func (p *Parser) statement() (Node, error) {
 	case "for":
 		return p.For()
 	}
-	second, _ := p.lexer.PeekToken(1)
 
-	if second.Literal == L.ASSIGN {
-		assignment, err := p.assignment()
-
-		if err != nil {
-			return nil, err
-		}
-		return p.matchSemicolon(assignment)
-	}
-
-	functioncall, err := p.functionCall()
+	exp, err := p.expression()
 
 	if err != nil {
 		return nil, err
 	}
-	return p.matchSemicolon(functioncall)
+
+	return p.matchSemicolon(exp)
+	// second, _ := p.lexer.PeekToken(1)
+
+	// if second.Literal == L.ASSIGN {
+	// 	assignment, err := p.assignment()
+
+	// 	if err != nil {
+	// 		return nil, err
+	// 	}
+	// 	return p.matchSemicolon(assignment)
+	// }
+
+	// functioncall, err := p.functionCall()
+
+	// if err != nil {
+	// 	return nil, err
+	// }
+	// return p.matchSemicolon(functioncall)
 }
 
 func (p *Parser) matchSemicolon(node Node) (Node, error) {
@@ -84,33 +92,33 @@ func (p *Parser) matchSemicolon(node Node) (Node, error) {
 	return node, nil
 }
 
-func (p *Parser) functionCall() (Node, error) {
-	functionName, err := p.identifier()
+// func (p *Parser) functionCall() (Node, error) {
+// 	functionName, err := p.identifier()
 
-	if err != nil {
-		return nil, err
-	}
+// 	if err != nil {
+// 		return nil, err
+// 	}
 
-	leftParenthesis, err := p.lexer.NextToken()
+// 	leftParenthesis, err := p.lexer.NextToken()
 
-	if err != nil || !(leftParenthesis.Type == L.PUNCTUATION && leftParenthesis.Literal == L.LPAREN) {
-		return nil, L.NewJoError(p.lexer, leftParenthesis, "Expected (")
-	}
+// 	if err != nil || !(leftParenthesis.Type == L.PUNCTUATION && leftParenthesis.Literal == L.LPAREN) {
+// 		return nil, L.NewJoError(p.lexer, leftParenthesis, "Expected (")
+// 	}
 
-	exp, err := p.expression()
+// 	exp, err := p.expression()
 
-	if err != nil {
-		return nil, err
-	}
+// 	if err != nil {
+// 		return nil, err
+// 	}
 
-	rightParenthesis, err := p.lexer.NextToken()
+// 	rightParenthesis, err := p.lexer.NextToken()
 
-	if err != nil || !(rightParenthesis.Type == L.PUNCTUATION && rightParenthesis.Literal == L.RPAREN) {
-		return nil, L.NewJoError(p.lexer, rightParenthesis, "Expected )")
-	}
+// 	if err != nil || !(rightParenthesis.Type == L.PUNCTUATION && rightParenthesis.Literal == L.RPAREN) {
+// 		return nil, L.NewJoError(p.lexer, rightParenthesis, "Expected )")
+// 	}
 
-	return NewFunctionCallStatement(functionName, exp), nil
-}
+// 	return NewFunctionCallStatement(functionName, exp), nil
+// }
 
 func (p *Parser) ifElse() (Node, error) {
 	identifier, err := p.lexer.NextToken()
@@ -263,41 +271,39 @@ func (p *Parser) identifier() (Node, error) {
 	return NewIdentifier(identifier.Literal, identifier), nil
 }
 
-func (p *Parser) assignment() (Node, error) {
-	identifier, err := p.identifier()
-
-	if err != nil {
-		return nil, err
-	}
-
-	equals, err := p.lexer.NextToken()
-
-	if err != nil || !(equals.Type == L.OPERATOR && equals.Literal == "=") {
-		return nil, L.NewJoError(p.lexer, equals, "Expected =")
-	}
-
-	exp, err := p.expression()
-
-	if err != nil {
-		return nil, err
-	}
-
-	// semicolon, err := p.lexer.NextToken()
-
-	// if err != nil {
-
-	// }
-
-	// if !(semicolon.Type == L.PUNCTUATION && semicolon.Literal == L.SEMICOLON) {
-	// 	fmt.Println("EXPECTED ;")
-	// 	return nil
-	// }
-
-	return NewAssignmentStatement(identifier, exp), nil
-}
-
 // parse expression
 func (p *Parser) expression() (Node, error) {
+	return p.assignment()
+}
+
+func (p *Parser) assignment() (Node, error) {
+	identi, _ := p.lexer.PeekToken(0)
+
+	if identi.Type == L.IDENTIFIER {
+		equal, _ := p.lexer.PeekToken(1)
+
+		if equal.Type == L.OPERATOR && equal.Literal == L.ASSIGN {
+			identifier, err := p.identifier()
+
+			if err != nil {
+				return nil, err
+			}
+
+			equals, err := p.lexer.NextToken()
+
+			if err != nil || !(equals.Type == L.OPERATOR && equals.Literal == "=") {
+				return nil, L.NewJoError(p.lexer, equals, "Expected =")
+			}
+
+			exp, err := p.expression()
+
+			if err != nil {
+				return nil, err
+			}
+
+			return NewAssignmentStatement(identifier, exp), nil
+		}
+	}
 	return p.logicOr()
 }
 
@@ -357,13 +363,97 @@ func (p *Parser) term() (Node, error) {
 }
 
 func (p *Parser) factor() (Node, error) {
-	return p.binary(p.primary, func(t *L.Token) bool {
+	return p.binary(p.unary, func(t *L.Token) bool {
 		return t.Type == L.OPERATOR && (t.Literal == L.SLASH || t.Literal == L.ASTERISK || t.Literal == L.PERCENT)
 	})
 }
 
+func (p *Parser) unary() (Node, error) {
+	token, _ := p.lexer.PeekToken(0)
+
+	if token.Type == L.OPERATOR && (token.Literal == L.BANG || token.Literal == L.UNARY_PLUS || token.Literal == L.UNARY_MINUS) {
+		p.lexer.NextToken()
+		unary_, _ := p.unary()
+		return NewUnaryExpression(string(token.Literal), unary_, token), nil
+	}
+
+	return p.call()
+}
+
+func (p *Parser) call() (Node, error) {
+	token, err := p.primary()
+	if err != nil {
+		return nil, err
+	}
+
+	leftParen, _ := p.lexer.PeekToken(0)
+
+	if leftParen.Type == L.PUNCTUATION && leftParen.Literal == L.LPAREN {
+		p.lexer.NextToken()
+
+		rightPar, _ := p.lexer.PeekToken(0)
+
+		if rightPar.Type == L.PUNCTUATION && rightPar.Literal == L.RPAREN {
+			p.lexer.NextToken()
+
+			return NewFunctionCall(token, []Node{}), nil
+		}
+
+		arguments, err := p.arguments()
+
+		if err != nil {
+			return nil, err
+		}
+
+		// fmt.Println(arguments)
+
+		rightParen, err := p.lexer.NextToken()
+
+		if err != nil || !(rightParen.Type == L.PUNCTUATION && rightParen.Literal == L.RPAREN) {
+			return nil, L.NewJoError(p.lexer, rightParen, "Expected )")
+		}
+
+		return NewFunctionCall(token, arguments), nil
+	}
+
+	return token, nil
+}
+
+func (p *Parser) arguments() ([]Node, error) {
+	var arguments []Node = make([]Node, 0)
+
+	argument, err := p.expression()
+	if err != nil {
+		return nil, err
+	}
+	arguments = append(arguments, argument)
+	for {
+		op_token, err := p.lexer.PeekToken(0)
+		if err != nil {
+			break
+		}
+		if op_token.Type == L.PUNCTUATION && op_token.Literal == L.COMMA {
+			p.lexer.NextToken()
+
+			argument, err := p.expression()
+
+			if err != nil {
+				return nil, err
+			}
+
+			arguments = append(arguments, argument)
+		} else {
+			break
+		}
+	}
+	return arguments, nil
+
+}
+
 func (p *Parser) primary() (Node, error) {
 	token, err := p.lexer.NextToken()
+
+	// fmt.Println("BOOO", token)
 
 	if err != nil {
 		return nil, L.NewJoError(p.lexer, token, "Expected value")
