@@ -388,11 +388,11 @@ func (l *Lexer) Lex() ([]Token, error) {
 			l.appendToken(strLiteralToken)
 			continue
 		default:
-			// l.GetLine(l.line)
-			err := fmt.Sprintf("Illegal Character `%s`", currentChar)
-			return l.tokens, fmt.Errorf("%s", MarkError(l.GetLine(l.line), l.line, l.start+1, l.pos+1, err))
+			l.advance()
+			token := l.getToken(ILLEGAL, currentChar)
+			return l.tokens, NewJoError(l, token, fmt.Sprintf("Illegal Character `%s`", currentChar))
 		}
-		fmt.Println("HERE")
+		// fmt.Println("HERE")
 		l.advance()
 	}
 
@@ -401,31 +401,6 @@ func (l *Lexer) Lex() ([]Token, error) {
 	l.appendToken(l.getToken(EOF, "EOF"))
 	l.token_size = len(l.tokens)
 	return l.tokens, nil
-}
-
-func MarkError(line string, lineNo int, start int, end int, msg string) string {
-	strlen := len(line)
-	formatStr := "%s\n"
-
-	for i := 0; i < strlen; i++ {
-		if string(line[i]) == "|" {
-			formatStr += " "
-			break
-		}
-		formatStr += " "
-	}
-
-	for i := 0; i < start; i++ {
-		formatStr += " "
-	}
-	// fmt.Println(start, end)
-	for i := start; i <= end; i++ {
-		formatStr += "^"
-	}
-
-	formatStr += "\n-- Line: %d Col: %d : %s\n"
-
-	return fmt.Sprintf(formatStr, line, lineNo, start, msg)
 }
 
 func (l *Lexer) GetLine(line int) string {

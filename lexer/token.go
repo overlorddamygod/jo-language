@@ -7,6 +7,7 @@ type TokenType string
 const (
 	// Special tokens
 	ILLEGAL TokenType = "ILLEGAL"
+	ERROR   TokenType = "ERROR"
 	EOF     TokenType = "EOF"
 
 	// Identifiers + literals

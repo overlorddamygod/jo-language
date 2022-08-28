@@ -26,15 +26,19 @@ func main() {
 	tokens, err := lexer.Lex()
 	if err != nil {
 		fmt.Println(tokens)
-		fmt.Println(err)
+		fmt.Println("[Lexer]\n", err)
 		return
-		// panic(err)
 	}
 	// fmt.Println(tokens)
 
 	parser := Parser.NewParser(lexer)
 
-	node := parser.Parse()
+	node, err := parser.Parse()
+
+	if err != nil {
+		fmt.Println("[Parser]", err)
+		return
+	}
 
 	// for _, s := range node {
 	// 	s.Print()
@@ -42,5 +46,9 @@ func main() {
 
 	evaluator := Eval.NewEvaluator(node)
 
-	evaluator.Eval()
+	err = evaluator.Eval()
+
+	if err != nil {
+		fmt.Printf("[Evaluator] %s", err)
+	}
 }

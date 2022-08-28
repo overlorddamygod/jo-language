@@ -1,6 +1,7 @@
 package eval
 
 import (
+	"errors"
 	"fmt"
 	"math"
 
@@ -9,25 +10,33 @@ import (
 )
 
 type Evaluator struct {
-	node      []parser.Node
-	variables map[string]parser.LiteralValue
+	node        []parser.Node
+	global      *Environment
+	environment *Environment
+	// variables   map[string]parser.LiteralValue
 }
 
 func NewEvaluator(node []parser.Node) *Evaluator {
-	return &Evaluator{node: node, variables: make(map[string]parser.LiteralValue)}
+	env := NewEnvironment()
+	return &Evaluator{node: node, global: env, environment: env}
 }
 
-func (e *Evaluator) Eval() {
-	e.EvalStatements(e.node)
+func (e *Evaluator) Eval() error {
+	return e.EvalStatements(e.node)
 }
 
-func (e *Evaluator) EvalStatements(statements []parser.Node) {
+func (e *Evaluator) EvalStatements(statements []parser.Node) error {
 	for _, s := range statements {
-		e.EvalStatement(s)
+		err := e.EvalStatement(s)
+
+		if err != nil {
+			return err
+		}
 	}
+	return nil
 }
 
-func (e *Evaluator) EvalStatement(node parser.Node) {
+func (e *Evaluator) EvalStatement(node parser.Node) error {
 	// e.Eval()
 	switch node.NodeName() {
 	case "ASSIGNMENT":
@@ -35,11 +44,12 @@ func (e *Evaluator) EvalStatement(node parser.Node) {
 		// fmt.Println("ASSIGNMENT", assignment.Identifier)
 
 		id := assignment.Identifier.(*parser.Identifier)
-		exp := e.EvalExpression(assignment.Expression)
-		e.variables[id.Value] = exp
-		// if binaryExpression.Op == "ASSIGNMENT" {
-		// fmt.Println(e.EvalExpression(assignment.Expression))
-		// }
+		exp, err := e.EvalExpression(assignment.Expression)
+
+		if err != nil {
+			return err
+		}
+		e.environment.Define(id.Value, exp)
 	case "FUNCTION_CALL":
 		functionCall := node.(*parser.FunctionCallStatement)
 
@@ -47,72 +57,117 @@ func (e *Evaluator) EvalStatement(node parser.Node) {
 
 		if functionName.Value == "print" {
 			// fmt.Println("HERE")
-			exp := e.EvalExpression(functionCall.Expression)
-			fmt.Println(exp.Value)
+			exp, err := e.EvalExpression(functionCall.Expression)
+
+			if err != nil {
+				return err
+			}
+
+			expressionVal := exp.(LiteralData)
+
+			fmt.Println(expressionVal.Value)
 		}
 	case "IF":
 		ifStatement := node.(*parser.IfStatement)
 
-		literal := e.EvalExpression(ifStatement.Condition)
+		literalData, err := e.EvalExpression(ifStatement.Condition)
 
+		if err != nil {
+			return err
+		}
+
+		literal := literalData.(LiteralData)
+
+		e.begin()
 		if literal.GetBoolean() {
 			e.EvalStatements(ifStatement.IfBlock)
 		} else {
 			e.EvalStatements(ifStatement.ElseBlock)
 		}
+		e.end()
 	case "FOR":
 		forStatement := node.(*parser.ForStatement)
+		e.begin()
 
 		e.EvalStatement(forStatement.Initial)
 
 		for {
-			condition := e.EvalExpression(forStatement.Condition)
+			conditionData, err := e.EvalExpression(forStatement.Condition)
+
+			if err != nil {
+				e.end()
+				return err
+			}
+
+			condition := conditionData.(LiteralData)
 
 			if !condition.GetBoolean() {
+				e.end()
 				break
 			}
 
 			e.EvalStatements(forStatement.Block)
 
 			e.EvalStatement(forStatement.Expression)
+
 		}
 	default:
-		fmt.Println("UNKNOWN STATEMENT", node.NodeName())
+		return fmt.Errorf("unknown statement %s", node.NodeName())
 	}
+	return nil
 }
 
-func (e *Evaluator) EvalExpression(node parser.Node) parser.LiteralValue {
+func (e *Evaluator) EvalExpression(node parser.Node) (EnvironmentData, error) {
 	switch node.NodeName() {
 	case "BinaryExpression":
 		binaryExpression := node.(*parser.BinaryExpression)
 
-		left := e.EvalExpression(binaryExpression.Left)
-		right := e.EvalExpression(binaryExpression.Right)
+		leftData, err := e.EvalExpression(binaryExpression.Left)
+
+		if err != nil {
+			return nil, err
+		}
+
+		// if left.Type() == "LiteralData" {
+		// 	left = left.(LiteralData)
+		// }
+		rightData, err := e.EvalExpression(binaryExpression.Right)
+
+		if err != nil {
+			return nil, err
+		}
+
+		left := leftData.(LiteralData)
+		right := rightData.(LiteralData)
+
+		// if right.Type() == "LiteralData" {
+		// 	right = right.(LiteralData)
+		// }
 
 		if left.IsNumber() {
 			switch binaryExpression.Op {
 			case L.PLUS:
-				return parser.NumberLiteral(left.GetNumber() + right.GetNumber())
+				return NumberLiteral(left.GetNumber() + right.GetNumber()), nil
 			case L.MINUS:
-				return parser.NumberLiteral(left.GetNumber() - right.GetNumber())
+				return NumberLiteral(left.GetNumber() - right.GetNumber()), nil
 			case L.SLASH:
-				return parser.NumberLiteral(left.GetNumber() / right.GetNumber())
+				return NumberLiteral(left.GetNumber() / right.GetNumber()), nil
 			case L.ASTERISK:
-				return parser.NumberLiteral(left.GetNumber() * right.GetNumber())
+				return NumberLiteral(left.GetNumber() * right.GetNumber()), nil
 			case L.PERCENT:
-				return parser.NumberLiteral(math.Mod(left.GetNumber(), right.GetNumber()))
+				return NumberLiteral(math.Mod(left.GetNumber(), right.GetNumber())), nil
 			case L.EQ:
-				return parser.BooleanLiteral(left.GetNumber() == right.GetNumber())
+				return BooleanLiteral(left.GetNumber() == right.GetNumber()), nil
 			case L.NOT_EQ:
-				return parser.BooleanLiteral(left.GetNumber() != right.GetNumber())
+				return BooleanLiteral(left.GetNumber() != right.GetNumber()), nil
 			case L.GT:
-				return parser.BooleanLiteral(left.GetNumber() > right.GetNumber())
+				return BooleanLiteral(left.GetNumber() > right.GetNumber()), nil
 			case L.GT_EQ:
-				return parser.BooleanLiteral(left.GetNumber() >= right.GetNumber())
+				return BooleanLiteral(left.GetNumber() >= right.GetNumber()), nil
 			case L.LT:
-				return parser.BooleanLiteral(left.GetNumber() < right.GetNumber())
+				return BooleanLiteral(left.GetNumber() < right.GetNumber()), nil
 			case L.LT_EQ:
-				return parser.BooleanLiteral(left.GetNumber() <= right.GetNumber())
+				return BooleanLiteral(left.GetNumber() <= right.GetNumber()), nil
 			}
 		}
 
@@ -128,28 +183,46 @@ func (e *Evaluator) EvalExpression(node parser.Node) parser.LiteralValue {
 			case L.OR:
 				val = left.GetBoolean() || right.GetBoolean()
 			}
-			return parser.BooleanLiteral(val)
+			return BooleanLiteral(val), nil
 		}
 
 		if left.IsString() {
 			switch binaryExpression.Op {
 			case L.PLUS:
-				return parser.StringLiteral(left.GetString() + right.GetString())
+				return StringLiteral(left.GetString() + right.GetString()), nil
 			case L.EQ:
-				return parser.BooleanLiteral(left.GetString() == right.GetString())
+				return BooleanLiteral(left.GetString() == right.GetString()), nil
 			case L.NOT_EQ:
-				return parser.BooleanLiteral(left.GetString() != right.GetString())
+				return BooleanLiteral(left.GetString() != right.GetString()), nil
 			}
 		}
 
 	case "LiteralValue":
 		literal := node.(*parser.LiteralValue)
-		return *literal
+		return LiteralDataFromParserLiteral(*literal), nil
 	case "Identifier":
 		variable := node.(*parser.Identifier)
-		return e.variables[variable.Value]
+		val, err := e.environment.Get(variable.Value)
+
+		if err != nil {
+			// fmt.Println(err)
+			return nil, fmt.Errorf("variable ` %s ` not defined in this scope", variable.Value)
+		}
+		return val, nil
 	default:
-		fmt.Println("Unknown Nodename")
+		return nil, errors.New("unknown nodename")
 	}
-	return parser.NumberLiteral(0)
+	return nil, nil
+}
+
+func (e *Evaluator) begin() {
+	e.environment = NewEnvironmentWithParent(e.environment)
+}
+
+func (e *Evaluator) end() {
+	if e.environment.parent == nil {
+		e.environment = e.global
+		return
+	}
+	e.environment = e.environment.parent
 }
