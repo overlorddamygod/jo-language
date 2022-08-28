@@ -22,7 +22,7 @@ func NewJoError(l *Lexer, token *Token, msg string) *JoError {
 
 func MarkError(line string, lineNo int, start int, end int, msg string) string {
 	strlen := len(line)
-	formatStr := "%s\n"
+	formatStr := "%s"
 
 	for i := 0; i <= strlen; i++ {
 		if string(line[i]) == "|" {

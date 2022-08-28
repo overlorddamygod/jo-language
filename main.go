@@ -50,7 +50,7 @@ func main() {
 
 	evaluator := Eval.NewEvaluator(lexer, node)
 
-	err = evaluator.Eval()
+	_, err = evaluator.Eval()
 
 	if err != nil {
 		fmt.Printf("[Evaluator]\n\n%s", err)

@@ -26,29 +26,27 @@ func (a *AssignmentStatement) Print() {
 	a.Expression.Print()
 }
 
-// type FunctionCallStatement struct {
-// 	name       string
-// 	Identifier Node
-// 	Expression Node
-// }
+type ReturnStatement struct {
+	name       string
+	Expression Node
+}
 
-// func NewFunctionCallStatement(identifier Node, exp Node) *FunctionCallStatement {
-// 	return &FunctionCallStatement{
-// 		name:       "FUNCTION_CALL",
-// 		Identifier: identifier,
-// 		Expression: exp,
-// 	}
-// }
+func NewReturnStatement(expression Node) *ReturnStatement {
+	return &ReturnStatement{
+		name:       "ReturnStatement",
+		Expression: expression,
+	}
+}
 
-// func (a *FunctionCallStatement) NodeName() string {
-// 	return a.name
-// }
+func (a *ReturnStatement) NodeName() string {
+	return a.name
+}
 
-// func (a *FunctionCallStatement) Print() {
-// 	fmt.Println(a.name)
-// 	a.Identifier.Print()
-// 	a.Expression.Print()
-// }
+func (a *ReturnStatement) Print() {
+	fmt.Println(a.name)
+	a.Expression.Print()
+	// a.Expression.Print()
+}
 
 type IfStatement struct {
 	name      string

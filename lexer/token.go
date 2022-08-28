@@ -97,7 +97,7 @@ func (t *Token) Print() {
 
 func IsKeyword(identifier string) bool {
 	switch identifier {
-	case "return", "if", "else", "func", "var", "for", "while", "break", "continue", "true", "false", "nil", "int", "string", "char", "class", "const":
+	case "return", "if", "else", "fn", "var", "for", "while", "break", "continue", "true", "false", "nil", "int", "string", "char", "class", "const":
 		return true
 	}
 	return false

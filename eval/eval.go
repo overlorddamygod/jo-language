@@ -22,22 +22,26 @@ func NewEvaluator(lexer *L.Lexer, node []parser.Node) *Evaluator {
 	return &Evaluator{lexer: lexer, node: node, global: env, environment: env}
 }
 
-func (e *Evaluator) Eval() error {
+func (e *Evaluator) Eval() (EnvironmentData, error) {
 	return e.EvalStatements(e.node)
 }
 
-func (e *Evaluator) EvalStatements(statements []parser.Node) error {
+func (e *Evaluator) EvalStatements(statements []parser.Node) (EnvironmentData, error) {
 	for _, s := range statements {
-		err := e.EvalStatement(s)
-
+		data, err := e.EvalStatement(s)
+		// fmt.Println("EVALSTATEMENT", s, data, err, err != nil)
 		if err != nil {
-			return err
+			// fmt.Println("HERE", err)
+			return nil, err
+		}
+		if data != nil {
+			return data, nil
 		}
 	}
-	return nil
+	return nil, nil
 }
 
-func (e *Evaluator) EvalStatement(node parser.Node) error {
+func (e *Evaluator) EvalStatement(node parser.Node) (EnvironmentData, error) {
 	// e.Eval()
 	switch node.NodeName() {
 	case "ASSIGNMENT":
@@ -48,60 +52,105 @@ func (e *Evaluator) EvalStatement(node parser.Node) error {
 		exp, err := e.EvalExpression(assignment.Expression)
 
 		if err != nil {
-			return err
+			return nil, err
 		}
 		e.environment.Define(id.Value, exp)
 	case "FunctionCall":
-		_, err := e.functionCall(node)
-		return err
+		return e.functionCall(node)
 	case "IF":
+		// fmt.Println("IF Start")
+
 		ifStatement := node.(*parser.IfStatement)
 
 		literalData, err := e.EvalExpression(ifStatement.Condition)
 
+		// fmt.Println("IF EXP", literalData, err)
+
 		if err != nil {
-			return err
+			return nil, err
 		}
 
+		// fmt.Println("IF EXPzzzzzz", literalData, err)
+
 		literal := literalData.(LiteralData)
+		// fmt.Println("IF", err)
 
 		e.begin()
 		if literal.GetBoolean() {
-			e.EvalStatements(ifStatement.IfBlock)
+			data, err := e.EvalStatements(ifStatement.IfBlock)
+			// fmt.Println("IF true", data, err)
+			if err != nil {
+				return nil, err
+			}
+
+			e.end()
+			return data, err
 		} else {
-			e.EvalStatements(ifStatement.ElseBlock)
+			data, err := e.EvalStatements(ifStatement.ElseBlock)
+
+			if err != nil {
+				return nil, err
+			}
+			e.end()
+			return data, err
 		}
-		e.end()
 	case "FOR":
+		// fmt.Println("FOR CALL")
 		forStatement := node.(*parser.ForStatement)
 		e.begin()
 
-		e.EvalStatement(forStatement.Initial)
+		data, err := e.EvalStatement(forStatement.Initial)
+
+		if err != nil {
+			return data, nil
+		}
+		// fmt.Println("FOR Init", err)
 
 		for {
 			conditionData, err := e.EvalExpression(forStatement.Condition)
 
 			if err != nil {
 				e.end()
-				return err
+				return nil, err
 			}
 
 			condition := conditionData.(LiteralData)
+
+			// fmt.Println("FOR condition", err)
 
 			if !condition.GetBoolean() {
 				e.end()
 				break
 			}
 
-			e.EvalStatements(forStatement.Block)
+			_, err = e.EvalStatements(forStatement.Block)
+			// fmt.Println("FOR CALL block", err)
 
-			e.EvalStatement(forStatement.Expression)
+			if err != nil {
+				return nil, err
+			}
 
+			_, err = e.EvalStatement(forStatement.Expression)
+			// fmt.Println("FOR CALL right", err)
+
+			if err != nil {
+				return nil, err
+			}
 		}
+	case "FunctionDecl":
+		functionDecl := node.(*parser.FunctionDeclStatement)
+
+		functionName := functionDecl.Identifier.(*parser.Identifier)
+
+		e.environment.Define(functionName.Value, NewCallableFunction(*functionDecl))
+	case "ReturnStatement":
+		returnStmt := node.(*parser.ReturnStatement)
+
+		return e.EvalExpression(returnStmt.Expression)
 	default:
-		return fmt.Errorf("unknown statement %s", node.NodeName())
+		return nil, fmt.Errorf("unknown statement %s", node.NodeName())
 	}
-	return nil
+	return nil, nil
 }
 
 func (e *Evaluator) EvalExpression(node parser.Node) (EnvironmentData, error) {
@@ -211,7 +260,6 @@ func (e *Evaluator) EvalExpression(node parser.Node) (EnvironmentData, error) {
 		}
 		return val, nil
 	case "FunctionCall":
-		fmt.Println("HERE")
 		return e.functionCall(node)
 	default:
 		return nil, errors.New("unknown nodename")
@@ -239,7 +287,15 @@ func (e *Evaluator) functionCall(node parser.Node) (EnvironmentData, error) {
 		fmt.Println(output)
 		return nil, nil
 	}
-	return nil, L.NewJoError(e.lexer, functionName.Token, fmt.Sprintf("unknown function ` %s `", functionName.Value))
+
+	function, err := e.environment.Get(functionName.Value)
+	if err != nil {
+		return nil, L.NewJoError(e.lexer, functionName.Token, fmt.Sprintf("unknown function ` %s `", functionName.Value))
+	}
+
+	callableFunction := function.(*CallableFunction)
+
+	return callableFunction.Exec(e, functionCall.Arguments)
 }
 
 func (e *Evaluator) begin() {

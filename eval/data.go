@@ -92,3 +92,62 @@ func StringLiteral(val string) LiteralData {
 func LiteralDataFromParserLiteral(li parser.LiteralValue) LiteralData {
 	return *NewLiteralData(li.Type, li.Value)
 }
+
+type CallableFunction struct {
+	name         string
+	_type        string
+	FunctionDecl parser.FunctionDeclStatement
+
+	// env Environment
+}
+
+func NewCallableFunction(functionDecl parser.FunctionDeclStatement) *CallableFunction {
+	return &CallableFunction{
+		name:         "CallableFunction",
+		_type:        "CallableFunction",
+		FunctionDecl: functionDecl,
+	}
+}
+
+func (f CallableFunction) Type() string {
+	return f._type
+}
+
+func (f *CallableFunction) Exec(e *Evaluator, arguments []parser.Node) (EnvironmentData, error) {
+	e.begin()
+
+	// env := e.environment
+
+	paramsLen := len(f.FunctionDecl.Params)
+	argsLen := len(arguments)
+
+	if argsLen > paramsLen {
+		iden := f.FunctionDecl.Identifier.(*parser.Identifier)
+		return nil, L.NewJoError(e.lexer, iden.Token, "Arg length greater than params length")
+	}
+
+	if argsLen < paramsLen {
+		iden := f.FunctionDecl.Identifier.(*parser.Identifier)
+		return nil, L.NewJoError(e.lexer, iden.Token, "Arg length less than params length")
+	}
+
+	for i, param := range f.FunctionDecl.Params {
+		paramId := param.(*parser.Identifier)
+
+		exp, err := e.EvalExpression(arguments[i])
+
+		if err != nil {
+			return nil, err
+		}
+		e.environment.Define(paramId.Value, exp)
+	}
+
+	data, err := e.EvalStatements(f.FunctionDecl.Body)
+
+	if err != nil {
+		return nil, err
+	}
+
+	e.end()
+	return data, nil
+}
