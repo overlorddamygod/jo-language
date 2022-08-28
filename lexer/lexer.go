@@ -72,7 +72,7 @@ func (l *Lexer) getStringLiteral() (*Token, error) {
 	for {
 		current, err := l.current()
 
-		if err != nil {
+		if err != nil || current == "\n" {
 			return l.getToken(STRING, l.source[startPos+1:l.pos-1]), errors.New("expected '\"'")
 		}
 
@@ -244,7 +244,7 @@ func (l *Lexer) Lex() ([]Token, error) {
 		if IsDigit(currentChar) {
 			num, err := l.getNumberLiteral()
 			if err != nil {
-				return l.tokens, fmt.Errorf("%s", MarkError(l.GetLine(num.line), num.line, num.start, l.col+1, err.Error()))
+				return l.tokens, NewJoError(l, num, err.Error())
 			}
 			l.appendToken(num)
 			continue
@@ -377,14 +377,7 @@ func (l *Lexer) Lex() ([]Token, error) {
 			strLiteralToken, err := l.getStringLiteral()
 
 			if err != nil {
-				line := l.GetLine(strLiteralToken.line)
-				fmt.Println(strLiteralToken.end, len(line))
-				end := strLiteralToken.end
-				if strLiteralToken.end >= len(line) {
-					end = len(line)
-				}
-				fmt.Println(strLiteralToken.start, end)
-				return l.tokens, fmt.Errorf("%s", MarkError(line, strLiteralToken.line, strLiteralToken.start, end, err.Error()))
+				return l.tokens, NewJoError(l, strLiteralToken, fmt.Sprintf("expected ` %s `", currentChar))
 			}
 
 			l.appendToken(strLiteralToken)

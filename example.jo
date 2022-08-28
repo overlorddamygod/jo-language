@@ -1,7 +1,7 @@
-fn add() {
-    print("ADD");
-    print("HEHE:");
-    return;
+fun = 2.2;
+
+fn sad(str) {
+    print(str);
 }
 
-print(add());
+print("Hello, world!\n")

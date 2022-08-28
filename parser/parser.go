@@ -338,7 +338,7 @@ func (p *Parser) block() ([]Node, error) {
 func (p *Parser) identifier() (Node, error) {
 	identifier, err := p.lexer.NextToken()
 
-	if err != nil || identifier.Type == L.EOF {
+	if err != nil || identifier.Type == L.EOF || identifier.Type != L.IDENTIFIER {
 		return nil, L.NewJoError(p.lexer, identifier, "Expected identifier")
 	}
 
