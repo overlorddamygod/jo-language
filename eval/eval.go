@@ -14,6 +14,7 @@ type Evaluator struct {
 	node        []parser.Node
 	global      *Environment
 	environment *Environment
+	current     parser.Node
 	// variables   map[string]parser.LiteralValue
 }
 
@@ -22,20 +23,41 @@ func NewEvaluator(lexer *L.Lexer, node []parser.Node) *Evaluator {
 	return &Evaluator{lexer: lexer, node: node, global: env, environment: env}
 }
 
+func NewEvaluatorWithParent(e *Evaluator, parent *Environment) *Evaluator {
+	// env := NewEnvironment()
+	env := NewEnvironmentWithParent(parent)
+	return &Evaluator{lexer: e.lexer, node: e.node, global: parent, environment: env}
+}
+
 func (e *Evaluator) Eval() (EnvironmentData, error) {
 	return e.EvalStatements(e.node)
 }
 
 func (e *Evaluator) EvalStatements(statements []parser.Node) (EnvironmentData, error) {
+
+	// for _, s := range statements {
+	// 	s.Print()
+	// }
 	for _, s := range statements {
 		data, err := e.EvalStatement(s)
 		// fmt.Println("EVALSTATEMENT", s, data, err, err != nil)
+
 		if err != nil {
-			// fmt.Println("HERE", err)
 			return nil, err
 		}
-		if data != nil {
+
+		if s.NodeName() == "ReturnStatement" {
+			// fmt.Println()
 			return data, nil
+		}
+
+		if s.NodeName() == "IF" || s.NodeName() == "FOR" || s.NodeName() == "ReturnStatement" {
+			if data != nil {
+				return data, nil
+			}
+			// return data, nil
+			// fmt.Println("IFFFF", s, data, nil)
+			// return data, nil
 		}
 	}
 	return nil, nil
@@ -43,6 +65,7 @@ func (e *Evaluator) EvalStatements(statements []parser.Node) (EnvironmentData, e
 
 func (e *Evaluator) EvalStatement(node parser.Node) (EnvironmentData, error) {
 	// e.Eval()
+	// fmt.Println("NODE", node.NodeName())
 	switch node.NodeName() {
 	case "ASSIGNMENT":
 		assignment := node.(*parser.AssignmentStatement)
@@ -80,16 +103,23 @@ func (e *Evaluator) EvalStatement(node parser.Node) (EnvironmentData, error) {
 			data, err := e.EvalStatements(ifStatement.IfBlock)
 			// fmt.Println("IF true", data, err)
 			if err != nil {
-				return nil, err
-			}
+				e.end()
 
+				return data, err
+			}
+			// fmt.Println("IF", data)
 			e.end()
 			return data, err
 		} else {
+			if len(ifStatement.ElseBlock) == 0 {
+				e.end()
+				return nil, nil
+			}
 			data, err := e.EvalStatements(ifStatement.ElseBlock)
 
 			if err != nil {
-				return nil, err
+				e.end()
+				return data, err
 			}
 			e.end()
 			return data, err
@@ -97,6 +127,8 @@ func (e *Evaluator) EvalStatement(node parser.Node) (EnvironmentData, error) {
 	case "FOR":
 		// fmt.Println("FOR CALL")
 		forStatement := node.(*parser.ForStatement)
+		prev := e.current
+		e.current = forStatement
 		e.begin()
 
 		data, err := e.EvalStatement(forStatement.Initial)
@@ -119,15 +151,40 @@ func (e *Evaluator) EvalStatement(node parser.Node) (EnvironmentData, error) {
 			// fmt.Println("FOR condition", err)
 
 			if !condition.GetBoolean() {
+				if prev == nil || prev.NodeName() != "FOR" {
+					e.current = nil
+				}
 				e.end()
 				break
 			}
 
-			_, err = e.EvalStatements(forStatement.Block)
-			// fmt.Println("FOR CALL block", err)
+			data, err = e.EvalStatements(forStatement.Block)
+
+			// fmt.Println("FOR CALL block", data, err)
 
 			if err != nil {
+				if err.Error() == "Statement:Break" {
+					if prev == nil || prev.NodeName() != "FOR" {
+						e.current = nil
+					}
+					// fmt.Println("BREAKKKKKKKK")
+					// e.current = nil
+					e.end()
+					break
+				}
+
+				if prev == nil || prev.NodeName() != "FOR" {
+					e.current = nil
+					// e.end()
+				}
+				// e.end()
+
 				return nil, err
+			}
+
+			if data != nil {
+				// e.end()
+				return data, nil
 			}
 
 			_, err = e.EvalStatement(forStatement.Expression)
@@ -141,8 +198,15 @@ func (e *Evaluator) EvalStatement(node parser.Node) (EnvironmentData, error) {
 		functionDecl := node.(*parser.FunctionDeclStatement)
 
 		functionName := functionDecl.Identifier.(*parser.Identifier)
+		// fmt.Println("GLOBASTART-----")
+		// e.global.Print()
+		// fmt.Println("GLOBALEND------")
 
 		e.environment.Define(functionName.Value, NewCallableFunction(*functionDecl))
+		// fmt.Println("ENVSTART-----")
+		// e.environment.Print()
+		// fmt.Println("ENVEND------")
+		// e.environment.Print()
 	case "ReturnStatement":
 		returnStmt := node.(*parser.ReturnStatement)
 
@@ -150,7 +214,21 @@ func (e *Evaluator) EvalStatement(node parser.Node) (EnvironmentData, error) {
 			return nil, nil
 		}
 
-		return e.EvalExpression(returnStmt.Expression)
+		val, err := e.EvalExpression(returnStmt.Expression)
+
+		if err != nil {
+			return val, err
+		}
+
+		// return val, errors.New("Statement:Return")
+		return val, nil
+	case "BreakStatement":
+		if e.current != nil && e.current.NodeName() == "FOR" {
+			return nil, errors.New("Statement:Break")
+		}
+		// fmt.Println("HERE", e.current)
+		//  := node.(*parser.BreakStatement)
+		return nil, nil
 	default:
 		return nil, fmt.Errorf("unknown statement %s", node.NodeName())
 	}
@@ -299,6 +377,7 @@ func (e *Evaluator) functionCall(node parser.Node) (EnvironmentData, error) {
 		fmt.Println(output)
 		return nil, nil
 	}
+	// fmt.Println("FUNC START", functionName.Value)
 
 	function, err := e.environment.Get(functionName.Value)
 	if err != nil {
@@ -307,7 +386,11 @@ func (e *Evaluator) functionCall(node parser.Node) (EnvironmentData, error) {
 
 	callableFunction := function.(*CallableFunction)
 
-	return callableFunction.Exec(e, functionCall.Arguments)
+	a, err := callableFunction.Exec(e, functionCall.Arguments)
+
+	// fmt.Println("FUNC END", functionName.Value, a, err)
+
+	return a, err
 }
 
 func (e *Evaluator) begin() {

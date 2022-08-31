@@ -15,7 +15,9 @@ func main() {
 		fmt.Println("Usage: jo <filename>")
 		return
 	}
-	dat, err := os.ReadFile(os.Args[1])
+	file := os.Args[1]
+
+	dat, err := os.ReadFile(file)
 
 	if err != nil {
 		fmt.Println("Unable to read file", dat)

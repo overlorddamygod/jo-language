@@ -48,6 +48,25 @@ func (a *ReturnStatement) Print() {
 	// a.Expression.Print()
 }
 
+type BreakStatement struct {
+	name string
+}
+
+func NewBreakStatement() *BreakStatement {
+	return &BreakStatement{
+		name: "BreakStatement",
+	}
+}
+
+func (a *BreakStatement) NodeName() string {
+	return a.name
+}
+
+func (a *BreakStatement) Print() {
+	fmt.Println(a.name)
+	// a.Expression.Print()
+}
+
 type IfStatement struct {
 	name      string
 	Condition Node

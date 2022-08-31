@@ -97,8 +97,8 @@ type CallableFunction struct {
 	name         string
 	_type        string
 	FunctionDecl parser.FunctionDeclStatement
-
-	// env Environment
+	env          *Environment
+	parent       *Environment
 }
 
 func NewCallableFunction(functionDecl parser.FunctionDeclStatement) *CallableFunction {
@@ -114,10 +114,15 @@ func (f CallableFunction) Type() string {
 }
 
 func (f *CallableFunction) Exec(e *Evaluator, arguments []parser.Node) (EnvironmentData, error) {
-	e.begin()
+	// e.environment.Print()
+	// f.parent = e.environment
+	// eval := NewEvaluatorWithParent(e, e.global)
+	// e.begin()
+	// e.environment = NewEnvironmentWithParent(e.global)
+	// f.env = e.environment
 
 	// env := e.environment
-
+	// fmt.Println("FUNC START")
 	paramsLen := len(f.FunctionDecl.Params)
 	argsLen := len(arguments)
 
@@ -130,6 +135,9 @@ func (f *CallableFunction) Exec(e *Evaluator, arguments []parser.Node) (Environm
 		iden := f.FunctionDecl.Identifier.(*parser.Identifier)
 		return nil, L.NewJoError(e.lexer, iden.Token, "Arg length less than params length")
 	}
+	eval := NewEvaluatorWithParent(e, e.global)
+	// e.global.Print()
+	// e.environment.parent.Print()
 
 	for i, param := range f.FunctionDecl.Params {
 		paramId := param.(*parser.Identifier)
@@ -139,15 +147,28 @@ func (f *CallableFunction) Exec(e *Evaluator, arguments []parser.Node) (Environm
 		if err != nil {
 			return nil, err
 		}
-		e.environment.Define(paramId.Value, exp)
+		eval.environment.Define(paramId.Value, exp)
 	}
 
-	data, err := e.EvalStatements(f.FunctionDecl.Body)
+	// e.environment.Print()
 
+	data, err := eval.EvalStatements(f.FunctionDecl.Body)
+
+	// fmt.Println("EEEE", data, err)
 	if err != nil {
 		return nil, err
 	}
+	// fmt.Println("PREVVVVVV")
+	// e.environment.Print()
 
-	e.end()
+	// eval.end()
+
+	// e.environment = f.parent
+
+	// fmt.Println("NEXTTTT")
+
+	// e.environment.Print()
+	// fmt.Println("FUNC END")
+
 	return data, nil
 }

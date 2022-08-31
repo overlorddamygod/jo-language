@@ -1,6 +1,9 @@
 package eval
 
-import "errors"
+import (
+	"errors"
+	"fmt"
+)
 
 type EnvironmentData interface {
 	Type() string
@@ -29,6 +32,25 @@ func NewEnvironmentWithParent(env *Environment) *Environment {
 
 func (env *Environment) Define(key string, value EnvironmentDataValue) {
 	env.data[key] = value
+}
+
+func (env *Environment) Print() {
+	fmt.Println("KEYS")
+	for key, val := range env.data {
+		// fmt.Println(key)
+		if val.Type() == "CallableFunction" {
+			f := val.(*CallableFunction)
+
+			println("FUNC", key, f._type)
+		} else {
+			lit := val.(LiteralData)
+			println("VAL", key, lit.Value)
+		}
+		// if val.Type() == "LiteralData" {
+		// } else {
+		// println("fun", key, val.Type())
+		// }
+	}
 }
 
 func (env *Environment) Get(key string) (EnvironmentDataValue, error) {

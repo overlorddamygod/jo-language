@@ -95,9 +95,16 @@ func (p *Parser) statement() (Node, error) {
 			return nil, err
 		}
 		return p.matchSemicolon(ret)
-		// TODO: ADD BLOCK STATEMENT
-		// case "{":
-		// return p.block()
+	// TODO: ADD BLOCK STATEMENT
+	// case "{":
+	// return p.block()
+	case "break":
+		br, err := p._break()
+
+		if err != nil {
+			return nil, err
+		}
+		return p.matchSemicolon(br)
 	}
 
 	exp, err := p.expression()
@@ -107,6 +114,16 @@ func (p *Parser) statement() (Node, error) {
 	}
 
 	return p.matchSemicolon(exp)
+}
+
+func (p *Parser) _break() (Node, error) {
+	_, err := p.match(L.KEYWORD, "break")
+
+	if err != nil {
+		return nil, err
+	}
+
+	return NewBreakStatement(), nil
 }
 
 func (p *Parser) _return() (Node, error) {
