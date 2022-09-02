@@ -67,6 +67,25 @@ func (a *BreakStatement) Print() {
 	// a.Expression.Print()
 }
 
+type ContinueStatement struct {
+	name string
+}
+
+func NewContinueStatement() *ContinueStatement {
+	return &ContinueStatement{
+		name: "ContinueStatement",
+	}
+}
+
+func (c *ContinueStatement) NodeName() string {
+	return c.name
+}
+
+func (c *ContinueStatement) Print() {
+	fmt.Println(c.name)
+	// a.Expression.Print()
+}
+
 type IfStatement struct {
 	name      string
 	IfBlocks  []*ConditionBlock

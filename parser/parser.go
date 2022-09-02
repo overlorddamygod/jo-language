@@ -105,6 +105,14 @@ func (p *Parser) statement() (Node, error) {
 			return nil, err
 		}
 		return p.matchSemicolon(br)
+
+	case "continue":
+		con, err := p._continue()
+
+		if err != nil {
+			return nil, err
+		}
+		return p.matchSemicolon(con)
 	}
 
 	exp, err := p.expression()
@@ -124,6 +132,16 @@ func (p *Parser) _break() (Node, error) {
 	}
 
 	return NewBreakStatement(), nil
+}
+
+func (p *Parser) _continue() (Node, error) {
+	_, err := p.match(L.KEYWORD, "continue")
+
+	if err != nil {
+		return nil, err
+	}
+
+	return NewContinueStatement(), nil
 }
 
 func (p *Parser) _return() (Node, error) {

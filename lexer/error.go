@@ -1,6 +1,7 @@
 package lexer
 
 import (
+	"errors"
 	"fmt"
 	"strconv"
 	"strings"
@@ -8,11 +9,11 @@ import (
 
 type JoError struct {
 	token    *Token
-	errorMsg string
+	errorMsg error
 }
 
 func (m *JoError) Error() string {
-	return m.errorMsg
+	return m.errorMsg.Error()
 }
 
 func NewJoError(l *Lexer, token *Token, msg string) *JoError {
@@ -23,7 +24,7 @@ func NewJoError(l *Lexer, token *Token, msg string) *JoError {
 
 	return &JoError{
 		token:    token,
-		errorMsg: MarkError(line, token.line, token.start, token.end, msg),
+		errorMsg: errors.New(MarkError(line, token.line, token.start, token.end, msg)),
 	}
 }
 

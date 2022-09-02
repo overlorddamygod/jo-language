@@ -1,40 +1,41 @@
-name = input("Enter your name: ");
-print("Your Name is:", name);
 
-fn init() {
+fn loop() {
     for (i = 0; i < 2; i = i + 1 ) {
-        for (ka = 0; ka < 1; ka = ka + 1 ) {
-            if (name == "sad") {
-                print("IsSad");
-                return "LOL";
-            } elif (name == "lol") {
-                print("IsOverlord");
-            } elif (name == "zz") {
-                print("ZZ");
-            } else {
-                print("IsElse");
+        for (j = 0; j < 2; j = j + 1 ) {
+            if (j == 1) {
+                continue;
             }
-            print("2nd");
+            for (k = 0; k < 5; k = k + 1 ) {
+                if (k == 3) {
+                    continue;
+                }
+                print("----k is", k);
+            }
+            print("--j is", j);
         }
-        print("1st");
+        print("i is", i);
+    }
+    loop2();
+}
+
+
+fn loop2() {
+    print("------");
+    for (i = 0; i < 2; i = i + 1 ) {
+        for (j = 0; j < 2; j = j + 1 ) {
+            if (j == 1) {
+                return;
+            }
+            for (k = 0; k < 5; k = k + 1 ) {
+                if (k == 3) {
+                    continue;
+                }
+                print("----k is", k);
+            }
+            print("--j is", j);
+        }
+        print("i is", i);
     }
 }
 
-fn hehe() {
-    print("hehe");
-}
-
-fn add(a, b) {
-    fn sum() {
-        hehe();
-        fn lol() {
-            print("A", a, "B", b);
-        }
-        return a+b;
-    }
-    lol();
-
-    hehe();
-    return sum();
-}
-
+loop();

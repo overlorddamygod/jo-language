@@ -167,6 +167,19 @@ func (e *Evaluator) EvalStatement(node parser.Node) (EnvironmentData, error) {
 					e.end()
 					break
 				}
+				if err.Error() == "Statement:Continue" {
+					if prev == nil || prev.NodeName() != "FOR" {
+						e.current = nil
+					}
+
+					_, err = e.EvalStatement(forStatement.Expression)
+
+					if err != nil {
+						return nil, err
+					}
+
+					continue
+				}
 				if prev == nil || prev.NodeName() != "FOR" {
 					e.current = nil
 					// e.end()
@@ -218,6 +231,13 @@ func (e *Evaluator) EvalStatement(node parser.Node) (EnvironmentData, error) {
 	case "BreakStatement":
 		if e.current != nil && e.current.NodeName() == "FOR" {
 			return nil, errors.New("Statement:Break")
+		}
+		// fmt.Println("HERE", e.current)
+		//  := node.(*parser.BreakStatement)
+		return nil, nil
+	case "ContinueStatement":
+		if e.current != nil && e.current.NodeName() == "FOR" {
+			return nil, errors.New("Statement:Continue")
 		}
 		// fmt.Println("HERE", e.current)
 		//  := node.(*parser.BreakStatement)
