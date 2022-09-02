@@ -1,9 +1,11 @@
 package eval
 
 import (
+	"bufio"
 	"errors"
 	"fmt"
 	"math"
+	"os"
 
 	L "github.com/overlorddamygod/jo/lexer"
 	"github.com/overlorddamygod/jo/parser"
@@ -26,7 +28,7 @@ func NewEvaluator(lexer *L.Lexer, node []parser.Node) *Evaluator {
 func NewEvaluatorWithParent(e *Evaluator, parent *Environment) *Evaluator {
 	// env := NewEnvironment()
 	env := NewEnvironmentWithParent(parent)
-	return &Evaluator{lexer: e.lexer, node: e.node, global: parent, environment: env}
+	return &Evaluator{lexer: e.lexer, node: e.node, global: env, environment: env}
 }
 
 func (e *Evaluator) Eval() (EnvironmentData, error) {
@@ -193,7 +195,7 @@ func (e *Evaluator) EvalStatement(node parser.Node) (EnvironmentData, error) {
 		// e.global.Print()
 		// fmt.Println("GLOBALEND------")
 
-		e.environment.Define(functionName.Value, NewCallableFunction(*functionDecl))
+		e.environment.Define(functionName.Value, NewCallableFunction(*functionDecl, e.environment))
 		// fmt.Println("ENVSTART-----")
 		// e.environment.Print()
 		// fmt.Println("ENVEND------")
@@ -367,6 +369,22 @@ func (e *Evaluator) functionCall(node parser.Node) (EnvironmentData, error) {
 		}
 		fmt.Println(output)
 		return nil, nil
+	} else if functionName.Value == "input" {
+		if len(functionCall.Arguments) != 1 {
+			return nil, L.NewJoError(e.lexer, functionName.Token, "must have 1 argument.")
+		}
+		arg1 := functionCall.Arguments[0]
+		arg, err := e.EvalExpression(arg1)
+
+		if err != nil {
+			return nil, err
+		}
+		argLiteral := arg.(LiteralData)
+
+		fmt.Print(argLiteral.GetString())
+		scanner := bufio.NewScanner(os.Stdin)
+		scanner.Scan()
+		return StringLiteral(scanner.Text()), nil
 	}
 	// fmt.Println("FUNC START", functionName.Value)
 
@@ -377,7 +395,7 @@ func (e *Evaluator) functionCall(node parser.Node) (EnvironmentData, error) {
 
 	callableFunction := function.(*CallableFunction)
 
-	a, err := callableFunction.Exec(e, functionCall.Arguments)
+	a, err := callableFunction.Call(e, functionCall.Arguments)
 
 	// fmt.Println("FUNC END", functionName.Value, a, err)
 

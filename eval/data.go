@@ -93,19 +93,23 @@ func LiteralDataFromParserLiteral(li parser.LiteralValue) LiteralData {
 	return *NewLiteralData(li.Type, li.Value)
 }
 
+type Callable interface {
+	Call(e *Evaluator, arguments []parser.Node) (EnvironmentData, error)
+}
+
 type CallableFunction struct {
 	name         string
 	_type        string
 	FunctionDecl parser.FunctionDeclStatement
-	env          *Environment
-	parent       *Environment
+	Closure      *Environment
 }
 
-func NewCallableFunction(functionDecl parser.FunctionDeclStatement) *CallableFunction {
+func NewCallableFunction(functionDecl parser.FunctionDeclStatement, env *Environment) *CallableFunction {
 	return &CallableFunction{
 		name:         "CallableFunction",
 		_type:        "CallableFunction",
 		FunctionDecl: functionDecl,
+		Closure:      env,
 	}
 }
 
@@ -113,16 +117,7 @@ func (f CallableFunction) Type() string {
 	return f._type
 }
 
-func (f *CallableFunction) Exec(e *Evaluator, arguments []parser.Node) (EnvironmentData, error) {
-	// e.environment.Print()
-	// f.parent = e.environment
-	// eval := NewEvaluatorWithParent(e, e.global)
-	// e.begin()
-	// e.environment = NewEnvironmentWithParent(e.global)
-	// f.env = e.environment
-
-	// env := e.environment
-	// fmt.Println("FUNC START")
+func (f *CallableFunction) Call(e *Evaluator, arguments []parser.Node) (EnvironmentData, error) {
 	paramsLen := len(f.FunctionDecl.Params)
 	argsLen := len(arguments)
 
@@ -135,9 +130,7 @@ func (f *CallableFunction) Exec(e *Evaluator, arguments []parser.Node) (Environm
 		iden := f.FunctionDecl.Identifier.(*parser.Identifier)
 		return nil, L.NewJoError(e.lexer, iden.Token, "Arg length less than params length")
 	}
-	eval := NewEvaluatorWithParent(e, e.global)
-	// e.global.Print()
-	// e.environment.parent.Print()
+	eval := NewEvaluatorWithParent(e, f.Closure)
 
 	for i, param := range f.FunctionDecl.Params {
 		paramId := param.(*parser.Identifier)
@@ -150,25 +143,12 @@ func (f *CallableFunction) Exec(e *Evaluator, arguments []parser.Node) (Environm
 		eval.environment.Define(paramId.Value, exp)
 	}
 
-	// e.environment.Print()
 	bodyNodes := f.FunctionDecl.Body.Nodes
 	data, err := eval.EvalStatements(bodyNodes)
 
-	// fmt.Println("EEEE", data, err)
 	if err != nil {
 		return nil, err
 	}
-	// fmt.Println("PREVVVVVV")
-	// e.environment.Print()
-
-	// eval.end()
-
-	// e.environment = f.parent
-
-	// fmt.Println("NEXTTTT")
-
-	// e.environment.Print()
-	// fmt.Println("FUNC END")
 
 	return data, nil
 }
