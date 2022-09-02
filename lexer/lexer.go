@@ -3,6 +3,7 @@ package lexer
 import (
 	"errors"
 	"fmt"
+	"strings"
 )
 
 type Lexer struct {
@@ -398,33 +399,17 @@ func (l *Lexer) Lex() ([]Token, error) {
 	return l.tokens, nil
 }
 
-func (l *Lexer) GetLine(line int) string {
-	src := ""
-	pos := 0
-	lineNo := 1
-	for {
-		if lineNo == line {
-			for {
-				if pos == l.size-1 || string(l.source[pos]) == "\n" {
-					src += string(l.source[pos])
-					return fmt.Sprintf(" %d | %s", line, src)
-				}
-				src += string(l.source[pos])
-				pos++
-			}
-		}
-		// loop until we find a newline
-		if string(l.source[pos]) == "\n" {
-			lineNo++
-		}
-		pos++
+func (l *Lexer) GetLine(line int) (string, error) {
+	split := strings.Split(l.source, "\n")
 
-		if pos >= l.size {
-			break
-		}
+	if line > len(split) {
+		return "", errors.New("line greater than the total lines")
+	}
+	if line <= 0 {
+		return "", errors.New("line less or equal to zero")
 	}
 
-	return src
+	return split[line-1], nil
 }
 
 func (l *Lexer) NextToken() (*Token, error) {

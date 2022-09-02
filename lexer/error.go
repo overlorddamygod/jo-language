@@ -1,6 +1,10 @@
 package lexer
 
-import "fmt"
+import (
+	"fmt"
+	"strconv"
+	"strings"
+)
 
 type JoError struct {
 	token    *Token
@@ -12,7 +16,10 @@ func (m *JoError) Error() string {
 }
 
 func NewJoError(l *Lexer, token *Token, msg string) *JoError {
-	line := l.GetLine(token.line)
+	line, err := l.GetLine(token.line)
+	if err != nil {
+		fmt.Println(err.Error())
+	}
 
 	return &JoError{
 		token:    token,
@@ -21,25 +28,10 @@ func NewJoError(l *Lexer, token *Token, msg string) *JoError {
 }
 
 func MarkError(line string, lineNo int, start int, end int, msg string) string {
-	strlen := len(line)
-	formatStr := "%s"
-	for i := 0; i <= strlen; i++ {
-		if string(line[i]) == "|" {
-			formatStr += " "
-			break
-		}
-		formatStr += " "
-	}
+	lineNoLength := len(strconv.Itoa(lineNo))
 
-	for i := 0; i < start; i++ {
-		formatStr += " "
-	}
-	// fmt.Println(start, end)
-	for i := start; i <= end; i++ {
-		formatStr += "^"
-	}
+	gap := strings.Repeat(" ", 3+lineNoLength+start)
+	marker := strings.Repeat("^", end-start+1)
 
-	formatStr += " \n-- Line: %d Col: %d : %s\n"
-
-	return fmt.Sprintf(formatStr, line, lineNo, start, msg)
+	return fmt.Sprintf("%d | %s   \n%s%s   \n-- Line: %d Col: %d : %s\n", lineNo, line, gap, marker, lineNo, start, msg)
 }
