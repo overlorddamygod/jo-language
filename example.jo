@@ -15,7 +15,7 @@ fn loop() {
         }
         print("i is", i);
     }
-    loop2();
+    print("2", loop2());
 }
 
 
@@ -38,4 +38,4 @@ fn loop2() {
     }
 }
 
-loop();
+print(loop());

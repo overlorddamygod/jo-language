@@ -217,7 +217,7 @@ func (e *Evaluator) EvalStatement(node parser.Node) (EnvironmentData, error) {
 		returnStmt := node.(*parser.ReturnStatement)
 
 		if returnStmt.Expression == nil {
-			return nil, nil
+			return StringLiteral("null"), nil
 		}
 
 		val, err := e.EvalExpression(returnStmt.Expression)
