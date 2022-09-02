@@ -151,8 +151,8 @@ func (f *CallableFunction) Exec(e *Evaluator, arguments []parser.Node) (Environm
 	}
 
 	// e.environment.Print()
-
-	data, err := eval.EvalStatements(f.FunctionDecl.Body)
+	bodyNodes := f.FunctionDecl.Body.Nodes
+	data, err := eval.EvalStatements(bodyNodes)
 
 	// fmt.Println("EEEE", data, err)
 	if err != nil {

@@ -82,48 +82,43 @@ func (e *Evaluator) EvalStatement(node parser.Node) (EnvironmentData, error) {
 		return e.functionCall(node)
 	case "IF":
 		// fmt.Println("IF Start")
-
 		ifStatement := node.(*parser.IfStatement)
+		e.begin()
 
-		literalData, err := e.EvalExpression(ifStatement.Condition)
+		if ifStatement.HasIfs() {
+			for _, block := range ifStatement.IfBlocks {
+				literalData, err := e.EvalExpression(block.Condition)
 
-		// fmt.Println("IF EXP", literalData, err)
+				if err != nil {
+					return nil, err
+				}
+
+				literal := literalData.(LiteralData)
+
+				if literal.GetBoolean() {
+					data, err := e.EvalStatements(block.Block.Nodes)
+					if err != nil {
+						e.end()
+						return data, err
+					}
+					e.end()
+					return data, err
+				}
+			}
+		}
+
+		if !ifStatement.HasElse() {
+			e.end()
+			return nil, nil
+		}
+		data, err := e.EvalStatements(ifStatement.ElseBlock.Nodes)
 
 		if err != nil {
-			return nil, err
-		}
-
-		// fmt.Println("IF EXPzzzzzz", literalData, err)
-
-		literal := literalData.(LiteralData)
-		// fmt.Println("IF", err)
-
-		e.begin()
-		if literal.GetBoolean() {
-			data, err := e.EvalStatements(ifStatement.IfBlock)
-			// fmt.Println("IF true", data, err)
-			if err != nil {
-				e.end()
-
-				return data, err
-			}
-			// fmt.Println("IF", data)
-			e.end()
-			return data, err
-		} else {
-			if len(ifStatement.ElseBlock) == 0 {
-				e.end()
-				return nil, nil
-			}
-			data, err := e.EvalStatements(ifStatement.ElseBlock)
-
-			if err != nil {
-				e.end()
-				return data, err
-			}
 			e.end()
 			return data, err
 		}
+		e.end()
+		return data, err
 	case "FOR":
 		// fmt.Println("FOR CALL")
 		forStatement := node.(*parser.ForStatement)
@@ -136,7 +131,6 @@ func (e *Evaluator) EvalStatement(node parser.Node) (EnvironmentData, error) {
 		if err != nil {
 			return data, nil
 		}
-		// fmt.Println("FOR Init", err)
 
 		for {
 			conditionData, err := e.EvalExpression(forStatement.Condition)
@@ -158,7 +152,7 @@ func (e *Evaluator) EvalStatement(node parser.Node) (EnvironmentData, error) {
 				break
 			}
 
-			data, err = e.EvalStatements(forStatement.Block)
+			data, err = e.EvalStatements(forStatement.Block.Nodes)
 
 			// fmt.Println("FOR CALL block", data, err)
 
@@ -167,12 +161,10 @@ func (e *Evaluator) EvalStatement(node parser.Node) (EnvironmentData, error) {
 					if prev == nil || prev.NodeName() != "FOR" {
 						e.current = nil
 					}
-					// fmt.Println("BREAKKKKKKKK")
-					// e.current = nil
+
 					e.end()
 					break
 				}
-
 				if prev == nil || prev.NodeName() != "FOR" {
 					e.current = nil
 					// e.end()
@@ -188,7 +180,6 @@ func (e *Evaluator) EvalStatement(node parser.Node) (EnvironmentData, error) {
 			}
 
 			_, err = e.EvalStatement(forStatement.Expression)
-			// fmt.Println("FOR CALL right", err)
 
 			if err != nil {
 				return nil, err

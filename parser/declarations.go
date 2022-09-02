@@ -8,10 +8,10 @@ type FunctionDeclStatement struct {
 	name       string
 	Identifier Node
 	Params     []Node
-	Body       []Node
+	Body       *Block
 }
 
-func NewFunctionDeclStatement(identifier Node, params, body []Node) *FunctionDeclStatement {
+func NewFunctionDeclStatement(identifier Node, params []Node, body *Block) *FunctionDeclStatement {
 	return &FunctionDeclStatement{
 		name:       "FunctionDecl",
 		Identifier: identifier,
@@ -33,11 +33,27 @@ func (a *FunctionDeclStatement) Print() {
 		p.Print()
 	}
 	fmt.Println("Body")
-	for _, p := range a.Body {
+	for _, p := range a.Body.Nodes {
 		p.Print()
 	}
 }
 
 func (a FunctionDeclStatement) Type() string {
 	return a.name
+}
+
+type Block struct {
+	name  string
+	Nodes []Node
+}
+
+func NewBlock(nodes []Node) *Block {
+	return &Block{
+		name:  "Block",
+		Nodes: nodes,
+	}
+}
+
+func (b Block) NodeName() string {
+	return b.name
 }

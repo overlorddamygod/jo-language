@@ -221,14 +221,12 @@ func (p *Parser) match(type_ L.TokenType, str string) (*L.Token, error) {
 	return token, nil
 }
 
-func (p *Parser) ifElse() (Node, error) {
-	_, err := p.match(L.KEYWORD, "if")
+func (p *Parser) condition() (Node, error) {
+	_, err := p.match(L.PUNCTUATION, L.LPAREN)
 
 	if err != nil {
 		return nil, err
 	}
-
-	_, err = p.match(L.PUNCTUATION, L.LPAREN)
 
 	exp, err := p.expression()
 
@@ -236,11 +234,28 @@ func (p *Parser) ifElse() (Node, error) {
 		return nil, err
 	}
 
-	rightParenthesis, err := p.lexer.NextToken()
+	_, err = p.match(L.PUNCTUATION, L.RPAREN)
 
-	if err != nil || !(rightParenthesis.Type == L.PUNCTUATION && rightParenthesis.Literal == L.RPAREN) {
-		return nil, L.NewJoError(p.lexer, rightParenthesis, "Expected )")
+	if err != nil {
+		return nil, err
 	}
+
+	return exp, nil
+}
+
+func (p *Parser) ifElse() (Node, error) {
+	_, err := p.match(L.KEYWORD, "if")
+
+	if err != nil {
+		return nil, err
+	}
+
+	exp, err := p.condition()
+
+	if err != nil {
+		return nil, err
+	}
+
 	// fmt.Println("HERE")
 
 	ifBlock, err := p.block()
@@ -249,9 +264,39 @@ func (p *Parser) ifElse() (Node, error) {
 		return nil, err
 	}
 
-	ifStatement := NewIfStatement(exp, ifBlock)
+	var ifs []*ConditionBlock = make([]*ConditionBlock, 0)
+	ifs = append(ifs, NewConditionBlock(exp, ifBlock))
 
 	token, _ := p.lexer.PeekToken(0)
+
+	if token.Literal == "elif" {
+
+		for {
+			p.lexer.NextToken()
+
+			exp, err := p.expression()
+
+			if err != nil {
+				return nil, err
+			}
+
+			block, err := p.block()
+
+			if err != nil {
+				return nil, err
+			}
+
+			ifs = append(ifs, NewConditionBlock(exp, block))
+
+			token, _ = p.lexer.PeekToken(0)
+
+			if token.Literal != "elif" {
+				break
+			}
+		}
+	}
+
+	ifStatement := NewIfStatement(ifs)
 
 	if token.Literal == "else" {
 		p.lexer.NextToken()
@@ -327,7 +372,7 @@ func (p *Parser) For() (Node, error) {
 	return NewForStatement(assignment, condition, exp, block), nil
 }
 
-func (p *Parser) block() ([]Node, error) {
+func (p *Parser) block() (*Block, error) {
 	leftCurly, err := p.lexer.NextToken()
 
 	// fmt.Println("LEFTCURLY", leftCurly)
@@ -349,7 +394,7 @@ func (p *Parser) block() ([]Node, error) {
 		return nil, L.NewJoError(p.lexer, rightCurly, "Expected }")
 	}
 
-	return block, nil
+	return NewBlock(block), nil
 }
 
 func (p *Parser) identifier() (Node, error) {
