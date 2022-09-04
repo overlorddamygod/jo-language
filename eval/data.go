@@ -8,8 +8,15 @@ import (
 	"github.com/overlorddamygod/jo/parser"
 )
 
+type LangData string
+
+var (
+	Literal  LangData = "LiteralData"
+	Function          = "CallableFunction"
+)
+
 type LiteralData struct {
-	name           string
+	name           LangData
 	_type          string
 	Value          string
 	NumericalValue float64
@@ -17,7 +24,7 @@ type LiteralData struct {
 
 func NewLiteralData(Type, value string) *LiteralData {
 	litVal := LiteralData{
-		name:  "LiteralData",
+		name:  Literal,
 		_type: Type,
 		Value: value,
 	}
@@ -71,7 +78,7 @@ func (l *LiteralData) GetString() string {
 	return l.Value
 }
 
-func (l *LiteralData) NodeName() string {
+func (l *LiteralData) NodeName() LangData {
 	return l.name
 }
 func (l *LiteralData) Print() {
@@ -106,8 +113,8 @@ type CallableFunction struct {
 
 func NewCallableFunction(functionDecl parser.FunctionDeclStatement, env *Environment) *CallableFunction {
 	return &CallableFunction{
-		name:         "CallableFunction",
-		_type:        "CallableFunction",
+		name:         Function,
+		_type:        Function,
 		FunctionDecl: functionDecl,
 		Closure:      env,
 	}

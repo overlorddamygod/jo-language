@@ -4,6 +4,42 @@ import (
 	"fmt"
 )
 
+type VarDeclStatement struct {
+	name       string
+	Identifier Node
+	Expression *Node
+}
+
+func NewVarDeclStatement(identifier, expression Node) *VarDeclStatement {
+	return &VarDeclStatement{
+		name:       "VarDecl",
+		Identifier: identifier,
+		Expression: &expression,
+	}
+}
+
+func (a *VarDeclStatement) NodeName() string {
+	return a.name
+}
+
+func (a *VarDeclStatement) Print() {
+	// fmt.Println(a.name)
+	// a.Identifier.Print()
+
+	// fmt.Println("Params")
+	// for _, p := range a.Params {
+	// 	p.Print()
+	// }
+	// fmt.Println("Body")
+	// for _, p := range a.Body.Nodes {
+	// 	p.Print()
+	// }
+}
+
+func (a VarDeclStatement) Type() string {
+	return a.name
+}
+
 type FunctionDeclStatement struct {
 	name       string
 	Identifier Node

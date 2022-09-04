@@ -1,41 +1,43 @@
+let name = input("Enter your name: ");
 
-fn loop() {
-    for (i = 0; i < 2; i = i + 1 ) {
-        for (j = 0; j < 2; j = j + 1 ) {
-            if (j == 1) {
-                continue;
-            }
-            for (k = 0; k < 5; k = k + 1 ) {
-                if (k == 3) {
-                    continue;
-                }
-                print("----k is", k);
-            }
-            print("--j is", j);
-        }
-        print("i is", i);
-    }
-    print("2", loop2());
+let hasName = name != "";
+
+if (!hasName) {
+    name = "World";
 }
 
+// Printing Hello, World if name is empty
+// else Hello, {name} 
+print("Hello,", name);
 
-fn loop2() {
-    print("------");
-    for (i = 0; i < 2; i = i + 1 ) {
-        for (j = 0; j < 2; j = j + 1 ) {
-            if (j == 1) {
-                return;
-            }
-            for (k = 0; k < 5; k = k + 1 ) {
-                if (k == 3) {
-                    continue;
-                }
-                print("----k is", k);
-            }
-            print("--j is", j);
-        }
-        print("i is", i);
+
+// Print if number is even or odd from 0 to 10
+
+// Helper Functions
+fn mod(num, by) {
+    return num % by;
+}
+
+fn isEven(num) {
+    return mod(num, 2) == 0;
+}
+
+for ( let i = 0; i <= 10; i = i + 1 ) {
+    if ( isEven(i) ) {
+        print("is even", i);
+    } else {
+        print("is odd", i);
     }
 }
 
-print(loop());
+// Fibonacci
+fn fib(num) {
+    if (num == 0 || num == 1) {
+        return 1;
+    }
+    return fib(num - 1) + fib(num - 2);
+}
+
+for ( let i = 0; i < 10; i = i + 1 ) {
+    print("FIB", i, fib(i));
+}

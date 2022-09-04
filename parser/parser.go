@@ -42,9 +42,44 @@ func (p *Parser) declaration() (Node, error) {
 	switch first.Literal {
 	case "fn":
 		return p.functionDecl()
+	case "let":
+		decl, err := p.vardecl()
+
+		if err != nil {
+			return nil, err
+		}
+		return p.matchSemicolon(decl)
 	}
 	return p.statement()
 	// return nil, L.NewJoError(p.lexer, first, fmt.Sprintf("Unknown declaration ` %s `", first.Literal))
+}
+
+func (p *Parser) vardecl() (Node, error) {
+	_, err := p.match(L.KEYWORD, "let")
+
+	if err != nil {
+		return nil, err
+	}
+
+	identifier, err := p.identifier()
+
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = p.match(L.OPERATOR, L.ASSIGN)
+
+	if err != nil {
+		return nil, err
+	}
+
+	expression, err := p.expression()
+
+	if err != nil {
+		return nil, err
+	}
+
+	return NewVarDeclStatement(identifier, expression), nil
 }
 
 func (p *Parser) statements() ([]Node, error) {
@@ -341,7 +376,7 @@ func (p *Parser) For() (Node, error) {
 		return nil, L.NewJoError(p.lexer, leftParenthesis, "Expected (")
 	}
 
-	assignment, err := p.assignment()
+	vardecl, err := p.vardecl()
 
 	if err != nil {
 		return nil, err
@@ -387,7 +422,7 @@ func (p *Parser) For() (Node, error) {
 		return nil, err
 	}
 
-	return NewForStatement(assignment, condition, exp, block), nil
+	return NewForStatement(vardecl, condition, exp, block), nil
 }
 
 func (p *Parser) block() (*Block, error) {

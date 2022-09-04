@@ -69,6 +69,21 @@ func (e *Evaluator) EvalStatement(node parser.Node) (EnvironmentData, error) {
 	// e.Eval()
 	// fmt.Println("NODE", node.NodeName())
 	switch node.NodeName() {
+	case "VarDecl":
+		varDecl := node.(*parser.VarDeclStatement)
+
+		id := varDecl.Identifier.(*parser.Identifier)
+		exp, err := e.EvalExpression(*varDecl.Expression)
+
+		if err != nil {
+			return nil, err
+		}
+
+		if _, err := e.environment.Get(id.Value); err == nil {
+			return nil, L.NewJoError(e.lexer, id.Token, fmt.Sprintf("Variable ` %s ` already defined", id.Value))
+		} else {
+			e.environment.Define(id.Value, exp)
+		}
 	case "ASSIGNMENT":
 		assignment := node.(*parser.AssignmentStatement)
 		// fmt.Println("ASSIGNMENT", assignment.Identifier)
@@ -79,7 +94,12 @@ func (e *Evaluator) EvalStatement(node parser.Node) (EnvironmentData, error) {
 		if err != nil {
 			return nil, err
 		}
-		e.environment.Define(id.Value, exp)
+
+		err = e.environment.Assign(id.Value, exp)
+
+		if err != nil {
+			return nil, L.NewJoError(e.lexer, id.Token, fmt.Sprintf("Variable ` %s ` already defined", id.Value))
+		}
 	case "FunctionCall":
 		return e.functionCall(node)
 	case "IF":

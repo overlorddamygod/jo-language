@@ -65,3 +65,17 @@ func (env *Environment) Get(key string) (EnvironmentDataValue, error) {
 	}
 	return value, nil
 }
+
+func (env *Environment) Assign(key string, value EnvironmentDataValue) error {
+	_, present := env.data[key]
+
+	if !present {
+		if env.parent == nil {
+			return errors.New("key not defined in the environment")
+		}
+		return env.parent.Assign(key, value)
+	}
+
+	env.data[key] = value
+	return nil
+}
