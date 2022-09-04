@@ -21,17 +21,18 @@ user@main:~$ ./jo example.jo
 ---
 ### Sample Program
 ```js
-name = "Overlord";
+let name = input("Enter your name: ");
 
-hasName = name == "";
+let hasName = name != "";
 
-if (!!hasName) {
+if (!hasName) {
     name = "World";
 }
 
 // Printing Hello, World if name is empty
 // else Hello, {name} 
 print("Hello,", name);
+
 
 // Print if number is even or odd from 0 to 10
 
@@ -44,7 +45,7 @@ fn isEven(num) {
     return mod(num, 2) == 0;
 }
 
-for ( i = 0; i <= 10; i = i + 1 ) {
+for ( let i = 0; i <= 10; i = i + 1 ) {
     if ( isEven(i) ) {
         print("is even", i);
     } else {
@@ -57,11 +58,10 @@ fn fib(num) {
     if (num == 0 || num == 1) {
         return 1;
     }
-
     return fib(num - 1) + fib(num - 2);
 }
 
-for (i = 0; i < 10; i = i + 1) {
-    print(fib(i));
+for ( let i = 0; i < 10; i = i + 1 ) {
+    print("FIB", i, fib(i));
 }
 ```
