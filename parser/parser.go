@@ -42,6 +42,8 @@ func (p *Parser) declaration() (Node, error) {
 	switch first.Literal {
 	case "fn":
 		return p.functionDecl()
+	case "struct":
+		return p.structDecl()
 	case "let":
 		decl, err := p.vardecl()
 
@@ -52,6 +54,55 @@ func (p *Parser) declaration() (Node, error) {
 	}
 	return p.statement()
 	// return nil, L.NewJoError(p.lexer, first, fmt.Sprintf("Unknown declaration ` %s `", first.Literal))
+}
+
+func (p *Parser) structDecl() (Node, error) {
+	_, err := p.match(L.KEYWORD, "struct")
+
+	if err != nil {
+		return nil, err
+	}
+
+	identifier, err := p.identifier()
+
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = p.match(L.PUNCTUATION, L.LBRACE)
+
+	if err != nil {
+		return nil, err
+	}
+
+	var methods []FunctionDeclStatement
+
+	for {
+		token, err := p.lexer.PeekToken(0)
+
+		if err != nil {
+			break
+		}
+
+		if token.Literal == "fn" {
+			method, err := p.functionDecl()
+
+			if err != nil {
+				break
+			}
+			methods = append(methods, *method)
+		} else {
+			break
+		}
+	}
+
+	_, err = p.match(L.PUNCTUATION, L.RBRACE)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return NewStructDeclStatement(identifier, methods), nil
 }
 
 func (p *Parser) vardecl() (Node, error) {
@@ -210,7 +261,7 @@ func (p *Parser) matchSemicolon(node Node) (Node, error) {
 	return node, nil
 }
 
-func (p *Parser) functionDecl() (Node, error) {
+func (p *Parser) functionDecl() (*FunctionDeclStatement, error) {
 	_, err := p.match(L.KEYWORD, "fn")
 
 	if err != nil {
@@ -574,42 +625,56 @@ func (p *Parser) unary() (Node, error) {
 }
 
 func (p *Parser) call() (Node, error) {
-	token, err := p.primary()
+	expr, err := p.primary()
 	if err != nil {
 		return nil, err
 	}
 
-	leftParen, _ := p.lexer.PeekToken(0)
-
-	if leftParen.Type == L.PUNCTUATION && leftParen.Literal == L.LPAREN {
-		p.lexer.NextToken()
-
-		rightPar, _ := p.lexer.PeekToken(0)
-
-		if rightPar.Type == L.PUNCTUATION && rightPar.Literal == L.RPAREN {
+	for {
+		leftParenOrDot, _ := p.lexer.PeekToken(0)
+		if leftParenOrDot.Type == L.PUNCTUATION && leftParenOrDot.Literal == L.LPAREN {
 			p.lexer.NextToken()
 
-			return NewFunctionCall(token, []Node{}), nil
+			rightPar, _ := p.lexer.PeekToken(0)
+
+			if rightPar.Type == L.PUNCTUATION && rightPar.Literal == L.RPAREN {
+				p.lexer.NextToken()
+
+				expr = NewFunctionCall(expr, []Node{})
+				continue
+			}
+
+			arguments, err := p.arguments()
+
+			if err != nil {
+				return nil, err
+			}
+
+			// fmt.Println(arguments)
+
+			rightParen, err := p.lexer.PeekToken(0)
+
+			if err != nil || !(rightParen.Type == L.PUNCTUATION && rightParen.Literal == L.RPAREN) {
+				return nil, L.NewJoError(p.lexer, rightParen, "Expected )")
+			}
+			p.lexer.NextToken()
+			expr = NewFunctionCall(expr, arguments)
+		} else if leftParenOrDot.Type == L.OPERATOR && leftParenOrDot.Literal == L.FULL_STOP {
+			p.lexer.NextToken()
+
+			iden, err := p.identifier()
+
+			if err != nil {
+				return nil, err
+			}
+
+			expr = NewGetExpr(iden, expr)
+		} else {
+			break
 		}
-
-		arguments, err := p.arguments()
-
-		if err != nil {
-			return nil, err
-		}
-
-		// fmt.Println(arguments)
-
-		rightParen, err := p.lexer.NextToken()
-
-		if err != nil || !(rightParen.Type == L.PUNCTUATION && rightParen.Literal == L.RPAREN) {
-			return nil, L.NewJoError(p.lexer, rightParen, "Expected )")
-		}
-
-		return NewFunctionCall(token, arguments), nil
 	}
 
-	return token, nil
+	return expr, nil
 }
 
 func (p *Parser) primary() (Node, error) {

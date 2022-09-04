@@ -194,3 +194,31 @@ func (b *FunctionCall) Print() {
 		s.Print()
 	}
 }
+
+type GetExpr struct {
+	name       string
+	Identifier Node
+	Expr       Node
+}
+
+func NewGetExpr(identifier, expr Node) *GetExpr {
+	return &GetExpr{
+		name:       "GetExpr",
+		Identifier: identifier,
+		Expr:       expr,
+	}
+}
+
+func (g *GetExpr) NodeName() string {
+	return g.name
+}
+
+func (g *GetExpr) Print() {
+	fmt.Println(g.name)
+	g.Identifier.Print()
+	g.Expr.Print()
+	// fmt.Println("Arguments")
+	// for _, s := range b.Arguments {
+	// 	s.Print()
+	// }
+}

@@ -41,6 +41,7 @@ const (
 	UNARY_MINUS = "--"
 
 	// Delimiters
+	FULL_STOP = "."
 	COMMA     = ","
 	SEMICOLON = ";"
 	COLON     = ":"
@@ -97,7 +98,7 @@ func (t *Token) Print() {
 
 func IsKeyword(identifier string) bool {
 	switch identifier {
-	case "return", "if", "let", "else", "fn", "var", "for", "while", "break", "continue", "true", "false", "null", "int", "string", "char":
+	case "return", "if", "let", "else", "struct", "fn", "var", "for", "while", "break", "continue", "true", "false", "null", "int", "string", "char":
 		return true
 	}
 	return false

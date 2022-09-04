@@ -67,7 +67,10 @@ func (e *Evaluator) EvalStatements(statements []parser.Node) (EnvironmentData, e
 
 func (e *Evaluator) EvalStatement(node parser.Node) (EnvironmentData, error) {
 	// e.Eval()
+	// fmt.Println("___")
 	// fmt.Println("NODE", node.NodeName())
+	// node.Print()
+	// fmt.Println("___")
 	switch node.NodeName() {
 	case "VarDecl":
 		varDecl := node.(*parser.VarDeclStatement)
@@ -98,10 +101,20 @@ func (e *Evaluator) EvalStatement(node parser.Node) (EnvironmentData, error) {
 		err = e.environment.Assign(id.Value, exp)
 
 		if err != nil {
-			return nil, L.NewJoError(e.lexer, id.Token, fmt.Sprintf("Variable ` %s ` already defined", id.Value))
+			return nil, L.NewJoError(e.lexer, id.Token, fmt.Sprintf("Variable ` %s ` not defined", id.Value))
 		}
 	case "FunctionCall":
 		return e.functionCall(node)
+	case "StructDecl":
+		structD := node.(*parser.StructDeclStatement)
+
+		id := structD.Identifier.(*parser.Identifier)
+
+		if _, err := e.environment.Get(id.Value); err == nil {
+			return nil, L.NewJoError(e.lexer, id.Token, fmt.Sprintf("Variable ` %s ` already defined", id.Value))
+		} else {
+			e.environment.Define(id.Value, NewStructDataDecl(*structD, e.environment))
+		}
 	case "IF":
 		// fmt.Println("IF Start")
 		ifStatement := node.(*parser.IfStatement)
@@ -227,8 +240,11 @@ func (e *Evaluator) EvalStatement(node parser.Node) (EnvironmentData, error) {
 		// fmt.Println("GLOBASTART-----")
 		// e.global.Print()
 		// fmt.Println("GLOBALEND------")
-
-		e.environment.Define(functionName.Value, NewCallableFunction(*functionDecl, e.environment))
+		if _, err := e.environment.Get(functionName.Value); err == nil {
+			return nil, L.NewJoError(e.lexer, functionName.Token, fmt.Sprintf("Variable ` %s ` already defined", functionName.Value))
+		} else {
+			e.environment.Define(functionName.Value, NewCallableFunction(*functionDecl, e.environment))
+		}
 		// fmt.Println("ENVSTART-----")
 		// e.environment.Print()
 		// fmt.Println("ENVEND------")
@@ -382,10 +398,56 @@ func (e *Evaluator) EvalExpression(node parser.Node) (EnvironmentData, error) {
 	return nil, nil
 }
 
+func (e *Evaluator) get(node parser.Node) (EnvironmentData, error) {
+	functionCall := node.(*parser.FunctionCall)
+
+	getExpr, _ := functionCall.Identifier.(*parser.GetExpr)
+
+	methodName := getExpr.Identifier.(*parser.Identifier)
+	callee, ok := getExpr.Expr.(*parser.Identifier)
+
+	if !ok {
+		// its a function call on callee
+
+		func_ := getExpr.Expr.(*parser.FunctionCall)
+
+		call, err := e.functionCall(func_)
+		if err != nil {
+			return nil, err
+		}
+
+		_struct, ok := call.(*StructData)
+
+		if !ok {
+			return nil, errors.New("NOT STRUCT")
+		}
+
+		return _struct.Call(methodName.Value, e, functionCall.Arguments)
+	}
+
+	call, err := e.environment.Get(callee.Value)
+
+	if err != nil {
+		return nil, err
+	}
+
+	_struct, ok := call.(*StructData)
+
+	if !ok {
+		return nil, errors.New("NOT STRUCT")
+	}
+
+	return _struct.Call(methodName.Value, e, functionCall.Arguments)
+}
+
 func (e *Evaluator) functionCall(node parser.Node) (EnvironmentData, error) {
 	functionCall := node.(*parser.FunctionCall)
 
-	functionName := functionCall.Identifier.(*parser.Identifier)
+	functionName, ok := functionCall.Identifier.(*parser.Identifier)
+
+	if !ok {
+		return e.get(functionCall)
+	}
 
 	if functionName.Value == "print" {
 		output := ""
@@ -399,13 +461,8 @@ func (e *Evaluator) functionCall(node parser.Node) (EnvironmentData, error) {
 			if i > 0 {
 				output += " "
 			}
-			expressionVal, ok := exp.(LiteralData)
 
-			if !ok {
-				output += "null"
-			} else {
-				output += expressionVal.Value
-			}
+			output += exp.GetString()
 		}
 		fmt.Println(output)
 		return nil, nil
@@ -433,13 +490,20 @@ func (e *Evaluator) functionCall(node parser.Node) (EnvironmentData, error) {
 		return nil, L.NewJoError(e.lexer, functionName.Token, fmt.Sprintf("unknown function ` %s `", functionName.Value))
 	}
 
-	callableFunction := function.(*CallableFunction)
+	callableFunction, ok := function.(*CallableFunction)
 
-	a, err := callableFunction.Call(e, functionCall.Arguments)
+	if ok {
+		a, err := callableFunction.Call(e, functionCall.Arguments)
+		return a, err
+	}
 
+	_struct, ok := function.(*StructDataDecl)
+
+	data := NewStructData(*_struct, e.environment)
+
+	// e.environment.Define(functionName.Value, data)
+	return data, nil
 	// fmt.Println("FUNC END", functionName.Value, a, err)
-
-	return a, err
 }
 
 func (e *Evaluator) begin() {

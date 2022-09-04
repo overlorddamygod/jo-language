@@ -7,6 +7,7 @@ import (
 
 type EnvironmentData interface {
 	Type() string
+	GetString() string
 }
 type EnvironmentDataValue EnvironmentData
 type EnvironmentDataMap map[string]EnvironmentDataValue

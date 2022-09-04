@@ -252,7 +252,7 @@ func (l *Lexer) Lex() ([]Token, error) {
 		}
 
 		switch currentChar {
-		case ASTERISK, PERCENT:
+		case ASTERISK, PERCENT, FULL_STOP:
 			l.advance()
 			l.appendToken(l.getToken(OPERATOR, currentChar).Line(l.line).Start(l.col + 1).End(l.col + 1))
 			continue
