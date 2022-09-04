@@ -9,14 +9,30 @@ Language Grammar in [`jo-grammar.cfg`](./jo-grammar.cfg)
     
 ---
 ### Usage
+Requires Golang
 
+**Without Building:**
 ```console
 user@main:~$ go run main.go example.jo
 ```
-or
 
+**By building**
 ```console
+// Build for mac
+user@main:~$ GOOS=darwin GOARCH=arm64 go build -o jo main.go
+
+// Build for windows
+user@main:~$ GOOS=windows GOARCH=amd64 go build -o jo main.go
+
+// Run
 user@main:~$ ./jo example.jo
+```
+---
+### Build
+Builds for all OS and architecture as in [Makefile](./Makefile).
+Built executables found at [./bin folder](./bin)
+```console
+user@main:~$ make
 ```
 ---
 # JoLang Docs
