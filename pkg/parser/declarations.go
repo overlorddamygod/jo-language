@@ -23,8 +23,9 @@ func (a *VarDeclStatement) NodeName() string {
 }
 
 func (a *VarDeclStatement) Print() {
-	// fmt.Println(a.name)
-	// a.Identifier.Print()
+	fmt.Println(a.name)
+	a.Identifier.Print()
+	(*a.Expression).Print()
 
 	// fmt.Println("Params")
 	// for _, p := range a.Params {
@@ -38,6 +39,10 @@ func (a *VarDeclStatement) Print() {
 
 func (a VarDeclStatement) Type() string {
 	return a.name
+}
+
+func (v VarDeclStatement) GetLine() int {
+	return v.Identifier.GetLine()
 }
 
 type FunctionDeclStatement struct {
@@ -78,6 +83,10 @@ func (a FunctionDeclStatement) Type() string {
 	return a.name
 }
 
+func (v FunctionDeclStatement) GetLine() int {
+	return v.Identifier.GetLine()
+}
+
 type Block struct {
 	name  string
 	Nodes []Node
@@ -92,6 +101,13 @@ func NewBlock(nodes []Node) *Block {
 
 func (b Block) NodeName() string {
 	return b.name
+}
+
+func (b Block) GetLine() int {
+	if len(b.Nodes) == 0 {
+		return 1
+	}
+	return b.Nodes[0].GetLine()
 }
 
 type StructDeclStatement struct {
@@ -126,4 +142,8 @@ func (a *StructDeclStatement) Print() {
 	// for _, p := range a.Body.Nodes {
 	// 	p.Print()
 	// }
+}
+
+func (s StructDeclStatement) GetLine() int {
+	return s.Identifier.GetLine()
 }

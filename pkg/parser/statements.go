@@ -1,6 +1,10 @@
 package parser
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/overlorddamygod/jo/pkg/lexer"
+)
 
 type AssignmentStatement struct {
 	name       string
@@ -26,8 +30,13 @@ func (a *AssignmentStatement) Print() {
 	a.Expression.Print()
 }
 
+func (a AssignmentStatement) GetLine() int {
+	return a.Identifier.GetLine()
+}
+
 type ReturnStatement struct {
 	name       string
+	token      lexer.Token
 	Expression Node
 }
 
@@ -48,8 +57,13 @@ func (a *ReturnStatement) Print() {
 	// a.Expression.Print()
 }
 
+func (a ReturnStatement) GetLine() int {
+	return a.token.GetLine()
+}
+
 type BreakStatement struct {
-	name string
+	name  string
+	token lexer.Token
 }
 
 func NewBreakStatement() *BreakStatement {
@@ -67,8 +81,13 @@ func (a *BreakStatement) Print() {
 	// a.Expression.Print()
 }
 
+func (a BreakStatement) GetLine() int {
+	return a.token.GetLine()
+}
+
 type ContinueStatement struct {
-	name string
+	name  string
+	token lexer.Token
 }
 
 func NewContinueStatement() *ContinueStatement {
@@ -84,6 +103,10 @@ func (c *ContinueStatement) NodeName() string {
 func (c *ContinueStatement) Print() {
 	fmt.Println(c.name)
 	// a.Expression.Print()
+}
+
+func (a ContinueStatement) GetLine() int {
+	return a.token.GetLine()
 }
 
 type IfStatement struct {
@@ -115,6 +138,10 @@ func (i *IfStatement) HasElse() bool {
 
 func (a *IfStatement) NodeName() string {
 	return a.name
+}
+
+func (a IfStatement) GetLine() int {
+	return a.IfBlocks[0].Block.GetLine()
 }
 
 func (a *IfStatement) Print() {
@@ -168,6 +195,10 @@ func (c ConditionBlock) Print() {
 	}
 }
 
+func (a ConditionBlock) GetLine() int {
+	return a.Block.GetLine()
+}
+
 type ForStatement struct {
 	name       string
 	Initial    Node
@@ -207,4 +238,7 @@ func (a *ForStatement) Print() {
 	// fmt.Println("END IF")
 	// a.Identifier.Print()
 	// a.Expression.Print()
+}
+func (a ForStatement) GetLine() int {
+	return a.Initial.GetLine()
 }

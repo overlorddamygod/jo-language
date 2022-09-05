@@ -10,8 +10,10 @@ import (
 type LangData string
 
 var (
-	Literal  LangData = "LiteralData"
-	Function          = "CallableFunction"
+	Literal    LangData = "LiteralData"
+	Function            = "CallableFunction"
+	StructDecl          = "StructDataDecl"
+	Struct              = "StructData"
 )
 
 type StructDataDecl struct {
@@ -23,8 +25,8 @@ type StructDataDecl struct {
 
 func NewStructDataDecl(functionDecl parser.StructDeclStatement, env *Environment) *StructDataDecl {
 	return &StructDataDecl{
-		name:       "StructDataDecl",
-		_type:      "StructDataDecl",
+		name:       StructDecl,
+		_type:      StructDecl,
 		StructDecl: functionDecl,
 		Closure:    env,
 	}
@@ -50,17 +52,19 @@ func NewStructData(structDecl StructDataDecl, env *Environment) *StructData {
 
 	methods := structDecl.StructDecl.Methods
 
-	for _, method := range methods {
-		id := method.Identifier.(*parser.Identifier)
-		env.Define(id.Value, NewCallableFunction(method, env))
-	}
-
-	return &StructData{
-		name:       "StructData",
-		_type:      "StructData",
+	structData := &StructData{
+		name:       Struct,
+		_type:      Struct,
 		StructDecl: structDecl.StructDecl,
 		env:        env,
 	}
+
+	for _, method := range methods {
+		id := method.Identifier.(*parser.Identifier)
+		env.Define(id.Value, NewCallableFunction(method, env, structData))
+	}
+
+	return structData
 }
 
 func (s *StructData) Get(key string) (EnvironmentData, error) {

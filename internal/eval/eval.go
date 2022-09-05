@@ -247,7 +247,7 @@ func (e *Evaluator) EvalStatement(node parser.Node) (EnvironmentData, error) {
 		if _, err := e.environment.Get(functionName.Value); err == nil {
 			return nil, L.NewJoError(e.lexer, functionName.Token, fmt.Sprintf("Variable ` %s ` already defined", functionName.Value))
 		} else {
-			e.environment.Define(functionName.Value, NewCallableFunction(*functionDecl, e.environment))
+			e.environment.Define(functionName.Value, NewCallableFunction(*functionDecl, e.environment, nil))
 		}
 		// fmt.Println("ENVSTART-----")
 		// e.environment.Print()
@@ -282,6 +282,8 @@ func (e *Evaluator) EvalStatement(node parser.Node) (EnvironmentData, error) {
 		// fmt.Println("HERE", e.current)
 		//  := node.(*parser.BreakStatement)
 		return nil, nil
+	case "GetExpr":
+		return e._get(node)
 	default:
 		return nil, fmt.Errorf("unknown statement %s", node.NodeName())
 	}
@@ -386,128 +388,179 @@ func (e *Evaluator) EvalExpression(node parser.Node) (EnvironmentData, error) {
 		}
 		return nil, L.NewJoError(e.lexer, unary.Token, "Unknown operator "+unary.Op)
 	case "Identifier":
-		variable := node.(*parser.Identifier)
-		val, err := e.environment.Get(variable.Value)
-
-		if err != nil {
-			// fmt.Println(err)
-			return nil, L.NewJoError(e.lexer, variable.Token, fmt.Sprintf("Variable ` %s ` not defined in this scope", variable.Value))
-		}
-		return val, nil
+		return e.identifier(node)
 	case "FunctionCall":
 		return e.functionCall(node)
+	case "GetExpr":
+		return e._get(node)
 	default:
 		return nil, errors.New("unknown nodename")
 	}
 	return nil, nil
 }
 
-func (e *Evaluator) get(node parser.Node) (EnvironmentData, error) {
-	functionCall := node.(*parser.FunctionCall)
+func (e *Evaluator) identifier(node parser.Node) (EnvironmentData, error) {
+	variable := node.(*parser.Identifier)
+	val, err := e.environment.Get(variable.Value)
 
-	getExpr, _ := functionCall.Identifier.(*parser.GetExpr)
+	if err != nil {
+		// fmt.Println(err)
+		return nil, L.NewJoError(e.lexer, variable.Token, fmt.Sprintf("Variable ` %s ` not defined in this scope", variable.Value))
+	}
+	return val, nil
+}
 
-	methodName := getExpr.Identifier.(*parser.Identifier)
-	callee, ok := getExpr.Expr.(*parser.Identifier)
+func (e *Evaluator) _get(node parser.Node) (EnvironmentData, error) {
+	getExpr := node.(*parser.GetExpr)
 
-	if !ok {
-		// its a function call on callee
+	identifier := getExpr.Identifier.(*parser.Identifier)
 
-		func_ := getExpr.Expr.(*parser.FunctionCall)
+	var calleeValue EnvironmentData
+	switch getExpr.Expr.NodeName() {
+	case "Identifier":
+		val, err := e.identifier(getExpr.Expr)
+		if err != nil {
+			return nil, err
+		}
+		calleeValue = val
 
-		call, err := e.functionCall(func_)
+	case "FunctionCall":
+		val, err := e.functionCall(getExpr.Expr)
+
 		if err != nil {
 			return nil, err
 		}
 
-		_struct, ok := call.(*StructData)
+		calleeValue = val
+	// TODO FOR Literal Data
+	default:
+		return nil, L.NewJoError(e.lexer, L.NewToken(L.IDENTIFIER, "").Line(node.GetLine()), "unknown callee")
+	}
 
-		if !ok {
-			return nil, errors.New("NOT STRUCT")
+	if calleeValue == nil {
+		return nil, L.NewJoError(e.lexer, identifier.Token, fmt.Sprintf("can't access property `%s` from a null data", identifier.Value))
+	}
+
+	switch calleeValue.Type() {
+	case Struct:
+		struct_ := calleeValue.(*StructData)
+		v, err := struct_.Get(identifier.Value)
+
+		if err != nil {
+			return nil, L.NewJoError(e.lexer, identifier.Token, fmt.Sprintf("method `%s` not defined", identifier.Value))
 		}
+		return v, nil
+	case Function:
+		// id := getExpr.Expr.(*parser.Identifier)
 
-		return _struct.Call(methodName.Value, e, functionCall.Arguments)
+		// fun.FunctionDecl.Identifier
+		return nil, L.NewJoError(e.lexer, identifier.Token, fmt.Sprintf("can't access property `%s` from a function declaration", identifier.Value))
+	case StructDecl:
+		return nil, L.NewJoError(e.lexer, identifier.Token, fmt.Sprintf("can't access property `%s` from a struct declaration", identifier.Value))
+	// TODO FOR Literal Data
+	default:
+		return nil, L.NewJoError(e.lexer, L.NewToken(L.IDENTIFIER, "").Line(node.GetLine()), "unknown callee")
 	}
-
-	call, err := e.environment.Get(callee.Value)
-
-	if err != nil {
-		return nil, err
-	}
-
-	_struct, ok := call.(*StructData)
-
-	if !ok {
-		return nil, errors.New("NOT STRUCT")
-	}
-
-	return _struct.Call(methodName.Value, e, functionCall.Arguments)
 }
 
 func (e *Evaluator) functionCall(node parser.Node) (EnvironmentData, error) {
 	functionCall := node.(*parser.FunctionCall)
 
-	functionName, ok := functionCall.Identifier.(*parser.Identifier)
+	functionName, _ := functionCall.Identifier.(*parser.Identifier)
 
-	if !ok {
-		return e.get(functionCall)
-	}
+	var function EnvironmentData
+	switch functionCall.Identifier.NodeName() {
+	case "Identifier":
+		if functionName.Value == "print" {
+			output := ""
+			for i, arg := range functionCall.Arguments {
+				exp, err := e.EvalExpression(arg)
 
-	if functionName.Value == "print" {
-		output := ""
-		for i, arg := range functionCall.Arguments {
-			exp, err := e.EvalExpression(arg)
+				if err != nil {
+					return nil, err
+				}
+
+				if i > 0 {
+					output += " "
+				}
+
+				if exp == nil {
+					output += "null"
+				} else {
+					output += exp.GetString()
+				}
+			}
+			stdio.Io.Println(output)
+			return nil, nil
+		} else if functionName.Value == "input" {
+			if len(functionCall.Arguments) != 1 {
+				return nil, L.NewJoError(e.lexer, functionName.Token, "must have 1 argument.")
+			}
+			arg1 := functionCall.Arguments[0]
+			arg, err := e.EvalExpression(arg1)
 
 			if err != nil {
 				return nil, err
 			}
+			argLiteral := arg.(LiteralData)
 
-			if i > 0 {
-				output += " "
-			}
+			stdio.Io.Print(argLiteral.GetString())
 
-			output += exp.GetString()
+			text := stdio.Io.Input()
+			return StringLiteral(text), nil
 		}
-		stdio.Io.Println(output)
-		return nil, nil
-	} else if functionName.Value == "input" {
-		if len(functionCall.Arguments) != 1 {
-			return nil, L.NewJoError(e.lexer, functionName.Token, "must have 1 argument.")
-		}
-		arg1 := functionCall.Arguments[0]
-		arg, err := e.EvalExpression(arg1)
 
+		fun, err := e.environment.Get(functionName.Value)
+		if err != nil {
+			return nil, L.NewJoError(e.lexer, functionName.Token, fmt.Sprintf("unknown function ` %s `", functionName.Value))
+		}
+		function = fun
+	case "GetExpr":
+		_structMethod, err := e._get(functionCall.Identifier)
 		if err != nil {
 			return nil, err
 		}
-		argLiteral := arg.(LiteralData)
 
-		stdio.Io.Print(argLiteral.GetString())
-
-		text := stdio.Io.Input()
-		return StringLiteral(text), nil
-	}
-	// fmt.Println("FUNC START", functionName.Value)
-
-	function, err := e.environment.Get(functionName.Value)
-	if err != nil {
-		return nil, L.NewJoError(e.lexer, functionName.Token, fmt.Sprintf("unknown function ` %s `", functionName.Value))
+		function = _structMethod
+	case "FunctionCall":
+		fun, err := e.functionCall(functionCall.Identifier)
+		if err != nil {
+			return nil, err
+		}
+		function = fun
+	default:
+		return nil, L.NewJoError(e.lexer, functionName.Token, "Unknown identifier")
 	}
 
 	callableFunction, ok := function.(*CallableFunction)
 
 	if ok {
+		if callableFunction.parent != nil {
+			// TODO Struct attributes
+			// fmt.Println("METHOD")
+			// &callableFunction.parent.env.
+			// callableFunction.
+		}
+
 		a, err := callableFunction.Call(e, functionCall.Arguments)
 		return a, err
 	}
 
-	_struct, ok := function.(*StructDataDecl)
+	structDecl, ok := function.(*StructDataDecl)
 
-	data := NewStructData(*_struct, e.environment)
+	if ok {
+		data := NewStructData(*structDecl, e.environment)
 
-	// e.environment.Define(functionName.Value, data)
-	return data, nil
-	// fmt.Println("FUNC END", functionName.Value, a, err)
+		return data, nil
+	}
+
+	_, ok = function.(*StructData)
+
+	if ok {
+		return nil, L.NewJoError(e.lexer, L.NewToken(L.IDENTIFIER, "").Line(functionCall.GetLine()), "cannot call struct data")
+	}
+
+	return nil, L.NewJoError(e.lexer, L.NewToken(L.IDENTIFIER, "").Line(functionCall.GetLine()), "not a function")
 }
 
 func (e *Evaluator) begin() {

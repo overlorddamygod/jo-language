@@ -16,13 +16,15 @@ type CallableFunction struct {
 	_type        string
 	FunctionDecl parser.FunctionDeclStatement
 	Closure      *Environment
+	parent       *StructData
 }
 
-func NewCallableFunction(functionDecl parser.FunctionDeclStatement, env *Environment) *CallableFunction {
+func NewCallableFunction(functionDecl parser.FunctionDeclStatement, env *Environment, parent *StructData) *CallableFunction {
 	return &CallableFunction{
 		name:         Function,
 		_type:        Function,
 		FunctionDecl: functionDecl,
+		parent:       parent,
 		Closure:      env,
 	}
 }
@@ -32,7 +34,12 @@ func (f CallableFunction) Type() string {
 }
 
 func (f *CallableFunction) GetString() string {
-	return fmt.Sprintf("[function %s]", f.FunctionDecl.Identifier.(*parser.Identifier).Value)
+	fName := f.FunctionDecl.Identifier.(*parser.Identifier).Value
+	if f.parent == nil {
+		return fmt.Sprintf("[function %s]", fName)
+	}
+	structName := f.parent.StructDecl.Identifier.(*parser.Identifier).Value
+	return fmt.Sprintf("[method %s.%s]", structName, fName)
 }
 
 func (f *CallableFunction) Call(e *Evaluator, arguments []parser.Node) (EnvironmentData, error) {

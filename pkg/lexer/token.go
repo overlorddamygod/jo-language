@@ -74,6 +74,10 @@ func NewToken(tokenType TokenType, literal string) *Token {
 	return &Token{Type: tokenType, Literal: literal, line: 0, start: 0, end: 0}
 }
 
+func (t *Token) GetLine() int {
+	return t.line
+}
+
 func (t *Token) Line(line int) *Token {
 	t.line = line
 	return t

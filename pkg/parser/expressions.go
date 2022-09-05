@@ -36,6 +36,10 @@ func (b *BinaryExpression) Print() {
 	b.Right.Print()
 }
 
+func (b BinaryExpression) GetLine() int {
+	return b.Left.GetLine()
+}
+
 type UnaryExpression struct {
 	name       string
 	Op         string
@@ -62,11 +66,16 @@ func (b *UnaryExpression) Print() {
 	b.Identifier.Print()
 }
 
+func (b UnaryExpression) GetLine() int {
+	return b.Identifier.GetLine()
+}
+
 type LiteralValue struct {
 	name           string
 	Type           string
 	Value          string
 	NumericalValue float64
+	// Token          L.Token
 }
 
 func NewLiteralValue(Type, value string) *LiteralValue {
@@ -139,6 +148,10 @@ func StringLiteral(val string) LiteralValue {
 	return *NewLiteralValue(L.STRING, val)
 }
 
+func (b LiteralValue) GetLine() int {
+	return 1
+}
+
 type Identifier struct {
 	name  string
 	Type  string
@@ -162,9 +175,14 @@ func (i *Identifier) Print() {
 	fmt.Println(*i)
 }
 
+func (i Identifier) GetLine() int {
+	return i.Token.GetLine()
+}
+
 type Node interface {
 	NodeName() string
 	Print()
+	GetLine() int
 }
 
 type FunctionCall struct {
@@ -195,6 +213,10 @@ func (b *FunctionCall) Print() {
 	}
 }
 
+func (f FunctionCall) GetLine() int {
+	return f.Identifier.GetLine()
+}
+
 type GetExpr struct {
 	name       string
 	Identifier Node
@@ -221,4 +243,8 @@ func (g *GetExpr) Print() {
 	// for _, s := range b.Arguments {
 	// 	s.Print()
 	// }
+}
+
+func (f GetExpr) GetLine() int {
+	return f.Identifier.GetLine()
 }
