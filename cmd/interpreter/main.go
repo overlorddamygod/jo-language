@@ -1,18 +1,18 @@
 package main
 
 import (
-	"fmt"
 	"os"
 
-	Eval "github.com/overlorddamygod/jo/eval"
-	Lexer "github.com/overlorddamygod/jo/lexer"
-	Parser "github.com/overlorddamygod/jo/parser"
+	Eval "github.com/overlorddamygod/jo/internal/eval"
+	Lexer "github.com/overlorddamygod/jo/pkg/lexer"
+	Parser "github.com/overlorddamygod/jo/pkg/parser"
+	"github.com/overlorddamygod/jo/pkg/stdio"
 )
 
 func main() {
 	if len(os.Args) == 1 {
-		fmt.Println("Filename not specified")
-		fmt.Println("Usage: jo <filename>")
+		stdio.Io.Print("Filename not specified")
+		stdio.Io.Print("Usage: jo <filename>")
 		return
 	}
 	file := os.Args[1]
@@ -20,7 +20,7 @@ func main() {
 	dat, err := os.ReadFile(file)
 
 	if err != nil {
-		fmt.Println("Unable to read file", dat)
+		stdio.Io.Print("Unable to read file", dat)
 		return
 	}
 
@@ -28,11 +28,11 @@ func main() {
 
 	tokens, err := lexer.Lex()
 	if err != nil {
-		fmt.Println(tokens)
-		fmt.Println("[Lexer]\n\n", err)
+		stdio.Io.Print(tokens)
+		stdio.Io.Print("[Lexer]\n\n", err)
 		return
 	}
-	// fmt.Println(tokens)
+	// stdio.Io.Print(tokens)
 
 	parser := Parser.NewParser(lexer)
 
@@ -42,7 +42,7 @@ func main() {
 	// 	s.Print()
 	// }
 	if err != nil {
-		fmt.Println("[Parser]\n\n", err)
+		stdio.Io.Print("[Parser]\n\n", err)
 		return
 	}
 
@@ -55,6 +55,6 @@ func main() {
 	_, err = evaluator.Eval()
 
 	if err != nil {
-		fmt.Printf("[Evaluator]\n\n%s", err)
+		stdio.Io.Printf("[Evaluator]\n\n%s", err)
 	}
 }

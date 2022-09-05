@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strconv"
 
-	L "github.com/overlorddamygod/jo/lexer"
+	L "github.com/overlorddamygod/jo/pkg/lexer"
 )
 
 // type Node

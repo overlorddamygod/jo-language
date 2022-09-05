@@ -9,6 +9,7 @@ type EnvironmentData interface {
 	Type() string
 	GetString() string
 }
+
 type EnvironmentDataValue EnvironmentData
 type EnvironmentDataMap map[string]EnvironmentDataValue
 
@@ -42,7 +43,7 @@ func (env *Environment) Print() {
 		if val.Type() == "CallableFunction" {
 			f := val.(*CallableFunction)
 
-			println("FUNC", key, f._type)
+			println("FUNC", key, f.Type())
 		} else {
 			lit := val.(LiteralData)
 			println("VAL", key, lit.Value)

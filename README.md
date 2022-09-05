@@ -1,6 +1,7 @@
 # Jo Programming Language
 
 An interpreted toy programming language built with golang. [Sample program here.](#sample-program)
+More examples in [examples folder](./examples).
 
 Language Grammar in [`jo-grammar.cfg`](./jo-grammar.cfg)
 
@@ -13,16 +14,16 @@ Requires Golang
 
 **Without Building:**
 ```console
-user@main:~$ go run main.go example.jo
+user@main:~$ go run cmd/interpreter/main.go example.jo
 ```
 
 **By building**
 ```console
 // Build for mac
-user@main:~$ GOOS=darwin GOARCH=arm64 go build -o jo main.go
+user@main:~$ GOOS=darwin GOARCH=arm64 go build -o jo cmd/interpreter/main.go
 
 // Build for windows
-user@main:~$ GOOS=windows GOARCH=amd64 go build -o jo main.go
+user@main:~$ GOOS=windows GOARCH=amd64 go build -o jo cmd/interpreter/main.go
 
 // Run
 user@main:~$ ./jo example.jo

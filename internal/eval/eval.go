@@ -1,14 +1,13 @@
 package eval
 
 import (
-	"bufio"
 	"errors"
 	"fmt"
 	"math"
-	"os"
 
-	L "github.com/overlorddamygod/jo/lexer"
-	"github.com/overlorddamygod/jo/parser"
+	L "github.com/overlorddamygod/jo/pkg/lexer"
+	"github.com/overlorddamygod/jo/pkg/parser"
+	"github.com/overlorddamygod/jo/pkg/stdio"
 )
 
 type Evaluator struct {
@@ -23,6 +22,11 @@ type Evaluator struct {
 func NewEvaluator(lexer *L.Lexer, node []parser.Node) *Evaluator {
 	env := NewEnvironment()
 	return &Evaluator{lexer: lexer, node: node, global: env, environment: env}
+}
+
+func (e *Evaluator) SetLexerNode(lexer *L.Lexer, node []parser.Node) {
+	e.lexer = lexer
+	e.node = node
 }
 
 func NewEvaluatorWithParent(e *Evaluator, parent *Environment) *Evaluator {
@@ -371,12 +375,12 @@ func (e *Evaluator) EvalExpression(node parser.Node) (EnvironmentData, error) {
 		unary := node.(*parser.UnaryExpression)
 
 		if unary.Op == L.BANG {
-			data, err := e.EvalExpression(unary.Identifier)
+			d, err := e.EvalExpression(unary.Identifier)
 			if err != nil {
 				return nil, err
 			}
 
-			value := data.(LiteralData)
+			value := d.(LiteralData)
 
 			return BooleanLiteral(!value.GetBoolean()), nil
 		}
@@ -464,7 +468,7 @@ func (e *Evaluator) functionCall(node parser.Node) (EnvironmentData, error) {
 
 			output += exp.GetString()
 		}
-		fmt.Println(output)
+		stdio.Io.Println(output)
 		return nil, nil
 	} else if functionName.Value == "input" {
 		if len(functionCall.Arguments) != 1 {
@@ -478,10 +482,10 @@ func (e *Evaluator) functionCall(node parser.Node) (EnvironmentData, error) {
 		}
 		argLiteral := arg.(LiteralData)
 
-		fmt.Print(argLiteral.GetString())
-		scanner := bufio.NewScanner(os.Stdin)
-		scanner.Scan()
-		return StringLiteral(scanner.Text()), nil
+		stdio.Io.Print(argLiteral.GetString())
+
+		text := stdio.Io.Input()
+		return StringLiteral(text), nil
 	}
 	// fmt.Println("FUNC START", functionName.Value)
 

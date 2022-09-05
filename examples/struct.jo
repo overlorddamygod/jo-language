@@ -3,5 +3,6 @@ struct Car {
         print("Car running lol");
     }
 }
+
 let car = Car();
 car.run();

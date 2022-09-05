@@ -3,7 +3,7 @@ package parser
 import (
 	"fmt"
 
-	L "github.com/overlorddamygod/jo/lexer"
+	L "github.com/overlorddamygod/jo/pkg/lexer"
 )
 
 type Parser struct {
@@ -86,9 +86,9 @@ func (p *Parser) structDecl() (Node, error) {
 
 		if token.Literal == "fn" {
 			method, err := p.functionDecl()
-
+			// method.Print()
 			if err != nil {
-				break
+				return nil, err
 			}
 			methods = append(methods, *method)
 		} else {
