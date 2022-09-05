@@ -1,4 +1,4 @@
-ENTRY_FILE = main.go
+ENTRY_FILE =  cmd/interpreter/main.go
 GO_BUILD = go build -o
 OUTPUT_PATH = bin
 .PHONY: build
@@ -22,3 +22,6 @@ buildlinux64:
 
 buildlinux32:
 	GOOS=linux GOARCH=386 ${GO_BUILD} ${OUTPUT_PATH}/linux/jo32 ${ENTRY_FILE}
+
+run:
+	go run ${ENTRY_FILE} example.jo

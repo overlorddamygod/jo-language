@@ -1,6 +1,6 @@
 package parser
 
-import L "github.com/overlorddamygod/jo/lexer"
+import L "github.com/overlorddamygod/jo/pkg/lexer"
 
 func (p *Parser) ParamOrArguments(leftRightParser func() (Node, error), midConditionFunc func(*L.Token) bool) ([]Node, error) {
 	var arguments []Node = make([]Node, 0)
