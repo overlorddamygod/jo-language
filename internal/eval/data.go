@@ -47,8 +47,8 @@ type StructData struct {
 	env        *Environment
 }
 
-func NewStructData(structDecl StructDataDecl, env *Environment) *StructData {
-	env = NewEnvironmentWithParent(env)
+func NewStructData(structDecl StructDataDecl) *StructData {
+	env := NewEnvironmentWithParent(structDecl.Closure)
 
 	methods := structDecl.StructDecl.Methods
 
@@ -71,8 +71,8 @@ func (s *StructData) Get(key string) (EnvironmentData, error) {
 	return s.env.Get(key)
 }
 
+// not used
 func (s *StructData) Call(funcName string, e *Evaluator, args []parser.Node) (EnvironmentData, error) {
-
 	data, err := s.Get(funcName)
 
 	if err != nil {

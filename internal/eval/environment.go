@@ -38,15 +38,23 @@ func (env *Environment) Define(key string, value EnvironmentDataValue) {
 
 func (env *Environment) Print() {
 	fmt.Println("KEYS")
+	if env == nil {
+		return
+	}
 	for key, val := range env.data {
 		// fmt.Println(key)
-		if val.Type() == "CallableFunction" {
+		if val.Type() == Function {
 			f := val.(*CallableFunction)
 
 			println("FUNC", key, f.Type())
-		} else {
+		} else if val.Type() == string(Literal) {
 			lit := val.(LiteralData)
 			println("VAL", key, lit.Value)
+		} else if val.Type() == Struct {
+			s := val.(*StructData)
+			println("Struct", key, s)
+		} else {
+			println("Struct Decl", key, val)
 		}
 		// if val.Type() == "LiteralData" {
 		// } else {
@@ -64,6 +72,15 @@ func (env *Environment) Get(key string) (EnvironmentDataValue, error) {
 		}
 
 		return env.parent.Get(key)
+	}
+	return value, nil
+}
+
+func (env *Environment) GetOne(key string) (EnvironmentDataValue, error) {
+	value, present := env.data[key]
+
+	if !present {
+		return nil, errors.New("key not defined in the environment")
 	}
 	return value, nil
 }

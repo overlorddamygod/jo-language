@@ -444,8 +444,7 @@ func (e *Evaluator) _get(node parser.Node) (EnvironmentData, error) {
 	switch calleeValue.Type() {
 	case Struct:
 		struct_ := calleeValue.(*StructData)
-		v, err := struct_.Get(identifier.Value)
-
+		v, err := struct_.env.GetOne(identifier.Value)
 		if err != nil {
 			return nil, L.NewJoError(e.lexer, identifier.Token, fmt.Sprintf("method `%s` not defined", identifier.Value))
 		}
@@ -549,7 +548,7 @@ func (e *Evaluator) functionCall(node parser.Node) (EnvironmentData, error) {
 	structDecl, ok := function.(*StructDataDecl)
 
 	if ok {
-		data := NewStructData(*structDecl, e.environment)
+		data := NewStructData(*structDecl)
 
 		return data, nil
 	}

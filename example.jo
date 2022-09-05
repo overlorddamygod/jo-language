@@ -1,21 +1,17 @@
+let hehe = "hehe";
+
 struct Vehicle {
-    fn run(type) {
-        print("Vechicle is running");
-        if (type == "Car") {
-            return Car;
-        }
+    fn run() {
+        print("Vehicle is running", hehe, vehicle);
     }
 }
 
 struct Car {
     fn run(){
-        print("Car running lol");
-
+        let vehicle = Vehicle();
+        vehicle.run();
+        print("Car running lol", hehe);
     }
-}
-
-fn sad() {
-
 }
 
 let car = Car();
