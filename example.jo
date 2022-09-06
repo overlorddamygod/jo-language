@@ -2,7 +2,7 @@ let hehe = "hehe";
 
 struct Vehicle {
     fn run() {
-        print("Vehicle is running", hehe, vehicle);
+        print("Vehicle is running", hehe);
     }
 }
 
@@ -11,8 +11,13 @@ struct Car {
         let vehicle = Vehicle();
         vehicle.run();
         print("Car running lol", hehe);
+        return vehicle;
     }
 }
 
 let car = Car();
-car.run();
+let v = car.run();
+print("BEFORE", v);
+print("BEFORE",car.run().sad);
+car.run().sad = 999;
+print("AFTER", car.run().sad);

@@ -85,6 +85,10 @@ func (env *Environment) GetOne(key string) (EnvironmentDataValue, error) {
 	return value, nil
 }
 
+func (env *Environment) DefineOne(key string, value EnvironmentDataValue) {
+	env.data[key] = value
+}
+
 func (env *Environment) Assign(key string, value EnvironmentDataValue) error {
 	_, present := env.data[key]
 

@@ -92,21 +92,7 @@ func (e *Evaluator) EvalStatement(node parser.Node) (EnvironmentData, error) {
 			e.environment.Define(id.Value, exp)
 		}
 	case "ASSIGNMENT":
-		assignment := node.(*parser.AssignmentStatement)
-		// fmt.Println("ASSIGNMENT", assignment.Identifier)
-
-		id := assignment.Identifier.(*parser.Identifier)
-		exp, err := e.EvalExpression(assignment.Expression)
-
-		if err != nil {
-			return nil, err
-		}
-
-		err = e.environment.Assign(id.Value, exp)
-
-		if err != nil {
-			return nil, L.NewJoError(e.lexer, id.Token, fmt.Sprintf("Variable ` %s ` not defined", id.Value))
-		}
+		return e.assignment(node)
 	case "FunctionCall":
 		return e.functionCall(node)
 	case "StructDecl":
@@ -399,6 +385,56 @@ func (e *Evaluator) EvalExpression(node parser.Node) (EnvironmentData, error) {
 	return nil, nil
 }
 
+func (e *Evaluator) assignment(node parser.Node) (EnvironmentData, error) {
+	assignment := node.(*parser.AssignmentStatement)
+	fmt.Println("ASSIGNMENT", assignment.Identifier, assignment.Expression)
+
+	id, ok := assignment.Identifier.(*parser.Identifier)
+
+	if !ok {
+		getExpr, _ := assignment.Identifier.(*parser.GetExpr)
+
+		data, err := e.EvalExpression(getExpr.Expr)
+
+		fmt.Println("GET", *getExpr, getExpr.Identifier, getExpr.Expr, data, err)
+
+		if data == nil {
+			return nil, L.NewJoError(e.lexer, L.NewToken(L.STRING, "").Line(getExpr.GetLine()), fmt.Sprintf("Cannot assign to null data"))
+		}
+
+		switch data.Type() {
+		case Struct:
+			struct_ := data.(*StructData)
+			id, ok := getExpr.Identifier.(*parser.Identifier)
+			if ok {
+				fmt.Println("STRUCT", struct_)
+				exp, err := e.EvalExpression(assignment.Expression)
+
+				if err != nil {
+					return nil, err
+				}
+				struct_.env.DefineOne(id.Value, exp)
+				struct_.env.Print()
+			}
+			return nil, nil
+		default:
+			return nil, L.NewJoError(e.lexer, L.NewToken(L.STRING, "").Line(getExpr.GetLine()), fmt.Sprintf("Cannot assign `%s` to the data", data.GetString()))
+		}
+	}
+
+	exp, err := e.EvalExpression(assignment.Expression)
+
+	if err != nil {
+		return nil, err
+	}
+
+	err = e.environment.Assign(id.Value, exp)
+
+	if err != nil {
+		return nil, L.NewJoError(e.lexer, id.Token, fmt.Sprintf("Variable ` %s ` not defined", id.Value))
+	}
+	return nil, nil
+}
 func (e *Evaluator) identifier(node parser.Node) (EnvironmentData, error) {
 	variable := node.(*parser.Identifier)
 	val, err := e.environment.Get(variable.Value)
@@ -414,7 +450,7 @@ func (e *Evaluator) _get(node parser.Node) (EnvironmentData, error) {
 	getExpr := node.(*parser.GetExpr)
 
 	identifier := getExpr.Identifier.(*parser.Identifier)
-
+	fmt.Println(*&getExpr.Identifier, getExpr.Expr)
 	var calleeValue EnvironmentData
 	switch getExpr.Expr.NodeName() {
 	case "Identifier":

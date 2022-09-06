@@ -426,3 +426,11 @@ func (l *Lexer) PeekToken(offset int) (*Token, error) {
 	}
 	return &l.tokens[l.token_pos+offset], nil
 }
+
+func (l *Lexer) SetTokenPos(pos int) {
+	l.token_pos = pos
+}
+
+func (l *Lexer) GetTokenPos() int {
+	return l.token_pos
+}

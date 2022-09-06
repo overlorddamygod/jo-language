@@ -107,7 +107,6 @@ func (p *Parser) structDecl() (Node, error) {
 
 func (p *Parser) vardecl() (Node, error) {
 	_, err := p.match(L.KEYWORD, "let")
-
 	if err != nil {
 		return nil, err
 	}
@@ -521,34 +520,108 @@ func (p *Parser) expression() (Node, error) {
 }
 
 func (p *Parser) assignment() (Node, error) {
-	identi, _ := p.lexer.PeekToken(0)
+	exp, err := p.logicOr()
 
-	if identi.Type == L.IDENTIFIER {
-		equal, _ := p.lexer.PeekToken(1)
+	// fmt.Println("ORRR", exp)
+	pos := p.lexer.GetTokenPos()
 
-		if equal.Type == L.OPERATOR && equal.Literal == L.ASSIGN {
-			identifier, err := p.identifier()
+	_, err = p.match(L.OPERATOR, L.ASSIGN)
 
-			if err != nil {
-				return nil, err
-			}
-
-			equals, err := p.lexer.NextToken()
-
-			if err != nil || !(equals.Type == L.OPERATOR && equals.Literal == "=") {
-				return nil, L.NewJoError(p.lexer, equals, "Expected =")
-			}
-
-			exp, err := p.expression()
-
-			if err != nil {
-				return nil, err
-			}
-
-			return NewAssignmentStatement(identifier, exp), nil
-		}
+	if err != nil {
+		p.lexer.SetTokenPos(pos)
+		return exp, nil
 	}
-	return p.logicOr()
+	ass, err := p.assignment()
+
+	if err != nil {
+		return ass, err
+	}
+
+	// fmt.Println(ass)
+
+	fmt.Println("HERE", exp, ass)
+	getexpr, ok := ass.(*GetExpr)
+
+	if ok {
+		return NewAssignmentStatement(exp, getexpr), nil
+	}
+	iden, ok := ass.(*Identifier)
+
+	if ok {
+		return NewAssignmentStatement(exp, iden), nil
+	}
+
+	lit, ok := ass.(*LiteralValue)
+
+	if ok {
+		return NewAssignmentStatement(exp, lit), nil
+	}
+	fmt.Println("HERE", ass)
+
+	return exp, err
+
+	// p.lexer.SetTokenPos(pos)
+
+	// pos = p.lexer.GetTokenPos()
+	// identifier, err := p.identifier()
+
+	// if err != nil {
+	// 	return nil, err
+	// }
+
+	// equal, _ := p.lexer.PeekToken(0)
+
+	// if equal.Type == L.OPERATOR && equal.Literal == L.ASSIGN {
+	// 	_, err = p.match(L.OPERATOR, L.ASSIGN)
+
+	// 	if err != nil {
+	// 		return nil, err
+	// 	}
+
+	// 	exp, err := p.expression()
+
+	// 	if err != nil {
+	// 		return nil, err
+	// 	}
+	// 	fmt.Println("NORMAL")
+
+	// 	return NewAssignmentStatement(identifier, exp), nil
+	// }
+
+	// fmt.Println("CHAINED")
+	// p.lexer.SetTokenPos(pos)
+	// call, err := p.call()
+
+	// if err != nil {
+	// 	return nil, err
+	// }
+
+	// _, err = p.match(L.OPERATOR, L.FULL_STOP)
+
+	// if err != nil {
+	// 	return nil, err
+	// }
+
+	// iden, err := p.identifier()
+
+	// if err != nil {
+	// 	return nil, err
+	// }
+
+	// _, err = p.match(L.OPERATOR, L.ASSIGN)
+
+	// if err != nil {
+	// 	return nil, err
+	// }
+
+	// exp, err := p.expression()
+
+	// if err != nil {
+	// 	return nil, err
+	// }
+
+	// return NewAssignmentStatement(NewGetExpr(iden, call), exp), nil
+
 }
 
 func (p *Parser) binary(leftRightParser func() (Node, error), midConditionFunc func(*L.Token) bool) (Node, error) {
