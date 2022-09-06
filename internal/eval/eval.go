@@ -270,6 +270,8 @@ func (e *Evaluator) EvalStatement(node parser.Node) (EnvironmentData, error) {
 		return nil, nil
 	case "GetExpr":
 		return e._get(node)
+	case "Identifier":
+		return e.EvalExpression(node)
 	default:
 		return nil, fmt.Errorf("unknown statement %s", node.NodeName())
 	}
@@ -387,7 +389,7 @@ func (e *Evaluator) EvalExpression(node parser.Node) (EnvironmentData, error) {
 
 func (e *Evaluator) assignment(node parser.Node) (EnvironmentData, error) {
 	assignment := node.(*parser.AssignmentStatement)
-	fmt.Println("ASSIGNMENT", assignment.Identifier, assignment.Expression)
+	// fmt.Println("ASSIGNMENT", assignment.Identifier, assignment.Expression)
 
 	id, ok := assignment.Identifier.(*parser.Identifier)
 
@@ -396,7 +398,11 @@ func (e *Evaluator) assignment(node parser.Node) (EnvironmentData, error) {
 
 		data, err := e.EvalExpression(getExpr.Expr)
 
-		fmt.Println("GET", *getExpr, getExpr.Identifier, getExpr.Expr, data, err)
+		if err != nil {
+			return nil, err
+		}
+
+		// fmt.Println("GET", *getExpr, getExpr.Identifier, getExpr.Expr, data, err)
 
 		if data == nil {
 			return nil, L.NewJoError(e.lexer, L.NewToken(L.STRING, "").Line(getExpr.GetLine()), fmt.Sprintf("Cannot assign to null data"))
@@ -407,14 +413,14 @@ func (e *Evaluator) assignment(node parser.Node) (EnvironmentData, error) {
 			struct_ := data.(*StructData)
 			id, ok := getExpr.Identifier.(*parser.Identifier)
 			if ok {
-				fmt.Println("STRUCT", struct_)
+				// fmt.Println("STRUCT", struct_)
 				exp, err := e.EvalExpression(assignment.Expression)
 
 				if err != nil {
 					return nil, err
 				}
 				struct_.env.DefineOne(id.Value, exp)
-				struct_.env.Print()
+				// struct_.env.Print()
 			}
 			return nil, nil
 		default:
@@ -422,12 +428,15 @@ func (e *Evaluator) assignment(node parser.Node) (EnvironmentData, error) {
 		}
 	}
 
+	if id.Value == "self" {
+		return nil, L.NewJoError(e.lexer, id.Token, "Cannot assign to self keyword")
+	}
 	exp, err := e.EvalExpression(assignment.Expression)
 
 	if err != nil {
 		return nil, err
 	}
-
+	// fmt.Println("LOLLL", exp)
 	err = e.environment.Assign(id.Value, exp)
 
 	if err != nil {
@@ -450,7 +459,7 @@ func (e *Evaluator) _get(node parser.Node) (EnvironmentData, error) {
 	getExpr := node.(*parser.GetExpr)
 
 	identifier := getExpr.Identifier.(*parser.Identifier)
-	fmt.Println(*&getExpr.Identifier, getExpr.Expr)
+	// fmt.Println(*&getExpr.Identifier, getExpr.Expr)
 	var calleeValue EnvironmentData
 	switch getExpr.Expr.NodeName() {
 	case "Identifier":

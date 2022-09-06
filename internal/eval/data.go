@@ -64,6 +64,8 @@ func NewStructData(structDecl StructDataDecl) *StructData {
 		env.Define(id.Value, NewCallableFunction(method, env, structData))
 	}
 
+	env.Define("self", structData)
+
 	// env.Define("sad", NumberLiteral(69))
 
 	return structData

@@ -1,23 +1,18 @@
-let hehe = "hehe";
-
 struct Vehicle {
     fn run() {
-        print("Vehicle is running", hehe);
+        self.engine = true;
+        print("Vehicle is running", self.engine);
     }
 }
 
 struct Car {
-    fn run(){
-        let vehicle = Vehicle();
-        vehicle.run();
-        print("Car running lol", hehe);
-        return vehicle;
+    fn Create(name) {
+        self.name = name;
+        print("Car", self.name, "created");
+        return self;
     }
 }
+let self = Car().Create("Ferrari");
 
-let car = Car();
-let v = car.run();
-print("BEFORE", v);
-print("BEFORE",car.run().sad);
-car.run().sad = 999;
-print("AFTER", car.run().sad);
+let car = Car().Create("BMW");
+print(car.name);

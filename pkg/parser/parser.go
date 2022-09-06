@@ -539,7 +539,7 @@ func (p *Parser) assignment() (Node, error) {
 
 	// fmt.Println(ass)
 
-	fmt.Println("HERE", exp, ass)
+	// fmt.Println("HERE", exp, ass)
 	getexpr, ok := ass.(*GetExpr)
 
 	if ok {
@@ -556,7 +556,7 @@ func (p *Parser) assignment() (Node, error) {
 	if ok {
 		return NewAssignmentStatement(exp, lit), nil
 	}
-	fmt.Println("HERE", ass)
+	// fmt.Println("HERE", ass)
 
 	return exp, err
 
