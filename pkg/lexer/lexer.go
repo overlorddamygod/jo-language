@@ -245,7 +245,7 @@ func (l *Lexer) Lex() ([]Token, error) {
 		if IsDigit(currentChar) {
 			num, err := l.getNumberLiteral()
 			if err != nil {
-				return l.tokens, NewJoError(l, num, err.Error())
+				return l.tokens, NewJoError(l, num, LexicalError, err.Error())
 			}
 			l.appendToken(num)
 			continue
@@ -378,7 +378,7 @@ func (l *Lexer) Lex() ([]Token, error) {
 			strLiteralToken, err := l.getStringLiteral()
 
 			if err != nil {
-				return l.tokens, NewJoError(l, strLiteralToken, fmt.Sprintf("expected ` %s `", currentChar))
+				return l.tokens, NewJoError(l, strLiteralToken, LexicalError, fmt.Sprintf("expected ` %s `", currentChar))
 			}
 
 			l.appendToken(strLiteralToken)
@@ -386,7 +386,7 @@ func (l *Lexer) Lex() ([]Token, error) {
 		default:
 			l.advance()
 			token := l.getToken(ILLEGAL, currentChar)
-			return l.tokens, NewJoError(l, token, fmt.Sprintf("Illegal Character `%s`", currentChar))
+			return l.tokens, NewJoError(l, token, LexicalError, fmt.Sprintf("Illegal Character `%s`", currentChar))
 		}
 		// fmt.Println("HERE")
 		l.advance()

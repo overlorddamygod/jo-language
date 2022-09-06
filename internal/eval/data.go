@@ -1,7 +1,6 @@
 package eval
 
 import (
-	"errors"
 	"fmt"
 
 	"github.com/overlorddamygod/jo/pkg/parser"
@@ -59,6 +58,7 @@ func NewStructData(structDecl StructDataDecl) *StructData {
 		env:        env,
 	}
 
+	// TODO: Declare methods in StructDataDecl only ??
 	for _, method := range methods {
 		id := method.Identifier.(*parser.Identifier)
 		env.Define(id.Value, NewCallableFunction(method, env, structData))
@@ -76,22 +76,22 @@ func (s *StructData) Get(key string) (EnvironmentData, error) {
 }
 
 // not used
-func (s *StructData) Call(funcName string, e *Evaluator, args []parser.Node) (EnvironmentData, error) {
-	data, err := s.Get(funcName)
+// func (s *StructData) Call(funcName string, e *Evaluator, args []parser.Node) (EnvironmentData, error) {
+// 	data, err := s.Get(funcName)
 
-	if err != nil {
-		return nil, err
-	}
+// 	if err != nil {
+// 		return nil, err
+// 	}
 
-	fun, ok := data.(*CallableFunction)
+// 	fun, ok := data.(*CallableFunction)
 
-	if !ok {
-		// return nil, L.NewJoError(e.lexer, nil, "not a function")
-		return nil, errors.New("not a function")
-	}
+// 	if !ok {
+// 		// return nil, L.NewJoError(e.lexer, nil, "not a function")
+// 		return nil, errors.New("not a function")
+// 	}
 
-	return fun.Call(e, args)
-}
+// 	return fun.Call(e,  args)
+// }
 
 func (f StructData) Type() string {
 	return f._type

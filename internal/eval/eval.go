@@ -87,7 +87,7 @@ func (e *Evaluator) EvalStatement(node parser.Node) (EnvironmentData, error) {
 		}
 
 		if _, err := e.environment.Get(id.Value); err == nil {
-			return nil, L.NewJoError(e.lexer, id.Token, fmt.Sprintf("Variable ` %s ` already defined", id.Value))
+			return nil, e.NewError(id.Token, L.DefaultError, fmt.Sprintf("Variable ` %s ` already defined", id.Value))
 		} else {
 			e.environment.Define(id.Value, exp)
 		}
@@ -101,7 +101,7 @@ func (e *Evaluator) EvalStatement(node parser.Node) (EnvironmentData, error) {
 		id := structD.Identifier.(*parser.Identifier)
 
 		if _, err := e.environment.Get(id.Value); err == nil {
-			return nil, L.NewJoError(e.lexer, id.Token, fmt.Sprintf("Variable ` %s ` already defined", id.Value))
+			return nil, e.NewError(id.Token, L.DefaultError, fmt.Sprintf("Variable ` %s ` already defined", id.Value))
 		} else {
 			e.environment.Define(id.Value, NewStructDataDecl(*structD, e.environment))
 		}
@@ -231,7 +231,7 @@ func (e *Evaluator) EvalStatement(node parser.Node) (EnvironmentData, error) {
 		// e.global.Print()
 		// fmt.Println("GLOBALEND------")
 		if _, err := e.environment.Get(functionName.Value); err == nil {
-			return nil, L.NewJoError(e.lexer, functionName.Token, fmt.Sprintf("Variable ` %s ` already defined", functionName.Value))
+			return nil, e.NewError(functionName.Token, L.DefaultError, fmt.Sprintf("Variable ` %s ` already defined", functionName.Value))
 		} else {
 			e.environment.Define(functionName.Value, NewCallableFunction(*functionDecl, e.environment, nil))
 		}
@@ -374,7 +374,7 @@ func (e *Evaluator) EvalExpression(node parser.Node) (EnvironmentData, error) {
 
 			return BooleanLiteral(!value.GetBoolean()), nil
 		}
-		return nil, L.NewJoError(e.lexer, unary.Token, "Unknown operator "+unary.Op)
+		return nil, e.NewError(unary.Token, L.DefaultError, "Unknown operator "+unary.Op)
 	case "Identifier":
 		return e.identifier(node)
 	case "FunctionCall":
@@ -382,7 +382,7 @@ func (e *Evaluator) EvalExpression(node parser.Node) (EnvironmentData, error) {
 	case "GetExpr":
 		return e._get(node)
 	default:
-		return nil, errors.New("unknown nodename")
+		return nil, e.NewError(e.NewTokenFromLine(node.GetLine()), L.DefaultError, "Unknown nodename")
 	}
 	return nil, nil
 }
@@ -405,7 +405,7 @@ func (e *Evaluator) assignment(node parser.Node) (EnvironmentData, error) {
 		// fmt.Println("GET", *getExpr, getExpr.Identifier, getExpr.Expr, data, err)
 
 		if data == nil {
-			return nil, L.NewJoError(e.lexer, L.NewToken(L.STRING, "").Line(getExpr.GetLine()), fmt.Sprintf("Cannot assign to null data"))
+			return nil, e.NewError(e.NewTokenFromLine(getExpr.GetLine()), L.ReferenceError, fmt.Sprintf("Cannot assign to null data"))
 		}
 
 		switch data.Type() {
@@ -424,12 +424,12 @@ func (e *Evaluator) assignment(node parser.Node) (EnvironmentData, error) {
 			}
 			return nil, nil
 		default:
-			return nil, L.NewJoError(e.lexer, L.NewToken(L.STRING, "").Line(getExpr.GetLine()), fmt.Sprintf("Cannot assign `%s` to the data", data.GetString()))
+			return nil, e.NewError(e.NewTokenFromLine(getExpr.GetLine()), L.DefaultError, fmt.Sprintf("Cannot assign `%s` to the data", data.GetString()))
 		}
 	}
 
 	if id.Value == "self" {
-		return nil, L.NewJoError(e.lexer, id.Token, "Cannot assign to self keyword")
+		return nil, e.NewError(id.Token, L.DefaultError, "Cannot assign to self keyword")
 	}
 	exp, err := e.EvalExpression(assignment.Expression)
 
@@ -440,7 +440,7 @@ func (e *Evaluator) assignment(node parser.Node) (EnvironmentData, error) {
 	err = e.environment.Assign(id.Value, exp)
 
 	if err != nil {
-		return nil, L.NewJoError(e.lexer, id.Token, fmt.Sprintf("Variable ` %s ` not defined", id.Value))
+		return nil, e.NewError(id.Token, L.ReferenceError, fmt.Sprintf("Variable ` %s ` not defined", id.Value))
 	}
 	return nil, nil
 }
@@ -450,7 +450,7 @@ func (e *Evaluator) identifier(node parser.Node) (EnvironmentData, error) {
 
 	if err != nil {
 		// fmt.Println(err)
-		return nil, L.NewJoError(e.lexer, variable.Token, fmt.Sprintf("Variable ` %s ` not defined in this scope", variable.Value))
+		return nil, e.NewError(variable.Token, L.ReferenceError, fmt.Sprintf("Variable ` %s ` not defined in this scope", variable.Value))
 	}
 	return val, nil
 }
@@ -479,11 +479,11 @@ func (e *Evaluator) _get(node parser.Node) (EnvironmentData, error) {
 		calleeValue = val
 	// TODO FOR Literal Data
 	default:
-		return nil, L.NewJoError(e.lexer, L.NewToken(L.IDENTIFIER, "").Line(node.GetLine()), "unknown callee")
+		return nil, e.NewError(e.NewTokenFromLine(node.GetLine()), L.DefaultError, "unknown callee")
 	}
 
 	if calleeValue == nil {
-		return nil, L.NewJoError(e.lexer, identifier.Token, fmt.Sprintf("can't access property `%s` from a null data", identifier.Value))
+		return nil, e.NewError(identifier.Token, L.ReferenceError, fmt.Sprintf("can't access property `%s` from a null data", identifier.Value))
 	}
 
 	switch calleeValue.Type() {
@@ -491,19 +491,19 @@ func (e *Evaluator) _get(node parser.Node) (EnvironmentData, error) {
 		struct_ := calleeValue.(*StructData)
 		v, err := struct_.env.GetOne(identifier.Value)
 		if err != nil {
-			return nil, L.NewJoError(e.lexer, identifier.Token, fmt.Sprintf("method `%s` not defined", identifier.Value))
+			return nil, e.NewError(identifier.Token, L.DefaultError, fmt.Sprintf("method `%s` not defined", identifier.Value))
 		}
 		return v, nil
 	case Function:
 		// id := getExpr.Expr.(*parser.Identifier)
 
 		// fun.FunctionDecl.Identifier
-		return nil, L.NewJoError(e.lexer, identifier.Token, fmt.Sprintf("can't access property `%s` from a function declaration", identifier.Value))
+		return nil, e.NewError(identifier.Token, L.DefaultError, fmt.Sprintf("can't access property `%s` from a function declaration", identifier.Value))
 	case StructDecl:
-		return nil, L.NewJoError(e.lexer, identifier.Token, fmt.Sprintf("can't access property `%s` from a struct declaration", identifier.Value))
+		return nil, e.NewError(identifier.Token, L.DefaultError, fmt.Sprintf("can't access property `%s` from a struct declaration", identifier.Value))
 	// TODO FOR Literal Data
 	default:
-		return nil, L.NewJoError(e.lexer, L.NewToken(L.IDENTIFIER, "").Line(node.GetLine()), "unknown callee")
+		return nil, e.NewError(e.NewTokenFromLine(node.GetLine()), L.DefaultError, "unknown callee")
 	}
 }
 
@@ -538,7 +538,8 @@ func (e *Evaluator) functionCall(node parser.Node) (EnvironmentData, error) {
 			return nil, nil
 		} else if functionName.Value == "input" {
 			if len(functionCall.Arguments) != 1 {
-				return nil, L.NewJoError(e.lexer, functionName.Token, "must have 1 argument.")
+				e.NewError(functionName.Token, L.DefaultError, "must have 1 argument.")
+				return nil, e.NewError(functionName.Token, L.DefaultError, "must have 1 argument.")
 			}
 			arg1 := functionCall.Arguments[0]
 			arg, err := e.EvalExpression(arg1)
@@ -556,7 +557,8 @@ func (e *Evaluator) functionCall(node parser.Node) (EnvironmentData, error) {
 
 		fun, err := e.environment.Get(functionName.Value)
 		if err != nil {
-			return nil, L.NewJoError(e.lexer, functionName.Token, fmt.Sprintf("unknown function ` %s `", functionName.Value))
+
+			return nil, e.NewError(functionName.Token, L.DefaultError, fmt.Sprintf("unknown function ` %s `", functionName.Value))
 		}
 		function = fun
 	case "GetExpr":
@@ -573,7 +575,8 @@ func (e *Evaluator) functionCall(node parser.Node) (EnvironmentData, error) {
 		}
 		function = fun
 	default:
-		return nil, L.NewJoError(e.lexer, functionName.Token, "Unknown identifier")
+		e.NewError(functionName.Token, L.DefaultError, "cannot call struct data")
+		return nil, e.NewError(functionName.Token, L.DefaultError, "cannot call struct data")
 	}
 
 	callableFunction, ok := function.(*CallableFunction)
@@ -586,7 +589,7 @@ func (e *Evaluator) functionCall(node parser.Node) (EnvironmentData, error) {
 			// callableFunction.
 		}
 
-		a, err := callableFunction.Call(e, functionCall.Arguments)
+		a, err := callableFunction.Call(e, node, functionCall.Arguments)
 		return a, err
 	}
 
@@ -601,10 +604,10 @@ func (e *Evaluator) functionCall(node parser.Node) (EnvironmentData, error) {
 	_, ok = function.(*StructData)
 
 	if ok {
-		return nil, L.NewJoError(e.lexer, L.NewToken(L.IDENTIFIER, "").Line(functionCall.GetLine()), "cannot call struct data")
+		return nil, e.NewError(e.NewTokenFromLine(functionCall.GetLine()), L.DefaultError, "cannot call struct data")
 	}
 
-	return nil, L.NewJoError(e.lexer, L.NewToken(L.IDENTIFIER, "").Line(functionCall.GetLine()), "not a function")
+	return nil, e.NewError(e.NewTokenFromLine(functionCall.GetLine()), L.DefaultError, "not a function")
 }
 
 func (e *Evaluator) begin() {
@@ -617,4 +620,12 @@ func (e *Evaluator) end() {
 		return
 	}
 	e.environment = e.environment.parent
+}
+
+func (e *Evaluator) NewTokenFromLine(line int) *L.Token {
+	return L.NewToken(L.IDENTIFIER, "").Line(line)
+}
+
+func (e *Evaluator) NewError(token *L.Token, _type L.JoErrorType, message string) error {
+	return L.NewJoError(e.lexer, token, _type, message)
 }

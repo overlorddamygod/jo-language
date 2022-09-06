@@ -42,18 +42,18 @@ func (f *CallableFunction) GetString() string {
 	return fmt.Sprintf("[method %s.%s]", structName, fName)
 }
 
-func (f *CallableFunction) Call(e *Evaluator, arguments []parser.Node) (EnvironmentData, error) {
+func (f *CallableFunction) Call(e *Evaluator, node parser.Node, arguments []parser.Node) (EnvironmentData, error) {
 	paramsLen := len(f.FunctionDecl.Params)
 	argsLen := len(arguments)
 
 	if argsLen > paramsLen {
-		iden := f.FunctionDecl.Identifier.(*parser.Identifier)
-		return nil, L.NewJoError(e.lexer, iden.Token, "Arg length greater than params length")
+		// iden := f.FunctionDecl.Identifier.(*parser.Identifier)
+		return nil, e.NewError(e.NewTokenFromLine(node.GetLine()), L.DefaultError, "Arg length greater than params length")
 	}
 
 	if argsLen < paramsLen {
-		iden := f.FunctionDecl.Identifier.(*parser.Identifier)
-		return nil, L.NewJoError(e.lexer, iden.Token, "Arg length less than params length")
+		// iden := f.FunctionDecl.Identifier.(*parser.Identifier)
+		return nil, e.NewError(e.NewTokenFromLine(node.GetLine()), L.DefaultError, "Arg length less than params length")
 	}
 	evaluator := NewEvaluatorWithParent(e, f.Closure)
 

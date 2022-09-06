@@ -2,6 +2,10 @@ struct Vehicle {
     fn run() {
         self.engine = true;
         print("Vehicle is running", self.engine);
+        fn sad() {
+            print("sad", self);
+        }   
+        sad();
     }
 }
 
@@ -11,8 +15,16 @@ struct Car {
         print("Car", self.name, "created");
         return self;
     }
+
+    fn run() {
+
+    }
 }
-let self = Car().Create("Ferrari");
+
+let self = Car().Create("Ferrari")
 
 let car = Car().Create("BMW");
-print(car.name);
+car.run(2);
+
+let vehicle = Vehicle();
+vehicle.run();
