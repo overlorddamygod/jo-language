@@ -37,7 +37,7 @@ func (d *DiscordInterpreter) Interpret(src string) {
 	}
 	d.lexer = *lexer.NewLexer(src)
 
-	_, err := d.lexer.Lex()
+	_, _, err := d.lexer.Lex()
 	if err != nil {
 		// stdio.Io.Print(tokens)
 		stdio.Io.Print("[Lexer]\n\n", err)

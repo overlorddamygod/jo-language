@@ -129,6 +129,14 @@ func (t *Token) GetLine() int {
 	return t.line
 }
 
+func (t *Token) GetEnd() int {
+	return t.end
+}
+
+func (t *Token) GetStart() int {
+	return t.start
+}
+
 func (t *Token) Line(line int) *Token {
 	t.line = line
 	return t

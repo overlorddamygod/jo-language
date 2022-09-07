@@ -3,7 +3,7 @@ package eval
 import (
 	"fmt"
 
-	L "github.com/overlorddamygod/jo/pkg/lexer"
+	JoError "github.com/overlorddamygod/jo/pkg/error"
 	"github.com/overlorddamygod/jo/pkg/parser"
 )
 
@@ -48,12 +48,12 @@ func (f *CallableFunction) Call(e *Evaluator, node parser.Node, arguments []pars
 
 	if argsLen > paramsLen {
 		// iden := f.FunctionDecl.Identifier.(*parser.Identifier)
-		return nil, e.NewError(e.NewTokenFromLine(node.GetLine()), L.DefaultError, "Arg length greater than params length")
+		return nil, e.NewError(e.NewTokenFromLine(node.GetLine()), JoError.DefaultError, "Arg length greater than params length")
 	}
 
 	if argsLen < paramsLen {
 		// iden := f.FunctionDecl.Identifier.(*parser.Identifier)
-		return nil, e.NewError(e.NewTokenFromLine(node.GetLine()), L.DefaultError, "Arg length less than params length")
+		return nil, e.NewError(e.NewTokenFromLine(node.GetLine()), JoError.DefaultError, "Arg length less than params length")
 	}
 	evaluator := NewEvaluatorWithParent(e, f.Closure)
 

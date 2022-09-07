@@ -25,12 +25,12 @@ func NewLexer(source string) *Lexer {
 	return &Lexer{source: source, src: source, start: 0, pos: 0, size: len(source), line: 1, col: 0, tokens: tokens, token_pos: 0, token_size: 0}
 }
 
-func (l *Lexer) Lex() ([]Token, error) {
+func (l *Lexer) Lex() ([]Token, *Token, error) {
 	for {
 		token, err := l.Next()
 		if err != nil {
 			if token.Type != EOF {
-				return l.tokens, err
+				return l.tokens, token, err
 			}
 		}
 		l.tokens = append(l.tokens, *token)
@@ -40,7 +40,7 @@ func (l *Lexer) Lex() ([]Token, error) {
 		}
 	}
 	l.token_size = len(l.tokens)
-	return l.tokens, nil
+	return l.tokens, nil, nil
 }
 
 func (l *Lexer) GetLine(line int) (string, error) {
@@ -122,5 +122,5 @@ func (l *Lexer) Next() (*Token, error) {
 		}
 	}
 
-	return NewToken(ILLEGAL, l.src[0:1], l.line, start, start), fmt.Errorf("%s %s", ILLEGAL, l.src[0:1])
+	return NewToken(ILLEGAL, l.src[0:1], l.line, start, start), fmt.Errorf("%s character `%s`", ILLEGAL, l.src[0:1])
 }
