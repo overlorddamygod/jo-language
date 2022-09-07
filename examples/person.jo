@@ -1,0 +1,26 @@
+struct Person {
+    fn init(name, address, age) {
+        self.name = name;
+        self.address = address;
+        self.age = age;
+        return self;
+    }
+    fn printinfo() {
+        print("Name", self.getName());
+        print("Address", self.getAddress());
+        print("Age", self.getAge());
+    }
+    fn getName() {
+        return self.name;
+    }
+    fn getAddress() {
+        return self.address;
+    }
+    fn getAge() {
+        return self.age;
+    }
+}
+
+// Making instance of the struct
+let p1 = Person().init("John", "USA", 20);
+p1.printinfo();

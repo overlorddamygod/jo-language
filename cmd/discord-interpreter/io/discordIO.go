@@ -34,6 +34,10 @@ func (d DiscordIO) Println(a ...interface{}) (n int, err error) {
 	return 1, nil
 }
 
+func (d DiscordIO) Error(a string) (n int, err error) {
+	return d.Println(a)
+}
+
 func (d DiscordIO) Printf(format string, a ...interface{}) (n int, err error) {
 	d.dg.ChannelMessageSend(d.channel, fmt.Sprintf(format, a...))
 	return 1, nil

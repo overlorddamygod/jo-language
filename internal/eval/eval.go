@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"math"
 
+	"github.com/overlorddamygod/jo/pkg/lexer"
 	L "github.com/overlorddamygod/jo/pkg/lexer"
 	"github.com/overlorddamygod/jo/pkg/parser"
 	"github.com/overlorddamygod/jo/pkg/stdio"
@@ -22,6 +23,46 @@ type Evaluator struct {
 func NewEvaluator(lexer *L.Lexer, node []parser.Node) *Evaluator {
 	env := NewEnvironment()
 	return &Evaluator{lexer: lexer, node: node, global: env, environment: env}
+}
+
+func Init(src string) {
+	_lexer := lexer.NewLexer(src)
+
+	tokens, err := _lexer.Lex()
+	// tokens, err := lexer.Lex()
+	if err != nil {
+		stdio.Io.Println(tokens)
+
+		stdio.Io.Error("[Lexer]\n\n" + err.Error())
+		return
+	}
+	// stdio.Io.Println(tokens)
+	// return
+
+	_parser := parser.NewParser(_lexer)
+
+	node, err := _parser.Parse()
+
+	// for _, s := range node {
+	// 	s.Print()
+	// }
+	if err != nil {
+		stdio.Io.Error("[Parser]\n\n" + err.Error())
+		return
+	}
+
+	// // for _, s := range node {
+	// // 	s.Print()
+	// // }
+
+	evaluator := NewEvaluator(_lexer, node)
+
+	_, err = evaluator.Eval()
+
+	if err != nil {
+		stdio.Io.Error("[Evaluator]\n\n" + err.Error())
+		return
+	}
 }
 
 func (e *Evaluator) SetLexerNode(lexer *L.Lexer, node []parser.Node) {
@@ -75,6 +116,7 @@ func (e *Evaluator) EvalStatement(node parser.Node) (EnvironmentData, error) {
 	// fmt.Println("NODE", node.NodeName())
 	// node.Print()
 	// fmt.Println("___")
+	// return nil, nil
 	switch node.NodeName() {
 	case "VarDecl":
 		varDecl := node.(*parser.VarDeclStatement)
@@ -158,6 +200,8 @@ func (e *Evaluator) EvalStatement(node parser.Node) (EnvironmentData, error) {
 		}
 
 		for {
+			e.begin()
+
 			conditionData, err := e.EvalExpression(forStatement.Condition)
 
 			if err != nil {
@@ -217,12 +261,15 @@ func (e *Evaluator) EvalStatement(node parser.Node) (EnvironmentData, error) {
 				return data, nil
 			}
 
+			e.end()
+
 			_, err = e.EvalStatement(forStatement.Expression)
 
 			if err != nil {
 				return nil, err
 			}
 		}
+		e.end()
 	case "FunctionDecl":
 		functionDecl := node.(*parser.FunctionDeclStatement)
 
@@ -418,7 +465,14 @@ func (e *Evaluator) assignment(node parser.Node) (EnvironmentData, error) {
 			// fmt.Println(id, ok)
 			if ok {
 				left, structGeterr := struct_.env.GetOne(id.Value)
+				// if structGeterr
 				// fmt.Println(left, err)
+
+				_, ok := left.(*CallableFunction)
+
+				if ok {
+					return nil, e.NewError(id.Token, L.DefaultError, fmt.Sprintf("Cannot assign to method declaration ` %s `", id.Value))
+				}
 
 				// fmt.Println("STRUCT", struct_)
 				exp, err := e.EvalExpression(assignment.Expression)
@@ -428,6 +482,8 @@ func (e *Evaluator) assignment(node parser.Node) (EnvironmentData, error) {
 				}
 				// struct_.env.DefineOne(id.Value, exp)
 				// struct_.env.Print()
+
+				// TODO: REFACTOR THIS
 				switch assignment.Op {
 				case L.ASSIGN:
 					err = struct_.env.DefineOne(id.Value, exp)
@@ -435,7 +491,7 @@ func (e *Evaluator) assignment(node parser.Node) (EnvironmentData, error) {
 					if err != nil {
 						return nil, e.NewError(id.Token, L.ReferenceError, fmt.Sprintf("Variable ` %s ` not defined", id.Value))
 					}
-				case L.PLUS, L.MINUS, L.ASTERISK, L.SLASH, L.BANG, L.PIPE, L.AND, L.OR, L.AMPERSAND:
+				case L.PLUS, L.MINUS, L.ASTERISK, L.SLASH, L.BANG, L.PIPE, L.AND, L.OR, L.AMPERSAND, L.PERCENT:
 					if structGeterr != nil {
 						return nil, structGeterr
 					}
@@ -480,7 +536,7 @@ func (e *Evaluator) assignment(node parser.Node) (EnvironmentData, error) {
 		if err != nil {
 			return nil, e.NewError(id.Token, L.ReferenceError, fmt.Sprintf("Variable ` %s ` not defined", id.Value))
 		}
-	case L.PLUS, L.MINUS, L.ASTERISK, L.SLASH, L.BANG, L.PIPE, L.AND, L.OR, L.AMPERSAND:
+	case L.PLUS, L.MINUS, L.ASTERISK, L.SLASH, L.BANG, L.PIPE, L.AND, L.OR, L.AMPERSAND, L.OPERATOR, L.PERCENT:
 
 		left, err := e.EvalExpression(id)
 
@@ -552,7 +608,7 @@ func (e *Evaluator) _get(node parser.Node) (EnvironmentData, error) {
 		struct_ := calleeValue.(*StructData)
 		v, err := struct_.env.GetOne(identifier.Value)
 		if err != nil {
-			return nil, e.NewError(identifier.Token, L.DefaultError, fmt.Sprintf("method `%s` not defined", identifier.Value))
+			return nil, e.NewError(identifier.Token, L.DefaultError, fmt.Sprintf("method/attribute `%s` not defined", identifier.Value))
 		}
 		return v, nil
 	case Function:
@@ -684,7 +740,7 @@ func (e *Evaluator) end() {
 }
 
 func (e *Evaluator) NewTokenFromLine(line int) *L.Token {
-	return L.NewToken(L.IDENTIFIER, "").Line(line)
+	return L.NewToken(L.IDENTIFIER, "", line, 0, 0)
 }
 
 func (e *Evaluator) NewError(token *L.Token, _type L.JoErrorType, message string) error {

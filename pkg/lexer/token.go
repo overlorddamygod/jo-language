@@ -10,6 +10,9 @@ const (
 	ERROR   TokenType = "ERROR"
 	EOF     TokenType = "EOF"
 
+	WHITESPACE = "WHITESPACE"
+	NEWLINE    = "NEWLINE"
+
 	// Identifiers + literals
 	IDENTIFIER  = "IDENTIFIER" // add, foobar, x, y, ...
 	KEYWORD     = "KEYWORD"    // return, if, else, ...
@@ -19,32 +22,62 @@ const (
 	STRING      = "STRING"     // "LOL 12312213"
 	OPERATOR    = "OPERATOR"
 	PUNCTUATION = "PUNCTUATION"
+	COMMENT     = "COMMENT"
 )
 
+var RegexTokenMap = [][]string{
+	{"^\\n", NEWLINE},
+	{"^(//.*)", COMMENT},
+	{"^\\s+", WHITESPACE},
+	{"^\\d+\\.\\d+", FLOAT},
+	{"^\\d+", INT},
+	{"^[a-zA-Z_0-9]+", IDENTIFIER},
+	{"^(\"([^\\\"]|\\.)*\")", STRING},
+	{"^\\.", OPERATOR},
+	{"^==", OPERATOR}, // Equality
+	{"^[\\(\\)\\{\\}\\[\\];,;:]", PUNCTUATION},
+	{"^(&&|\\|\\||[+\\-*\\/%!\\|&])?=", OPERATOR}, // Assignment
+	{"^((\\+\\+|\\-\\-)|[+\\-*\\/%])", OPERATOR},  // Arithmetic
+	{"^(&&|\\|\\||!)", OPERATOR},                  // Logical
+	{"^([<>!=]=)|([><])", OPERATOR},               // Relational
+	{"^\\||&", OPERATOR},                          // Bitwise
+}
+
 const (
-	ASSIGN      = "="
+	// Arithmetic Operators
 	PLUS        = "+"
 	MINUS       = "-"
-	BANG        = "!"
 	ASTERISK    = "*"
 	SLASH       = "/"
-	EQ          = "=="
-	NOT_EQ      = "!="
-	PIPE        = "|"
-	AMPERSAND   = "&"
-	OR          = "||"
-	AND         = "&&"
-	LT_EQ       = "<="
-	GT_EQ       = ">="
 	PERCENT     = "%"
 	UNARY_PLUS  = "++"
 	UNARY_MINUS = "--"
 
+	// Relational Operators
+	EQ     = "=="
+	NOT_EQ = "!="
+	LT     = "<"
+	GT     = ">"
+	LT_EQ  = "<="
+	GT_EQ  = ">="
+
+	// Logical Operators
+	AND  = "&&"
+	OR   = "||"
+	BANG = "!"
+
+	// Bitwise Operators
+	PIPE      = "|"
+	AMPERSAND = "&"
+
+	// ASSIGNMENT Operators
+	ASSIGN           = "="
 	PLUS_ASSIGN      = "+="
 	MINUS_ASSIGN     = "-="
-	BANG_ASSIGN      = "!="
 	ASTERISK_ASSIGN  = "*="
 	SLASH_ASSIGN     = "/="
+	PERCENT_ASSIGN   = "%="
+	BANG_ASSIGN      = "!="
 	PIPE_ASSIGN      = "|="
 	AMPERSAND_ASSIGN = "&="
 	AND_ASSIGN       = "&&="
@@ -59,8 +92,6 @@ const (
 	DOUBLE_QUOTE = "\""
 	SINGLE_QUOTE = "'"
 
-	LT       = "<"
-	GT       = ">"
 	LPAREN   = "("
 	RPAREN   = ")"
 	LBRACE   = "{"
@@ -80,8 +111,18 @@ type Token struct {
 	end     int
 }
 
-func NewToken(tokenType TokenType, literal string) *Token {
+func NewTokenWithoutLine(tokenType TokenType, literal string) *Token {
 	return &Token{Type: tokenType, Literal: literal, line: 0, start: 0, end: 0}
+}
+
+func NewToken(tokenType TokenType, literal string, line, start, end int) *Token {
+	return &Token{
+		Type:    tokenType,
+		Literal: literal,
+		line:    line,
+		start:   start,
+		end:     end,
+	}
 }
 
 func (t *Token) GetLine() int {
@@ -107,7 +148,7 @@ func (t *Token) SetType(_type TokenType) *Token {
 }
 
 func (t *Token) Print() {
-	fmt.Printf("%s %s\n", string(t.Type), t.Literal)
+	fmt.Printf("%s %s %d %d %d\n", string(t.Type), t.Literal, t.line, t.start, t.end)
 }
 
 func IsKeyword(identifier string) bool {
@@ -120,7 +161,7 @@ func IsKeyword(identifier string) bool {
 
 func IsAssignmentOperator(op string) bool {
 	switch op {
-	case ASSIGN, PLUS_ASSIGN, MINUS_ASSIGN, ASTERISK_ASSIGN, SLASH_ASSIGN, BANG_ASSIGN, PIPE_ASSIGN, AND_ASSIGN, OR_ASSIGN, AMPERSAND_ASSIGN:
+	case ASSIGN, PLUS_ASSIGN, MINUS_ASSIGN, ASTERISK_ASSIGN, SLASH_ASSIGN, BANG_ASSIGN, PIPE_ASSIGN, AND_ASSIGN, OR_ASSIGN, AMPERSAND_ASSIGN, PERCENT_ASSIGN:
 		return true
 	default:
 		return false

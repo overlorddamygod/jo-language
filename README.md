@@ -92,6 +92,15 @@ let p = Person(); // struct instance
 | Operator | Example |
 |:--------:|:-------:|
 | =        | a = 2+3;|
+| +=        | a += 6; |
+| -=        | a -= 9; |
+| *=        | a *= 4; |
+| /=        | a /= 2; |
+| %=        | a %= 0; |
+| &&=        | a &&= false;|
+| \|\|=        | a \|\|= true;|
+| \|=        | a \|= 3;|
+| &=        | a &= 6;|
 
 ### Relational Operator
 | Operator |    Meaning of Operator   |          Example         |
@@ -125,8 +134,22 @@ fn add(a, b) {
 ```
 
 ### Struct Declaration
+* Struct uses `self` keyword inside the struct methods/functions to assign attributes to the struct. [ ***like `this` keyword*** ] 
 ```c
+
 struct Person {
+    // Doesnt have constructor for now in the language. So we create a function to initialize and return the same struct object
+    fn init(name, address, age) {
+        self.name = name;
+        self.address = address;
+        self.age = age;
+        return self;
+    }
+    fn printinfo() {
+        print("Name", self.getName());
+        print("Address", self.getAddress());
+        print("Age", self.getAge());
+    }
     fn walk(steps, limit) {
         for (let i = 0; i < steps; i = i + 1) {
             if (i >= limit) {
@@ -135,15 +158,22 @@ struct Person {
             print("Person Walking", i + 1, "step");
         }
     }
-    fn talk() {
-        print("Person", "Talking");
+    fn getName() {
+        return self.name;
+    }
+    fn getAddress() {
+        return self.address;
+    }
+    fn getAge() {
+        return self.age;
     }
 }
 
-// Making instance of the struct
-let p1 = Person();
-
+// Making // Making instance of the struct and calling a fucntion as constructor
+let p1 = Person().init("John", "USA", 20);
 // Calling methods of the Person struct instance
+
+p1.printinfo();
 p1.walk(5, 10);
 ```
 ---
@@ -162,7 +192,7 @@ if ( a == 0 ) {
 
 ### For Loop Statement
 ```js
-for (let i = 0; i < 10; i = i + 1) {
+for (let i = 0; i < 10; i += 1) {
     if (i == 5 ) {
         break; // continue
     }
@@ -212,7 +242,7 @@ fn isEven(num) {
     return mod(num, 2) == 0;
 }
 
-for ( let i = 0; i <= 10; i = i + 1 ) {
+for ( let i = 0; i <= 10; i += 1 ) {
     if ( isEven(i) ) {
         print("is even", i);
     } else {
@@ -228,7 +258,7 @@ fn fib(num) {
     return fib(num - 1) + fib(num - 2);
 }
 
-for ( let i = 0; i < 10; i = i + 1 ) {
+for ( let i = 0; i < 10; i += 1 ) {
     print("FIB", i, fib(i));
 }
 ```

@@ -11,6 +11,7 @@ type IStdio interface {
 	Println(a ...interface{}) (n int, err error)
 	Printf(format string, a ...interface{}) (n int, err error)
 	Input() string
+	Error(s string) (n int, err error)
 }
 
 var Io IStdio = ConsoleIO{}
@@ -32,6 +33,10 @@ func (ConsoleIO) Println(a ...interface{}) (n int, err error) {
 
 func (ConsoleIO) Printf(format string, a ...interface{}) (n int, err error) {
 	return fmt.Printf(format, a...)
+}
+
+func (ConsoleIO) Error(s string) (n int, err error) {
+	return fmt.Fprintln(os.Stderr, s)
 }
 
 func (c ConsoleIO) Input() string {

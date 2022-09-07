@@ -431,6 +431,7 @@ func (p *Parser) ifElse() (Node, error) {
 }
 
 func (p *Parser) For() (Node, error) {
+	// fmt.Println("ERE")
 	identifier, err := p.lexer.NextToken()
 
 	if err != nil || identifier.Literal != "for" {
@@ -438,7 +439,7 @@ func (p *Parser) For() (Node, error) {
 	}
 
 	leftParenthesis, err := p.lexer.NextToken()
-
+	// fmt.Println(leftParenthesis)
 	if err != nil || !(leftParenthesis.Type == L.PUNCTUATION && leftParenthesis.Literal == L.LPAREN) {
 		return nil, L.NewJoError(p.lexer, leftParenthesis, L.SyntaxError, "Expected (")
 	}
@@ -548,40 +549,20 @@ func (p *Parser) assignment() (Node, error) {
 
 	// fmt.Println("ORRR", exp)
 	pos := p.lexer.GetTokenPos()
-
-	op, err := p.matchMany(L.OPERATOR, L.ASSIGN, L.PLUS_ASSIGN, L.MINUS_ASSIGN, L.ASTERISK_ASSIGN, L.SLASH_ASSIGN, L.BANG_ASSIGN, L.PIPE_ASSIGN, L.AND_ASSIGN, L.OR_ASSIGN, L.AMPERSAND_ASSIGN)
+	op, err := p.matchMany(L.OPERATOR, L.ASSIGN, L.PLUS_ASSIGN, L.MINUS_ASSIGN, L.ASTERISK_ASSIGN, L.SLASH_ASSIGN, L.BANG_ASSIGN, L.PIPE_ASSIGN, L.AND_ASSIGN, L.OR_ASSIGN, L.AMPERSAND_ASSIGN, L.PERCENT_ASSIGN)
 	if err != nil {
 		p.lexer.SetTokenPos(pos)
 		return exp, nil
 	}
 	opLiteral := getOpFromAssignment(op.Literal)
+	// fmt.Println()
 	ass, err := p.assignment()
 
 	if err != nil {
 		return ass, err
 	}
 
-	// fmt.Println(ass)
-
-	// fmt.Println("HERE", exp, ass)
-	getexpr, ok := ass.(*GetExpr)
-
-	if ok {
-		return NewAssignmentStatement(exp, opLiteral, getexpr), nil
-	}
-	iden, ok := ass.(*Identifier)
-
-	if ok {
-		return NewAssignmentStatement(exp, opLiteral, iden), nil
-	}
-
-	lit, ok := ass.(*LiteralValue)
-
-	if ok {
-		return NewAssignmentStatement(exp, opLiteral, lit), nil
-	}
-
-	return exp, err
+	return NewAssignmentStatement(exp, opLiteral, ass), nil
 }
 
 func (p *Parser) binary(leftRightParser func() (Node, error), midConditionFunc func(*L.Token) bool) (Node, error) {
