@@ -12,6 +12,7 @@ struct Vehicle {
 struct Car {
     fn Create(name) {
         self.name = name;
+        self.age = 1;
         print("Car", self.name, "created");
         return self;
     }
@@ -21,10 +22,7 @@ struct Car {
     }
 }
 
-let self = Car().Create("Ferrari")
-
 let car = Car().Create("BMW");
-car.run(2);
-
-let vehicle = Vehicle();
-vehicle.run();
+print(car.age);
+car.age &&= 0;
+print(car.age);

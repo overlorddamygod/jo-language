@@ -40,6 +40,16 @@ const (
 	UNARY_PLUS  = "++"
 	UNARY_MINUS = "--"
 
+	PLUS_ASSIGN      = "+="
+	MINUS_ASSIGN     = "-="
+	BANG_ASSIGN      = "!="
+	ASTERISK_ASSIGN  = "*="
+	SLASH_ASSIGN     = "/="
+	PIPE_ASSIGN      = "|="
+	AMPERSAND_ASSIGN = "&="
+	AND_ASSIGN       = "&&="
+	OR_ASSIGN        = "||="
+
 	// Delimiters
 	FULL_STOP = "."
 	COMMA     = ","
@@ -106,4 +116,13 @@ func IsKeyword(identifier string) bool {
 		return true
 	}
 	return false
+}
+
+func IsAssignmentOperator(op string) bool {
+	switch op {
+	case ASSIGN, PLUS_ASSIGN, MINUS_ASSIGN, ASTERISK_ASSIGN, SLASH_ASSIGN, BANG_ASSIGN, PIPE_ASSIGN, AND_ASSIGN, OR_ASSIGN, AMPERSAND_ASSIGN:
+		return true
+	default:
+		return false
+	}
 }

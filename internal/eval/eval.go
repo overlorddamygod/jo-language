@@ -268,14 +268,79 @@ func (e *Evaluator) EvalStatement(node parser.Node) (EnvironmentData, error) {
 		// fmt.Println("HERE", e.current)
 		//  := node.(*parser.BreakStatement)
 		return nil, nil
-	case "GetExpr":
-		return e._get(node)
-	case "Identifier":
+	case "Identifier", "BinaryExpression", "GetExpr":
 		return e.EvalExpression(node)
 	default:
 		return nil, fmt.Errorf("unknown statement %s", node.NodeName())
 	}
 	return nil, nil
+}
+
+func (e *Evaluator) BinaryOp(left EnvironmentData, op string, right EnvironmentData) (EnvironmentData, error) {
+	leftData := left.(LiteralData)
+	rightData := right.(LiteralData)
+
+	// if right.Type() == "LiteralData" {
+	// 	right = right.(LiteralData)
+	// }
+
+	if leftData.IsNumber() {
+		switch op {
+		case L.PLUS:
+			return NumberLiteral(leftData.GetNumber() + rightData.GetNumber()), nil
+		case L.MINUS:
+			return NumberLiteral(leftData.GetNumber() - rightData.GetNumber()), nil
+		case L.SLASH:
+			return NumberLiteral(leftData.GetNumber() / rightData.GetNumber()), nil
+		case L.ASTERISK:
+			return NumberLiteral(leftData.GetNumber() * rightData.GetNumber()), nil
+		case L.PERCENT:
+			return NumberLiteral(math.Mod(leftData.GetNumber(), rightData.GetNumber())), nil
+		case L.EQ:
+			return BooleanLiteral(leftData.GetNumber() == rightData.GetNumber()), nil
+		case L.NOT_EQ:
+			return BooleanLiteral(leftData.GetNumber() != rightData.GetNumber()), nil
+		case L.GT:
+			return BooleanLiteral(leftData.GetNumber() > rightData.GetNumber()), nil
+		case L.GT_EQ:
+			return BooleanLiteral(leftData.GetNumber() >= rightData.GetNumber()), nil
+		case L.LT:
+			return BooleanLiteral(leftData.GetNumber() < rightData.GetNumber()), nil
+		case L.LT_EQ:
+			return BooleanLiteral(leftData.GetNumber() <= rightData.GetNumber()), nil
+		case L.AND:
+			return BooleanLiteral(leftData.GetBoolean() && rightData.GetBoolean()), nil
+		case L.OR:
+			return BooleanLiteral(leftData.GetBoolean() || rightData.GetBoolean()), nil
+		}
+	}
+
+	if leftData.IsBoolean() {
+		var val bool
+		switch op {
+		case L.EQ:
+			val = leftData.GetBoolean() == rightData.GetBoolean()
+		case L.NOT_EQ:
+			val = leftData.GetBoolean() != rightData.GetBoolean()
+		case L.AND:
+			val = leftData.GetBoolean() && rightData.GetBoolean()
+		case L.OR:
+			val = leftData.GetBoolean() || rightData.GetBoolean()
+		}
+		return BooleanLiteral(val), nil
+	}
+
+	if leftData.IsString() {
+		switch op {
+		case L.PLUS:
+			return StringLiteral(leftData.GetString() + rightData.GetString()), nil
+		case L.EQ:
+			return BooleanLiteral(leftData.GetString() == rightData.GetString()), nil
+		case L.NOT_EQ:
+			return BooleanLiteral(leftData.GetString() != rightData.GetString()), nil
+		}
+	}
+	return NumberLiteral(2), nil
 }
 
 func (e *Evaluator) EvalExpression(node parser.Node) (EnvironmentData, error) {
@@ -289,75 +354,13 @@ func (e *Evaluator) EvalExpression(node parser.Node) (EnvironmentData, error) {
 			return nil, err
 		}
 
-		// if left.Type() == "LiteralData" {
-		// 	left = left.(LiteralData)
-		// }
 		rightData, err := e.EvalExpression(binaryExpression.Right)
 
 		if err != nil {
 			return nil, err
 		}
 
-		left := leftData.(LiteralData)
-		right := rightData.(LiteralData)
-
-		// if right.Type() == "LiteralData" {
-		// 	right = right.(LiteralData)
-		// }
-
-		if left.IsNumber() {
-			switch binaryExpression.Op {
-			case L.PLUS:
-				return NumberLiteral(left.GetNumber() + right.GetNumber()), nil
-			case L.MINUS:
-				return NumberLiteral(left.GetNumber() - right.GetNumber()), nil
-			case L.SLASH:
-				return NumberLiteral(left.GetNumber() / right.GetNumber()), nil
-			case L.ASTERISK:
-				return NumberLiteral(left.GetNumber() * right.GetNumber()), nil
-			case L.PERCENT:
-				return NumberLiteral(math.Mod(left.GetNumber(), right.GetNumber())), nil
-			case L.EQ:
-				return BooleanLiteral(left.GetNumber() == right.GetNumber()), nil
-			case L.NOT_EQ:
-				return BooleanLiteral(left.GetNumber() != right.GetNumber()), nil
-			case L.GT:
-				return BooleanLiteral(left.GetNumber() > right.GetNumber()), nil
-			case L.GT_EQ:
-				return BooleanLiteral(left.GetNumber() >= right.GetNumber()), nil
-			case L.LT:
-				return BooleanLiteral(left.GetNumber() < right.GetNumber()), nil
-			case L.LT_EQ:
-				return BooleanLiteral(left.GetNumber() <= right.GetNumber()), nil
-			}
-		}
-
-		if left.IsBoolean() {
-			var val bool
-			switch binaryExpression.Op {
-			case L.EQ:
-				val = left.GetBoolean() == right.GetBoolean()
-			case L.NOT_EQ:
-				val = left.GetBoolean() != right.GetBoolean()
-			case L.AND:
-				val = left.GetBoolean() && right.GetBoolean()
-			case L.OR:
-				val = left.GetBoolean() || right.GetBoolean()
-			}
-			return BooleanLiteral(val), nil
-		}
-
-		if left.IsString() {
-			switch binaryExpression.Op {
-			case L.PLUS:
-				return StringLiteral(left.GetString() + right.GetString()), nil
-			case L.EQ:
-				return BooleanLiteral(left.GetString() == right.GetString()), nil
-			case L.NOT_EQ:
-				return BooleanLiteral(left.GetString() != right.GetString()), nil
-			}
-		}
-
+		return e.BinaryOp(leftData, binaryExpression.Op, rightData)
 	case "LiteralValue":
 		literal := node.(*parser.LiteralValue)
 		return LiteralDataFromParserLiteral(*literal), nil
@@ -412,15 +415,48 @@ func (e *Evaluator) assignment(node parser.Node) (EnvironmentData, error) {
 		case Struct:
 			struct_ := data.(*StructData)
 			id, ok := getExpr.Identifier.(*parser.Identifier)
+			// fmt.Println(id, ok)
 			if ok {
+				left, structGeterr := struct_.env.GetOne(id.Value)
+				// fmt.Println(left, err)
+
 				// fmt.Println("STRUCT", struct_)
 				exp, err := e.EvalExpression(assignment.Expression)
 
 				if err != nil {
 					return nil, err
 				}
-				struct_.env.DefineOne(id.Value, exp)
+				// struct_.env.DefineOne(id.Value, exp)
 				// struct_.env.Print()
+				switch assignment.Op {
+				case L.ASSIGN:
+					err = struct_.env.DefineOne(id.Value, exp)
+
+					if err != nil {
+						return nil, e.NewError(id.Token, L.ReferenceError, fmt.Sprintf("Variable ` %s ` not defined", id.Value))
+					}
+				case L.PLUS, L.MINUS, L.ASTERISK, L.SLASH, L.BANG, L.PIPE, L.AND, L.OR, L.AMPERSAND:
+					if structGeterr != nil {
+						return nil, structGeterr
+					}
+					if err != nil {
+						return nil, err
+					}
+					exp, err = e.BinaryOp(left, assignment.Op, exp)
+
+					if err != nil {
+						return nil, err
+					}
+
+					err = struct_.env.DefineOne(id.Value, exp)
+
+					if err != nil {
+						return nil, e.NewError(id.Token, L.ReferenceError, fmt.Sprintf("Variable ` %s ` not defined", id.Value))
+					}
+					return nil, nil
+				default:
+					return nil, e.NewError(id.Token, L.ReferenceError, fmt.Sprintf("Operator ` %s ` not defined", assignment.Op))
+				}
 			}
 			return nil, nil
 		default:
@@ -437,11 +473,36 @@ func (e *Evaluator) assignment(node parser.Node) (EnvironmentData, error) {
 		return nil, err
 	}
 	// fmt.Println("LOLLL", exp)
-	err = e.environment.Assign(id.Value, exp)
+	switch assignment.Op {
+	case L.ASSIGN:
+		err = e.environment.Assign(id.Value, exp)
 
-	if err != nil {
-		return nil, e.NewError(id.Token, L.ReferenceError, fmt.Sprintf("Variable ` %s ` not defined", id.Value))
+		if err != nil {
+			return nil, e.NewError(id.Token, L.ReferenceError, fmt.Sprintf("Variable ` %s ` not defined", id.Value))
+		}
+	case L.PLUS, L.MINUS, L.ASTERISK, L.SLASH, L.BANG, L.PIPE, L.AND, L.OR, L.AMPERSAND:
+
+		left, err := e.EvalExpression(id)
+
+		if err != nil {
+			return nil, err
+		}
+		exp, err = e.BinaryOp(left, assignment.Op, exp)
+
+		if err != nil {
+			return nil, err
+		}
+
+		err = e.environment.Assign(id.Value, exp)
+
+		if err != nil {
+			return nil, e.NewError(id.Token, L.ReferenceError, fmt.Sprintf("Variable ` %s ` not defined", id.Value))
+		}
+		return nil, nil
+	default:
+		return nil, e.NewError(id.Token, L.ReferenceError, fmt.Sprintf("Operator ` %s ` not defined", assignment.Op))
 	}
+
 	return nil, nil
 }
 func (e *Evaluator) identifier(node parser.Node) (EnvironmentData, error) {

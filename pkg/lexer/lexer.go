@@ -252,9 +252,24 @@ func (l *Lexer) Lex() ([]Token, error) {
 		}
 
 		switch currentChar {
-		case ASTERISK, PERCENT, FULL_STOP:
+		case FULL_STOP:
 			l.advance()
 			l.appendToken(l.getToken(OPERATOR, currentChar).Line(l.line).Start(l.col + 1).End(l.col + 1))
+			continue
+		case ASTERISK, PERCENT:
+			peek, err := l.peek(1)
+			if err != nil {
+				break
+			}
+
+			if peek == ASSIGN {
+				l.advance()
+				l.advance()
+				l.appendToken(l.getToken(OPERATOR, currentChar+peek))
+			} else {
+				l.advance()
+				l.appendToken(l.getToken(OPERATOR, currentChar).Line(l.line).Start(l.col + 1).End(l.col + 1))
+			}
 			continue
 
 		case SLASH:
@@ -271,6 +286,10 @@ func (l *Lexer) Lex() ([]Token, error) {
 
 					currentChar, _ = l.current()
 				}
+			} else if peek == ASSIGN {
+				l.advance()
+				l.advance()
+				l.appendToken(l.getToken(OPERATOR, currentChar+peek))
 			} else {
 				l.advance()
 				l.appendToken(l.getToken(OPERATOR, SLASH))
@@ -281,7 +300,7 @@ func (l *Lexer) Lex() ([]Token, error) {
 			if err != nil {
 				break
 			}
-			if peek == "=" {
+			if peek == ASSIGN {
 				l.advance()
 				l.advance()
 				// l.appendToken(l.getToken(OPERATOR, EQ).Line(l.line).Start(l.col + 1).End(l.col + 2))
@@ -324,8 +343,18 @@ func (l *Lexer) Lex() ([]Token, error) {
 				if currentChar == AMPERSAND {
 					literal = AND
 				}
+
+				peek, err := l.peek(0)
+				if err != nil {
+					// break
+				}
 				// l.appendToken(l.getToken(OPERATOR, EQ).Line(l.line).Start(l.col + 1).End(l.col + 2))
-				l.appendToken(l.getToken(OPERATOR, literal))
+				if peek == ASSIGN {
+					l.advance()
+					l.appendToken(l.getToken(OPERATOR, currentChar+currentChar+peek))
+				} else {
+					l.appendToken(l.getToken(OPERATOR, literal))
+				}
 			} else {
 				l.advance()
 				l.appendToken(l.getToken(OPERATOR, currentChar))
@@ -347,6 +376,10 @@ func (l *Lexer) Lex() ([]Token, error) {
 				}
 				// l.appendToken(l.getToken(OPERATOR, EQ).Line(l.line).Start(l.col + 1).End(l.col + 2))
 				l.appendToken(l.getToken(OPERATOR, literal))
+			} else if peek == ASSIGN {
+				l.advance()
+				l.advance()
+				l.appendToken(l.getToken(OPERATOR, currentChar+peek))
 			} else {
 				l.advance()
 				l.appendToken(l.getToken(OPERATOR, currentChar))
@@ -364,6 +397,10 @@ func (l *Lexer) Lex() ([]Token, error) {
 				l.advance()
 				l.advance()
 				l.appendToken(l.getToken(OPERATOR, NOT_EQ))
+			} else if peek == ASSIGN {
+				l.advance()
+				l.advance()
+				l.appendToken(l.getToken(OPERATOR, currentChar+peek))
 			} else {
 				l.advance()
 				l.appendToken(l.getToken(OPERATOR, BANG))

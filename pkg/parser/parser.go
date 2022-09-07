@@ -1,7 +1,9 @@
 package parser
 
 import (
+	"errors"
 	"fmt"
+	"strings"
 
 	L "github.com/overlorddamygod/jo/pkg/lexer"
 )
@@ -319,9 +321,24 @@ func (p *Parser) match(type_ L.TokenType, str string) (*L.Token, error) {
 	token, err := p.lexer.NextToken()
 
 	if err != nil || (token.Type != type_ || token.Literal != str) {
-		return nil, L.NewJoError(p.lexer, token, L.SyntaxError, fmt.Sprintf("Expecred ` %s `", str))
+		return nil, L.NewJoError(p.lexer, token, L.SyntaxError, fmt.Sprintf("Expected ` %s `", str))
 	}
 	return token, nil
+}
+
+func (p *Parser) matchMany(type_ L.TokenType, str ...string) (*L.Token, error) {
+	token, err := p.lexer.NextToken()
+
+	if err != nil {
+		return nil, errors.New("token not found")
+	}
+
+	for _, s := range str {
+		if token.Type == type_ && token.Literal == s {
+			return token, nil
+		}
+	}
+	return nil, errors.New("no match found")
 }
 
 func (p *Parser) condition() (Node, error) {
@@ -519,18 +536,25 @@ func (p *Parser) expression() (Node, error) {
 	return p.assignment()
 }
 
+func getOpFromAssignment(op string) string {
+	if op == "=" {
+		return op
+	}
+	return strings.Split(op, "=")[0]
+}
+
 func (p *Parser) assignment() (Node, error) {
 	exp, err := p.logicOr()
 
 	// fmt.Println("ORRR", exp)
 	pos := p.lexer.GetTokenPos()
 
-	_, err = p.match(L.OPERATOR, L.ASSIGN)
-
+	op, err := p.matchMany(L.OPERATOR, L.ASSIGN, L.PLUS_ASSIGN, L.MINUS_ASSIGN, L.ASTERISK_ASSIGN, L.SLASH_ASSIGN, L.BANG_ASSIGN, L.PIPE_ASSIGN, L.AND_ASSIGN, L.OR_ASSIGN, L.AMPERSAND_ASSIGN)
 	if err != nil {
 		p.lexer.SetTokenPos(pos)
 		return exp, nil
 	}
+	opLiteral := getOpFromAssignment(op.Literal)
 	ass, err := p.assignment()
 
 	if err != nil {
@@ -543,85 +567,21 @@ func (p *Parser) assignment() (Node, error) {
 	getexpr, ok := ass.(*GetExpr)
 
 	if ok {
-		return NewAssignmentStatement(exp, getexpr), nil
+		return NewAssignmentStatement(exp, opLiteral, getexpr), nil
 	}
 	iden, ok := ass.(*Identifier)
 
 	if ok {
-		return NewAssignmentStatement(exp, iden), nil
+		return NewAssignmentStatement(exp, opLiteral, iden), nil
 	}
 
 	lit, ok := ass.(*LiteralValue)
 
 	if ok {
-		return NewAssignmentStatement(exp, lit), nil
+		return NewAssignmentStatement(exp, opLiteral, lit), nil
 	}
-	// fmt.Println("HERE", ass)
 
 	return exp, err
-
-	// p.lexer.SetTokenPos(pos)
-
-	// pos = p.lexer.GetTokenPos()
-	// identifier, err := p.identifier()
-
-	// if err != nil {
-	// 	return nil, err
-	// }
-
-	// equal, _ := p.lexer.PeekToken(0)
-
-	// if equal.Type == L.OPERATOR && equal.Literal == L.ASSIGN {
-	// 	_, err = p.match(L.OPERATOR, L.ASSIGN)
-
-	// 	if err != nil {
-	// 		return nil, err
-	// 	}
-
-	// 	exp, err := p.expression()
-
-	// 	if err != nil {
-	// 		return nil, err
-	// 	}
-	// 	fmt.Println("NORMAL")
-
-	// 	return NewAssignmentStatement(identifier, exp), nil
-	// }
-
-	// fmt.Println("CHAINED")
-	// p.lexer.SetTokenPos(pos)
-	// call, err := p.call()
-
-	// if err != nil {
-	// 	return nil, err
-	// }
-
-	// _, err = p.match(L.OPERATOR, L.FULL_STOP)
-
-	// if err != nil {
-	// 	return nil, err
-	// }
-
-	// iden, err := p.identifier()
-
-	// if err != nil {
-	// 	return nil, err
-	// }
-
-	// _, err = p.match(L.OPERATOR, L.ASSIGN)
-
-	// if err != nil {
-	// 	return nil, err
-	// }
-
-	// exp, err := p.expression()
-
-	// if err != nil {
-	// 	return nil, err
-	// }
-
-	// return NewAssignmentStatement(NewGetExpr(iden, call), exp), nil
-
 }
 
 func (p *Parser) binary(leftRightParser func() (Node, error), midConditionFunc func(*L.Token) bool) (Node, error) {
