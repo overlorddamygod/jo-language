@@ -536,7 +536,7 @@ func (e *Evaluator) assignment(node parser.Node) (EnvironmentData, error) {
 		if err != nil {
 			return nil, e.NewError(id.Token, L.ReferenceError, fmt.Sprintf("Variable ` %s ` not defined", id.Value))
 		}
-	case L.PLUS, L.MINUS, L.ASTERISK, L.SLASH, L.BANG, L.PIPE, L.AND, L.OR, L.AMPERSAND, L.OPERATOR, L.PERCENT:
+	case L.PLUS, L.MINUS, L.ASTERISK, L.SLASH, L.BANG, L.PIPE, L.AND, L.OR, L.AMPERSAND, L.PERCENT:
 
 		left, err := e.EvalExpression(id)
 
