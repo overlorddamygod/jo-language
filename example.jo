@@ -1,30 +1,42 @@
+fn loop() {
+    for (let a = 2; a < 10; a += 1) {
+        print("1st", a);
+        for (let j = 2; j < 10; j += 1) {
+            print("2nd", j);
+            if (j == 4) {
+                break;
+            }
+        }
+    }
+}
+
+
 struct Vehicle {
     fn run() {
-        self.engine = true;
-        print("Vehicle is running", self.engine);
-        fn sad() {
-            print("sad", self);
-        }   
-        sad();
+        self.engine = 1;
+        loop();
+        self.engine *= 2;
+        print("Vehicle is running");
+        let ZZ = 2;
+        if (2 == 3) {
+            print("HERE");
+        } elif (2 == 2) {
+            print(2);
+        } else {
+            print(false);
+        }
+    }
+    fn Engine() {
+        return self.engine <= 2 && 1;
     }
 }
+// loop();
 
-struct Car {
-    fn Create(name) {
-        self.name = name;
-        print("Car", self.name, "created");
-        return self;
-    }
+let v = Vehicle();
+v.run();
+print(v.Engine());
 
-    fn run() {
+let a = 2;
+a %= 2;
 
-    }
-}
-
-let self = Car().Create("Ferrari")
-
-let car = Car().Create("BMW");
-car.run(2);
-
-let vehicle = Vehicle();
-vehicle.run();
+print(a);

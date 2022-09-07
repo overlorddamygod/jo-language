@@ -1,0 +1,10 @@
+fn fib(num) {
+    if (num == 0 || num == 1) {
+        return 1;
+    }
+    return fib(num - 1) + fib(num - 2);
+}
+
+for ( let i = 0; i < 10; i = i + 1 ) {
+    print("FIB", i, fib(i));
+}

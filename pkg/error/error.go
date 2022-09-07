@@ -1,15 +1,17 @@
-package lexer
+package joerror
 
 import (
 	"errors"
 	"fmt"
 	"strconv"
 	"strings"
+
+	"github.com/overlorddamygod/jo/pkg/lexer"
 )
 
 type JoError struct {
 	_type    JoErrorType
-	token    *Token
+	token    *lexer.Token
 	errorMsg error
 }
 
@@ -26,7 +28,7 @@ func (m *JoError) Error() string {
 	return m.errorMsg.Error()
 }
 
-func NewJoError(l *Lexer, token *Token, _type JoErrorType, msg string) *JoError {
+func New(l *lexer.Lexer, token *lexer.Token, _type JoErrorType, msg string) *JoError {
 	var err error = fmt.Errorf("[%s] %s", _type, msg)
 
 	joErr := &JoError{
@@ -35,11 +37,11 @@ func NewJoError(l *Lexer, token *Token, _type JoErrorType, msg string) *JoError 
 		errorMsg: err,
 	}
 	if token != nil {
-		line, err := l.GetLine(token.line)
+		line, err := l.GetLine(token.GetLine())
 		if err != nil {
 			fmt.Println(err.Error())
 		}
-		err = errors.New(joErr.MarkError(line, token.line, token.start, token.end, msg))
+		err = errors.New(joErr.MarkError(line, token.GetLine(), token.GetStart(), token.GetEnd(), msg))
 		joErr.errorMsg = err
 	}
 	return joErr

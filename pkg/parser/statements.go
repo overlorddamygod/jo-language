@@ -9,13 +9,15 @@ import (
 type AssignmentStatement struct {
 	name       string
 	Identifier Node
+	Op         string
 	Expression Node
 }
 
-func NewAssignmentStatement(identifier Node, exp Node) *AssignmentStatement {
+func NewAssignmentStatement(identifier Node, op string, exp Node) *AssignmentStatement {
 	return &AssignmentStatement{
 		name:       "ASSIGNMENT",
 		Identifier: identifier,
+		Op:         op,
 		Expression: exp,
 	}
 }
@@ -224,7 +226,10 @@ func (a *ForStatement) NodeName() string {
 
 func (a *ForStatement) Print() {
 	fmt.Println(a.name)
-	// a.Condition.Print()
+	a.Initial.Print()
+	a.Condition.Print()
+	fmt.Println(a.Block)
+	a.Expression.Print()
 
 	// fmt.Println("IF")
 	// for _, i := range a.IfBlock {
