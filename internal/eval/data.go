@@ -3,7 +3,7 @@ package eval
 import (
 	"fmt"
 
-	"github.com/overlorddamygod/jo/pkg/parser"
+	Node "github.com/overlorddamygod/jo/pkg/parser/node"
 )
 
 type LangData string
@@ -18,11 +18,11 @@ var (
 type StructDataDecl struct {
 	name       string
 	_type      string
-	StructDecl parser.StructDeclStatement
+	StructDecl Node.StructDeclStatement
 	Closure    *Environment
 }
 
-func NewStructDataDecl(functionDecl parser.StructDeclStatement, env *Environment) *StructDataDecl {
+func NewStructDataDecl(functionDecl Node.StructDeclStatement, env *Environment) *StructDataDecl {
 	return &StructDataDecl{
 		name:       StructDecl,
 		_type:      StructDecl,
@@ -36,13 +36,13 @@ func (s StructDataDecl) Type() string {
 }
 
 func (s StructDataDecl) GetString() string {
-	return fmt.Sprintf("[structDecl %s]", s.StructDecl.Identifier.(*parser.Identifier).Value)
+	return fmt.Sprintf("[structDecl %s]", s.StructDecl.Identifier.(*Node.Identifier).Value)
 }
 
 type StructData struct {
 	name       string
 	_type      string
-	StructDecl parser.StructDeclStatement
+	StructDecl Node.StructDeclStatement
 	env        *Environment
 }
 
@@ -60,7 +60,7 @@ func NewStructData(structDecl StructDataDecl) *StructData {
 
 	// TODO: Declare methods in StructDataDecl only ??
 	for _, method := range methods {
-		id := method.Identifier.(*parser.Identifier)
+		id := method.Identifier.(*Node.Identifier)
 		env.Define(id.Value, NewCallableFunction(method, env, structData))
 	}
 
@@ -76,7 +76,7 @@ func (s *StructData) Get(key string) (EnvironmentData, error) {
 }
 
 // not used
-// func (s *StructData) Call(funcName string, e *Evaluator, args []parser.Node) (EnvironmentData, error) {
+// func (s *StructData) Call(funcName string, e *Evaluator, args []Node.Node) (EnvironmentData, error) {
 // 	data, err := s.Get(funcName)
 
 // 	if err != nil {
@@ -98,5 +98,5 @@ func (f StructData) Type() string {
 }
 
 func (s StructData) GetString() string {
-	return fmt.Sprintf("[struct %s]", s.StructDecl.Identifier.(*parser.Identifier).Value)
+	return fmt.Sprintf("[struct %s]", s.StructDecl.Identifier.(*Node.Identifier).Value)
 }

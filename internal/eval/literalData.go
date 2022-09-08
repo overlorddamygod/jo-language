@@ -5,7 +5,7 @@ import (
 	"strconv"
 
 	L "github.com/overlorddamygod/jo/pkg/lexer"
-	"github.com/overlorddamygod/jo/pkg/parser"
+	"github.com/overlorddamygod/jo/pkg/parser/node"
 )
 
 type LiteralData struct {
@@ -94,6 +94,6 @@ func StringLiteral(val string) LiteralData {
 	return *NewLiteralData(L.STRING, val)
 }
 
-func LiteralDataFromParserLiteral(li parser.LiteralValue) LiteralData {
+func LiteralDataFromParserLiteral(li node.LiteralValue) LiteralData {
 	return *NewLiteralData(li.Type, li.Value)
 }

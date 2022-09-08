@@ -1,4 +1,4 @@
-package parser
+package node
 
 import (
 	"fmt"
@@ -6,8 +6,6 @@ import (
 
 	L "github.com/overlorddamygod/jo/pkg/lexer"
 )
-
-// type Node
 
 type BinaryExpression struct {
 	name  string
@@ -177,44 +175,6 @@ func (i *Identifier) Print() {
 
 func (i Identifier) GetLine() int {
 	return i.Token.GetLine()
-}
-
-type Node interface {
-	NodeName() string
-	Print()
-	GetLine() int
-}
-
-type FunctionCall struct {
-	name       string
-	Identifier Node
-	Arguments  []Node
-}
-
-func NewFunctionCall(identifier Node, arguments []Node) *FunctionCall {
-	return &FunctionCall{
-		name:       "FunctionCall",
-		Identifier: identifier,
-		Arguments:  arguments,
-	}
-}
-
-func (b *FunctionCall) NodeName() string {
-	return b.name
-}
-
-func (b *FunctionCall) Print() {
-	fmt.Println(b.name)
-	b.Identifier.Print()
-
-	fmt.Println("Arguments")
-	for _, s := range b.Arguments {
-		s.Print()
-	}
-}
-
-func (f FunctionCall) GetLine() int {
-	return f.Identifier.GetLine()
 }
 
 type GetExpr struct {

@@ -1,149 +1,119 @@
 package parser
 
 import (
-	"fmt"
+	L "github.com/overlorddamygod/jo/pkg/lexer"
+	"github.com/overlorddamygod/jo/pkg/parser/node"
 )
 
-type VarDeclStatement struct {
-	name       string
-	Identifier Node
-	Expression *Node
-}
-
-func NewVarDeclStatement(identifier, expression Node) *VarDeclStatement {
-	return &VarDeclStatement{
-		name:       "VarDecl",
-		Identifier: identifier,
-		Expression: &expression,
+func (p *Parser) declarations() ([]node.Node, error) {
+	var declarations []node.Node = make([]node.Node, 0)
+	for {
+		token, _ := p.lexer.PeekToken(0)
+		// fmt.Println("SAD", token.Type)
+		if token.Type == L.PUNCTUATION && token.Literal == L.RBRACE {
+			break
+		}
+		dec, err := p.declaration()
+		if err != nil {
+			return declarations, err
+		}
+		declarations = append(declarations, dec)
 	}
+	return declarations, nil
 }
 
-func (a *VarDeclStatement) NodeName() string {
-	return a.name
-}
+func (p *Parser) declaration() (node.Node, error) {
+	first, _ := p.lexer.PeekToken(0)
 
-func (a *VarDeclStatement) Print() {
-	fmt.Println(a.name)
-	a.Identifier.Print()
-	(*a.Expression).Print()
+	switch first.Literal {
+	case "fn":
+		return p.functionDecl()
+	case "struct":
+		return p.structDecl()
+	case "let":
+		decl, err := p.vardecl()
 
-	// fmt.Println("Params")
-	// for _, p := range a.Params {
-	// 	p.Print()
-	// }
-	// fmt.Println("Body")
-	// for _, p := range a.Body.Nodes {
-	// 	p.Print()
-	// }
-}
-
-func (a VarDeclStatement) Type() string {
-	return a.name
-}
-
-func (v VarDeclStatement) GetLine() int {
-	return v.Identifier.GetLine()
-}
-
-type FunctionDeclStatement struct {
-	name       string
-	Identifier Node
-	Params     []Node
-	Body       *Block
-}
-
-func NewFunctionDeclStatement(identifier Node, params []Node, body *Block) *FunctionDeclStatement {
-	return &FunctionDeclStatement{
-		name:       "FunctionDecl",
-		Identifier: identifier,
-		Params:     params,
-		Body:       body,
+		if err != nil {
+			return nil, err
+		}
+		return p.matchSemicolon(decl)
 	}
+	return p.statement()
+	// return nil, JoError.New(p.lexer, first, JoError.SyntaxError, fmt.Sprintf("Unknown declaration ` %s `", first.Literal))
 }
 
-func (a *FunctionDeclStatement) NodeName() string {
-	return a.name
-}
+func (p *Parser) structDecl() (node.Node, error) {
+	_, err := p.match(L.KEYWORD, "struct")
 
-func (a *FunctionDeclStatement) Print() {
-	fmt.Println(a.name)
-	a.Identifier.Print()
-
-	fmt.Println("Params")
-	for _, p := range a.Params {
-		p.Print()
+	if err != nil {
+		return nil, err
 	}
-	fmt.Println("Body")
-	for _, p := range a.Body.Nodes {
-		p.Print()
+
+	identifier, err := p.identifier()
+
+	if err != nil {
+		return nil, err
 	}
-}
 
-func (a FunctionDeclStatement) Type() string {
-	return a.name
-}
+	_, err = p.match(L.PUNCTUATION, L.LBRACE)
 
-func (v FunctionDeclStatement) GetLine() int {
-	return v.Identifier.GetLine()
-}
-
-type Block struct {
-	name  string
-	Nodes []Node
-}
-
-func NewBlock(nodes []Node) *Block {
-	return &Block{
-		name:  "Block",
-		Nodes: nodes,
+	if err != nil {
+		return nil, err
 	}
-}
 
-func (b Block) NodeName() string {
-	return b.name
-}
+	var methods []node.FunctionDeclStatement
 
-func (b Block) GetLine() int {
-	if len(b.Nodes) == 0 {
-		return 1
+	for {
+		token, err := p.lexer.PeekToken(0)
+
+		if err != nil {
+			break
+		}
+
+		if token.Literal == "fn" {
+			method, err := p.functionDecl()
+			// method.Print()
+			if err != nil {
+				return nil, err
+			}
+			methods = append(methods, *method)
+		} else {
+			break
+		}
 	}
-	return b.Nodes[0].GetLine()
-}
 
-type StructDeclStatement struct {
-	name       string
-	Identifier Node
-	// Attributes []VarDeclStatement
-	Methods []FunctionDeclStatement
-}
+	_, err = p.match(L.PUNCTUATION, L.RBRACE)
 
-func NewStructDeclStatement(identifier Node, methods []FunctionDeclStatement) *StructDeclStatement {
-	return &StructDeclStatement{
-		name:       "StructDecl",
-		Identifier: identifier,
-		// Attributes: attr,
-		Methods: methods,
+	if err != nil {
+		return nil, err
 	}
+
+	return node.NewStructDeclStatement(identifier, methods), nil
 }
 
-func (a *StructDeclStatement) NodeName() string {
-	return a.name
-}
-
-func (a *StructDeclStatement) Print() {
-	fmt.Println(a.name)
-	a.Identifier.Print()
-
-	fmt.Println("Methods")
-	for _, p := range a.Methods {
-		p.Print()
+func (p *Parser) vardecl() (node.Node, error) {
+	_, err := p.match(L.KEYWORD, "let")
+	if err != nil {
+		return nil, err
 	}
-	// fmt.Println("Body")
-	// for _, p := range a.Body.Nodes {
-	// 	p.Print()
-	// }
-}
 
-func (s StructDeclStatement) GetLine() int {
-	return s.Identifier.GetLine()
+	identifier, err := p.identifier()
+
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = p.match(L.OPERATOR, L.ASSIGN)
+
+	if err != nil {
+		return nil, err
+	}
+
+	expression, err := p.expression()
+
+	if err != nil {
+		return nil, err
+	}
+
+	return node.NewVarDeclStatement(identifier, expression), nil
 }

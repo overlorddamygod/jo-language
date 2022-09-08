@@ -11,6 +11,7 @@ import (
 	"github.com/overlorddamygod/jo/internal/eval"
 	"github.com/overlorddamygod/jo/pkg/lexer"
 	"github.com/overlorddamygod/jo/pkg/parser"
+	"github.com/overlorddamygod/jo/pkg/parser/node"
 	"github.com/overlorddamygod/jo/pkg/stdio"
 )
 
@@ -26,7 +27,7 @@ func NewDiscordInterpreter(io io.DiscordIO) *DiscordInterpreter {
 	di := &DiscordInterpreter{
 		lexer:       lexer,
 		io:          io,
-		Interpreter: eval.NewEvaluator(&lexer, []parser.Node{}),
+		Interpreter: eval.NewEvaluator(&lexer, []node.Node{}),
 	}
 	return di
 }

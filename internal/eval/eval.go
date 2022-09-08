@@ -6,28 +6,28 @@ import (
 	"math"
 
 	JoError "github.com/overlorddamygod/jo/pkg/error"
-	"github.com/overlorddamygod/jo/pkg/lexer"
 	L "github.com/overlorddamygod/jo/pkg/lexer"
 	"github.com/overlorddamygod/jo/pkg/parser"
+	Node "github.com/overlorddamygod/jo/pkg/parser/node"
 	"github.com/overlorddamygod/jo/pkg/stdio"
 )
 
 type Evaluator struct {
 	lexer       *L.Lexer
-	node        []parser.Node
+	node        []Node.Node
 	global      *Environment
 	environment *Environment
-	current     parser.Node
+	current     Node.Node
 	// variables   map[string]parser.LiteralValue
 }
 
-func NewEvaluator(lexer *L.Lexer, node []parser.Node) *Evaluator {
+func NewEvaluator(lexer *L.Lexer, node []Node.Node) *Evaluator {
 	env := NewEnvironment()
 	return &Evaluator{lexer: lexer, node: node, global: env, environment: env}
 }
 
 func Init(src string) {
-	_lexer := lexer.NewLexer(src)
+	_lexer := L.NewLexer(src)
 
 	_, token, err := _lexer.Lex()
 	// tokens, err := lexer.Lex()
@@ -65,7 +65,7 @@ func Init(src string) {
 	}
 }
 
-func (e *Evaluator) SetLexerNode(lexer *L.Lexer, node []parser.Node) {
+func (e *Evaluator) SetLexerNode(lexer *L.Lexer, node []Node.Node) {
 	e.lexer = lexer
 	e.node = node
 }
@@ -80,7 +80,7 @@ func (e *Evaluator) Eval() (EnvironmentData, error) {
 	return e.EvalStatements(e.node)
 }
 
-func (e *Evaluator) EvalStatements(statements []parser.Node) (EnvironmentData, error) {
+func (e *Evaluator) EvalStatements(statements []Node.Node) (EnvironmentData, error) {
 
 	// for _, s := range statements {
 	// 	s.Print()
@@ -110,7 +110,7 @@ func (e *Evaluator) EvalStatements(statements []parser.Node) (EnvironmentData, e
 	return nil, nil
 }
 
-func (e *Evaluator) EvalStatement(node parser.Node) (EnvironmentData, error) {
+func (e *Evaluator) EvalStatement(node Node.Node) (EnvironmentData, error) {
 	// e.Eval()
 	// fmt.Println("___")
 	// fmt.Println("NODE", node.NodeName())
@@ -119,9 +119,9 @@ func (e *Evaluator) EvalStatement(node parser.Node) (EnvironmentData, error) {
 	// return nil, nil
 	switch node.NodeName() {
 	case "VarDecl":
-		varDecl := node.(*parser.VarDeclStatement)
+		varDecl := node.(*Node.VarDeclStatement)
 
-		id := varDecl.Identifier.(*parser.Identifier)
+		id := varDecl.Identifier.(*Node.Identifier)
 		exp, err := e.EvalExpression(*varDecl.Expression)
 
 		if err != nil {
@@ -138,9 +138,9 @@ func (e *Evaluator) EvalStatement(node parser.Node) (EnvironmentData, error) {
 	case "FunctionCall":
 		return e.functionCall(node)
 	case "StructDecl":
-		structD := node.(*parser.StructDeclStatement)
+		structD := node.(*Node.StructDeclStatement)
 
-		id := structD.Identifier.(*parser.Identifier)
+		id := structD.Identifier.(*Node.Identifier)
 
 		if _, err := e.environment.Get(id.Value); err == nil {
 			return nil, e.NewError(id.Token, JoError.DefaultError, fmt.Sprintf("Variable ` %s ` already defined", id.Value))
@@ -149,7 +149,7 @@ func (e *Evaluator) EvalStatement(node parser.Node) (EnvironmentData, error) {
 		}
 	case "IF":
 		// fmt.Println("IF Start")
-		ifStatement := node.(*parser.IfStatement)
+		ifStatement := node.(*Node.IfStatement)
 		e.begin()
 
 		if ifStatement.HasIfs() {
@@ -188,7 +188,7 @@ func (e *Evaluator) EvalStatement(node parser.Node) (EnvironmentData, error) {
 		return data, err
 	case "FOR":
 		// fmt.Println("FOR CALL")
-		forStatement := node.(*parser.ForStatement)
+		forStatement := node.(*Node.ForStatement)
 		prev := e.current
 		e.current = forStatement
 		e.begin()
@@ -271,9 +271,9 @@ func (e *Evaluator) EvalStatement(node parser.Node) (EnvironmentData, error) {
 		}
 		e.end()
 	case "FunctionDecl":
-		functionDecl := node.(*parser.FunctionDeclStatement)
+		functionDecl := node.(*Node.FunctionDeclStatement)
 
-		functionName := functionDecl.Identifier.(*parser.Identifier)
+		functionName := functionDecl.Identifier.(*Node.Identifier)
 		// fmt.Println("GLOBASTART-----")
 		// e.global.Print()
 		// fmt.Println("GLOBALEND------")
@@ -287,7 +287,7 @@ func (e *Evaluator) EvalStatement(node parser.Node) (EnvironmentData, error) {
 		// fmt.Println("ENVEND------")
 		// e.environment.Print()
 	case "ReturnStatement":
-		returnStmt := node.(*parser.ReturnStatement)
+		returnStmt := node.(*Node.ReturnStatement)
 
 		if returnStmt.Expression == nil {
 			return StringLiteral("null"), nil
@@ -390,10 +390,10 @@ func (e *Evaluator) BinaryOp(left EnvironmentData, op string, right EnvironmentD
 	return NumberLiteral(2), nil
 }
 
-func (e *Evaluator) EvalExpression(node parser.Node) (EnvironmentData, error) {
+func (e *Evaluator) EvalExpression(node Node.Node) (EnvironmentData, error) {
 	switch node.NodeName() {
 	case "BinaryExpression":
-		binaryExpression := node.(*parser.BinaryExpression)
+		binaryExpression := node.(*Node.BinaryExpression)
 
 		leftData, err := e.EvalExpression(binaryExpression.Left)
 
@@ -409,10 +409,10 @@ func (e *Evaluator) EvalExpression(node parser.Node) (EnvironmentData, error) {
 
 		return e.BinaryOp(leftData, binaryExpression.Op, rightData)
 	case "LiteralValue":
-		literal := node.(*parser.LiteralValue)
+		literal := node.(*Node.LiteralValue)
 		return LiteralDataFromParserLiteral(*literal), nil
 	case "UnaryExpression":
-		unary := node.(*parser.UnaryExpression)
+		unary := node.(*Node.UnaryExpression)
 
 		if unary.Op == L.BANG {
 			d, err := e.EvalExpression(unary.Identifier)
@@ -437,14 +437,14 @@ func (e *Evaluator) EvalExpression(node parser.Node) (EnvironmentData, error) {
 	return nil, nil
 }
 
-func (e *Evaluator) assignment(node parser.Node) (EnvironmentData, error) {
-	assignment := node.(*parser.AssignmentStatement)
+func (e *Evaluator) assignment(node Node.Node) (EnvironmentData, error) {
+	assignment := node.(*Node.AssignmentStatement)
 	// fmt.Println("ASSIGNMENT", assignment.Identifier, assignment.Expression)
 
-	id, ok := assignment.Identifier.(*parser.Identifier)
+	id, ok := assignment.Identifier.(*Node.Identifier)
 
 	if !ok {
-		getExpr, _ := assignment.Identifier.(*parser.GetExpr)
+		getExpr, _ := assignment.Identifier.(*Node.GetExpr)
 
 		data, err := e.EvalExpression(getExpr.Expr)
 
@@ -461,7 +461,7 @@ func (e *Evaluator) assignment(node parser.Node) (EnvironmentData, error) {
 		switch data.Type() {
 		case Struct:
 			struct_ := data.(*StructData)
-			id, ok := getExpr.Identifier.(*parser.Identifier)
+			id, ok := getExpr.Identifier.(*Node.Identifier)
 			// fmt.Println(id, ok)
 			if ok {
 				left, structGeterr := struct_.env.GetOne(id.Value)
@@ -561,8 +561,8 @@ func (e *Evaluator) assignment(node parser.Node) (EnvironmentData, error) {
 
 	return nil, nil
 }
-func (e *Evaluator) identifier(node parser.Node) (EnvironmentData, error) {
-	variable := node.(*parser.Identifier)
+func (e *Evaluator) identifier(node Node.Node) (EnvironmentData, error) {
+	variable := node.(*Node.Identifier)
 	val, err := e.environment.Get(variable.Value)
 
 	if err != nil {
@@ -572,10 +572,10 @@ func (e *Evaluator) identifier(node parser.Node) (EnvironmentData, error) {
 	return val, nil
 }
 
-func (e *Evaluator) _get(node parser.Node) (EnvironmentData, error) {
-	getExpr := node.(*parser.GetExpr)
+func (e *Evaluator) _get(node Node.Node) (EnvironmentData, error) {
+	getExpr := node.(*Node.GetExpr)
 
-	identifier := getExpr.Identifier.(*parser.Identifier)
+	identifier := getExpr.Identifier.(*Node.Identifier)
 	// fmt.Println(*&getExpr.Identifier, getExpr.Expr)
 	var calleeValue EnvironmentData
 	switch getExpr.Expr.NodeName() {
@@ -624,10 +624,10 @@ func (e *Evaluator) _get(node parser.Node) (EnvironmentData, error) {
 	}
 }
 
-func (e *Evaluator) functionCall(node parser.Node) (EnvironmentData, error) {
-	functionCall := node.(*parser.FunctionCall)
+func (e *Evaluator) functionCall(node Node.Node) (EnvironmentData, error) {
+	functionCall := node.(*Node.FunctionCall)
 
-	functionName, _ := functionCall.Identifier.(*parser.Identifier)
+	functionName, _ := functionCall.Identifier.(*Node.Identifier)
 
 	var function EnvironmentData
 	switch functionCall.Identifier.NodeName() {

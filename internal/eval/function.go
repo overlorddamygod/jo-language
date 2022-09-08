@@ -4,22 +4,22 @@ import (
 	"fmt"
 
 	JoError "github.com/overlorddamygod/jo/pkg/error"
-	"github.com/overlorddamygod/jo/pkg/parser"
+	Node "github.com/overlorddamygod/jo/pkg/parser/node"
 )
 
 type Callable interface {
-	Call(e *Evaluator, arguments []parser.Node) (EnvironmentData, error)
+	Call(e *Evaluator, arguments []Node.Node) (EnvironmentData, error)
 }
 
 type CallableFunction struct {
 	name         string
 	_type        string
-	FunctionDecl parser.FunctionDeclStatement
+	FunctionDecl Node.FunctionDeclStatement
 	Closure      *Environment
 	parent       *StructData
 }
 
-func NewCallableFunction(functionDecl parser.FunctionDeclStatement, env *Environment, parent *StructData) *CallableFunction {
+func NewCallableFunction(functionDecl Node.FunctionDeclStatement, env *Environment, parent *StructData) *CallableFunction {
 	return &CallableFunction{
 		name:         Function,
 		_type:        Function,
@@ -34,15 +34,15 @@ func (f CallableFunction) Type() string {
 }
 
 func (f *CallableFunction) GetString() string {
-	fName := f.FunctionDecl.Identifier.(*parser.Identifier).Value
+	fName := f.FunctionDecl.Identifier.(*Node.Identifier).Value
 	if f.parent == nil {
 		return fmt.Sprintf("[function %s]", fName)
 	}
-	structName := f.parent.StructDecl.Identifier.(*parser.Identifier).Value
+	structName := f.parent.StructDecl.Identifier.(*Node.Identifier).Value
 	return fmt.Sprintf("[method %s.%s]", structName, fName)
 }
 
-func (f *CallableFunction) Call(e *Evaluator, node parser.Node, arguments []parser.Node) (EnvironmentData, error) {
+func (f *CallableFunction) Call(e *Evaluator, node Node.Node, arguments []Node.Node) (EnvironmentData, error) {
 	paramsLen := len(f.FunctionDecl.Params)
 	argsLen := len(arguments)
 
@@ -58,7 +58,7 @@ func (f *CallableFunction) Call(e *Evaluator, node parser.Node, arguments []pars
 	evaluator := NewEvaluatorWithParent(e, f.Closure)
 
 	for i, param := range f.FunctionDecl.Params {
-		paramId := param.(*parser.Identifier)
+		paramId := param.(*Node.Identifier)
 
 		exp, err := e.EvalExpression(arguments[i])
 
