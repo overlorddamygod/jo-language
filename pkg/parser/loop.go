@@ -68,3 +68,31 @@ func (p *Parser) For() (node.Node, error) {
 
 	return node.NewForStatement(vardecl, condition, exp, block), nil
 }
+
+func (p *Parser) While() (node.Node, error) {
+	if _, err := p.match(L.KEYWORD, "while"); err != nil {
+		return nil, err
+	}
+
+	if _, err := p.match(L.PUNCTUATION, L.LPAREN); err != nil {
+		return nil, err
+	}
+
+	condition, err := p.expression()
+
+	if err != nil {
+		return nil, err
+	}
+
+	if _, err := p.match(L.PUNCTUATION, L.RPAREN); err != nil {
+		return nil, err
+	}
+
+	block, err := p.block()
+
+	if err != nil {
+		return nil, err
+	}
+
+	return node.NewWhileStatement(condition, block), nil
+}

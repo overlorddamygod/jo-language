@@ -5,6 +5,8 @@ import (
 	"fmt"
 )
 
+var ErrKeyNotDefined = errors.New("key not defined in the environment")
+
 type EnvironmentData interface {
 	Type() string
 	GetString() string
@@ -68,7 +70,7 @@ func (env *Environment) Get(key string) (EnvironmentDataValue, error) {
 
 	if !present {
 		if env.parent == nil {
-			return nil, errors.New("key not defined in the environment")
+			return nil, ErrKeyNotDefined
 		}
 
 		return env.parent.Get(key)
@@ -80,7 +82,7 @@ func (env *Environment) GetOne(key string) (EnvironmentDataValue, error) {
 	value, present := env.data[key]
 
 	if !present {
-		return nil, errors.New("key not defined in the environment")
+		return nil, ErrKeyNotDefined
 	}
 	return value, nil
 }
@@ -95,7 +97,7 @@ func (env *Environment) Assign(key string, value EnvironmentDataValue) error {
 
 	if !present {
 		if env.parent == nil {
-			return errors.New("key not defined in the environment")
+			return ErrKeyNotDefined
 		}
 		return env.parent.Assign(key, value)
 	}

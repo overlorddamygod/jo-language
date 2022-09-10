@@ -39,6 +39,33 @@ func (a ForStatement) GetLine() int {
 	return a.Initial.GetLine()
 }
 
+type WhileStatement struct {
+	name      string
+	Condition Node
+	Block     *Block
+}
+
+func NewWhileStatement(Condition Node, block *Block) *WhileStatement {
+	return &WhileStatement{
+		name:      "WHILE",
+		Condition: Condition,
+		Block:     block,
+	}
+}
+
+func (a *WhileStatement) NodeName() string {
+	return a.name
+}
+
+func (a *WhileStatement) Print() {
+	fmt.Println(a.name)
+	a.Condition.Print()
+	fmt.Println(a.Block)
+}
+func (a WhileStatement) GetLine() int {
+	return a.Condition.GetLine()
+}
+
 type BreakStatement struct {
 	name  string
 	token lexer.Token

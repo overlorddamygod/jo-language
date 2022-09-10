@@ -1,42 +1,5 @@
-fn loop() {
-    for (let a = 2; a < 10; a += 1) {
-        print("1st", a);
-        for (let j = 2; j < 10; j += 1) {
-            print("2nd", j);
-            if (j == 4) {
-                break;
-            }
-        }
-    }
+let i = 0;
+while (i < 10) {
+    print(i);
+    i += 1;
 }
-
-
-struct Vehicle {
-    fn run() {
-        self.engine = 1;
-        loop();
-        self.engine *= 2;
-        print("Vehicle is running");
-        let ZZ = 2;
-        if (2 == 3) {
-            print("HERE");
-        } elif (2 == 2) {
-            print(2);
-        } else {
-            print(false);
-        }
-    }
-    fn Engine() {
-        return self.engine <= 2 && 1;
-    }
-}
-// loop();
-
-let v = Vehicle();
-v.run();
-print(v.Engine());
-
-let a = 2;
-a %= 2;
-
-print(a);

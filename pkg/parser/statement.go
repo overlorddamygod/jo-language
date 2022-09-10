@@ -27,6 +27,8 @@ func (p *Parser) statement() (node.Node, error) {
 	switch first.Literal {
 	case "if":
 		return p.ifElse()
+	case "while":
+		return p.While()
 	case "for":
 		return p.For()
 	case "return":

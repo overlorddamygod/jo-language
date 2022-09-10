@@ -55,6 +55,7 @@ user@main:~$ make
 * [Statements](#statements)
     * [If-Else Statement](#if-else-statement)
     * [For Loop Statement](#for-loop-statement)
+    * [While Loop Statement](#while-loop-statement)
 * [Built-In Functions](#built-in-functions)
     * [Input](#input)
     * [Print](#print)
@@ -197,6 +198,14 @@ for (let i = 0; i < 10; i += 1) {
         break; // continue
     }
     print(i);
+}
+```
+### While Loop Statement
+```js
+let i = 0;
+while (i < 10) {
+    print(i);
+    i += 1;
 }
 ```
 ---

@@ -5,75 +5,136 @@ import (
 
 	JoError "github.com/overlorddamygod/jo/pkg/error"
 	Node "github.com/overlorddamygod/jo/pkg/parser/node"
+	"github.com/overlorddamygod/jo/pkg/stdio"
 )
 
-type Callable interface {
-	Call(e *Evaluator, arguments []Node.Node) (EnvironmentData, error)
-}
+func (e *Evaluator) functionDecl(node Node.Node) (EnvironmentData, error) {
+	functionDecl := node.(*Node.FunctionDeclStatement)
 
-type CallableFunction struct {
-	name         string
-	_type        string
-	FunctionDecl Node.FunctionDeclStatement
-	Closure      *Environment
-	parent       *StructData
-}
+	functionName := functionDecl.Identifier.(*Node.Identifier)
 
-func NewCallableFunction(functionDecl Node.FunctionDeclStatement, env *Environment, parent *StructData) *CallableFunction {
-	return &CallableFunction{
-		name:         Function,
-		_type:        Function,
-		FunctionDecl: functionDecl,
-		parent:       parent,
-		Closure:      env,
+	if _, err := e.environment.Get(functionName.Value); err == nil {
+		return nil, e.NewError(functionName.Token, JoError.DefaultError, fmt.Sprintf("Variable ` %s ` already defined", functionName.Value))
 	}
+	e.environment.Define(functionName.Value, NewCallableFunction(*functionDecl, e.environment, nil))
+	return nil, nil
 }
 
-func (f CallableFunction) Type() string {
-	return f._type
-}
+func (e *Evaluator) functionCall(node Node.Node) (EnvironmentData, error) {
+	functionCall := node.(*Node.FunctionCall)
 
-func (f *CallableFunction) GetString() string {
-	fName := f.FunctionDecl.Identifier.(*Node.Identifier).Value
-	if f.parent == nil {
-		return fmt.Sprintf("[function %s]", fName)
-	}
-	structName := f.parent.StructDecl.Identifier.(*Node.Identifier).Value
-	return fmt.Sprintf("[method %s.%s]", structName, fName)
-}
+	functionName, _ := functionCall.Identifier.(*Node.Identifier)
 
-func (f *CallableFunction) Call(e *Evaluator, node Node.Node, arguments []Node.Node) (EnvironmentData, error) {
-	paramsLen := len(f.FunctionDecl.Params)
-	argsLen := len(arguments)
+	var function EnvironmentData
+	switch functionCall.Identifier.NodeName() {
+	case "Identifier":
+		if functionName.Value == "print" {
+			output := ""
+			for i, arg := range functionCall.Arguments {
+				exp, err := e.EvalExpression(arg)
 
-	if argsLen > paramsLen {
-		// iden := f.FunctionDecl.Identifier.(*parser.Identifier)
-		return nil, e.NewError(e.NewTokenFromLine(node.GetLine()), JoError.DefaultError, "Arg length greater than params length")
-	}
+				if err != nil {
+					return nil, err
+				}
 
-	if argsLen < paramsLen {
-		// iden := f.FunctionDecl.Identifier.(*parser.Identifier)
-		return nil, e.NewError(e.NewTokenFromLine(node.GetLine()), JoError.DefaultError, "Arg length less than params length")
-	}
-	evaluator := NewEvaluatorWithParent(e, f.Closure)
+				if i > 0 {
+					output += " "
+				}
 
-	for i, param := range f.FunctionDecl.Params {
-		paramId := param.(*Node.Identifier)
+				if exp == nil {
+					output += "null"
+				} else {
+					output += exp.GetString()
+				}
+			}
+			stdio.Io.Println(output)
+			return nil, nil
+		} else if functionName.Value == "input" {
+			if len(functionCall.Arguments) != 1 {
+				e.NewError(functionName.Token, JoError.DefaultError, "must have 1 argument.")
+				return nil, e.NewError(functionName.Token, JoError.DefaultError, "must have 1 argument.")
+			}
+			arg1 := functionCall.Arguments[0]
+			arg, err := e.EvalExpression(arg1)
 
-		exp, err := e.EvalExpression(arguments[i])
+			if err != nil {
+				return nil, err
+			}
+			argLiteral := arg.(LiteralData)
 
+			stdio.Io.Print(argLiteral.GetString())
+
+			text := stdio.Io.Input()
+			return StringLiteral(text), nil
+		}
+
+		fun, err := e.environment.Get(functionName.Value)
+		if err != nil {
+
+			return nil, e.NewError(functionName.Token, JoError.DefaultError, fmt.Sprintf("unknown function ` %s `", functionName.Value))
+		}
+		function = fun
+	case "GetExpr":
+		_structMethod, err := e._get(functionCall.Identifier)
 		if err != nil {
 			return nil, err
 		}
-		evaluator.environment.Define(paramId.Value, exp)
+
+		function = _structMethod
+	case "FunctionCall":
+		fun, err := e.functionCall(functionCall.Identifier)
+		if err != nil {
+			return nil, err
+		}
+		function = fun
+	default:
+		e.NewError(functionName.Token, JoError.DefaultError, "cannot call struct data")
+		return nil, e.NewError(functionName.Token, JoError.DefaultError, "cannot call struct data")
 	}
 
-	bodyNodes := f.FunctionDecl.Body.Nodes
-	data, err := evaluator.EvalStatements(bodyNodes)
+	callableFunction, ok := function.(*CallableFunction)
+
+	if ok {
+		// if callableFunction.parent != nil {
+		// TODO Struct attributes
+		// fmt.Println("METHOD")
+		// &callableFunction.parent.env.
+		// callableFunction.
+		// }
+
+		a, err := callableFunction.Call(e, node, functionCall.Arguments)
+		return a, err
+	}
+
+	structDecl, ok := function.(*StructDataDecl)
+
+	if ok {
+		data := NewStructData(*structDecl)
+
+		return data, nil
+	}
+
+	_, ok = function.(*StructData)
+
+	if ok {
+		return nil, e.NewError(e.NewTokenFromLine(functionCall.GetLine()), JoError.DefaultError, "cannot call struct data")
+	}
+
+	return nil, e.NewError(e.NewTokenFromLine(functionCall.GetLine()), JoError.DefaultError, "not a function")
+}
+
+func (e *Evaluator) Return(node Node.Node) (EnvironmentData, error) {
+	returnStmt := node.(*Node.ReturnStatement)
+
+	if returnStmt.Expression == nil {
+		return StringLiteral("null"), nil
+	}
+
+	val, err := e.EvalExpression(returnStmt.Expression)
 
 	if err != nil {
-		return nil, err
+		return val, err
 	}
 
-	return data, nil
+	return val, nil
 }
