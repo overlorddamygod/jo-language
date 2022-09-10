@@ -15,7 +15,7 @@ type FunctionDeclStatement struct {
 
 func NewFunctionDeclStatement(identifier Node, params []Node, body *Block) *FunctionDeclStatement {
 	return &FunctionDeclStatement{
-		name:       "FunctionDecl",
+		name:       FUNCTION_DECL,
 		Identifier: identifier,
 		Params:     params,
 		Body:       body,
@@ -56,7 +56,7 @@ type FunctionCall struct {
 
 func NewFunctionCall(identifier Node, arguments []Node) *FunctionCall {
 	return &FunctionCall{
-		name:       "FunctionCall",
+		name:       FUNCTION_CALL,
 		Identifier: identifier,
 		Arguments:  arguments,
 	}
@@ -88,7 +88,7 @@ type ReturnStatement struct {
 
 func NewReturnStatement(expression Node) *ReturnStatement {
 	return &ReturnStatement{
-		name:       "ReturnStatement",
+		name:       RETURN,
 		Expression: expression,
 	}
 }

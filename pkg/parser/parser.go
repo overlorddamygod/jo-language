@@ -39,6 +39,15 @@ func (p *Parser) program() ([]node.Node, error) {
 	return declarations, nil
 }
 
+func (p *Parser) peekMatch(pos int, type_ L.TokenType, str string) error {
+	token, err := p.lexer.PeekToken(pos)
+
+	if err != nil || (token.Type != type_ || token.Literal != str) {
+		return JoError.New(p.lexer, token, JoError.SyntaxError, fmt.Sprintf("Expected ` %s `", str))
+	}
+	return nil
+}
+
 func (p *Parser) matchSemicolon(node node.Node) (node.Node, error) {
 	semicolon, err := p.lexer.NextToken()
 

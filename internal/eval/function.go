@@ -27,7 +27,7 @@ func (e *Evaluator) functionCall(node Node.Node) (EnvironmentData, error) {
 
 	var function EnvironmentData
 	switch functionCall.Identifier.NodeName() {
-	case "Identifier":
+	case Node.IDENTIFIER:
 		if functionName.Value == "print" {
 			output := ""
 			for i, arg := range functionCall.Arguments {
@@ -74,14 +74,14 @@ func (e *Evaluator) functionCall(node Node.Node) (EnvironmentData, error) {
 			return nil, e.NewError(functionName.Token, JoError.DefaultError, fmt.Sprintf("unknown function ` %s `", functionName.Value))
 		}
 		function = fun
-	case "GetExpr":
+	case Node.GET_EXPR:
 		_structMethod, err := e._get(functionCall.Identifier)
 		if err != nil {
 			return nil, err
 		}
 
 		function = _structMethod
-	case "FunctionCall":
+	case Node.FUNCTION_CALL:
 		fun, err := e.functionCall(functionCall.Identifier)
 		if err != nil {
 			return nil, err

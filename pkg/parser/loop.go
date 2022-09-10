@@ -1,23 +1,21 @@
 package parser
 
 import (
-	JoError "github.com/overlorddamygod/jo/pkg/error"
 	L "github.com/overlorddamygod/jo/pkg/lexer"
 	"github.com/overlorddamygod/jo/pkg/parser/node"
 )
 
 func (p *Parser) For() (node.Node, error) {
-	// fmt.Println("ERE")
-	identifier, err := p.lexer.NextToken()
+	_, err := p.match(L.KEYWORD, "for")
 
-	if err != nil || identifier.Literal != "for" {
-		return nil, JoError.New(p.lexer, identifier, JoError.SyntaxError, "Expected for")
+	if err != nil {
+		return nil, err
 	}
 
-	leftParenthesis, err := p.lexer.NextToken()
-	// fmt.Println(leftParenthesis)
-	if err != nil || !(leftParenthesis.Type == L.PUNCTUATION && leftParenthesis.Literal == L.LPAREN) {
-		return nil, JoError.New(p.lexer, leftParenthesis, JoError.SyntaxError, "Expected (")
+	_, err = p.match(L.PUNCTUATION, L.LPAREN)
+
+	if err != nil {
+		return nil, err
 	}
 
 	vardecl, err := p.vardecl()
@@ -26,10 +24,10 @@ func (p *Parser) For() (node.Node, error) {
 		return nil, err
 	}
 
-	semicolon, err := p.lexer.NextToken()
+	_, err = p.match(L.PUNCTUATION, L.SEMICOLON)
 
-	if err != nil || !(semicolon.Type == L.PUNCTUATION && semicolon.Literal == L.SEMICOLON) {
-		return nil, JoError.New(p.lexer, semicolon, JoError.SyntaxError, "Expected ;")
+	if err != nil {
+		return nil, err
 	}
 
 	condition, err := p.expression()
@@ -38,12 +36,10 @@ func (p *Parser) For() (node.Node, error) {
 		return nil, err
 	}
 
-	// condition.Print()
+	_, err = p.match(L.PUNCTUATION, L.SEMICOLON)
 
-	semicolon, err = p.lexer.NextToken()
-
-	if err != nil || !(semicolon.Type == L.PUNCTUATION && semicolon.Literal == L.SEMICOLON) {
-		return nil, JoError.New(p.lexer, semicolon, JoError.SyntaxError, "Expected ;")
+	if err != nil {
+		return nil, err
 	}
 
 	exp, err := p.expression()
@@ -53,11 +49,12 @@ func (p *Parser) For() (node.Node, error) {
 	}
 	// exp.Print()
 
-	rightParenthesis, err := p.lexer.NextToken()
+	_, err = p.match(L.PUNCTUATION, L.RPAREN)
 
-	if err != nil || !(rightParenthesis.Type == L.PUNCTUATION && rightParenthesis.Literal == L.RPAREN) {
-		return nil, JoError.New(p.lexer, semicolon, JoError.SyntaxError, "Expected )")
+	if err != nil {
+		return nil, err
 	}
+
 	// fmt.Println("HERE")
 
 	block, err := p.block()

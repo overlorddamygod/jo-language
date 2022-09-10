@@ -78,7 +78,7 @@ func (e *Evaluator) BinaryOp(left EnvironmentData, op string, right EnvironmentD
 
 func (e *Evaluator) EvalExpression(node Node.Node) (EnvironmentData, error) {
 	switch node.NodeName() {
-	case "BinaryExpression":
+	case Node.BINARY_EXPRESSION:
 		binaryExpression := node.(*Node.BinaryExpression)
 
 		leftData, err := e.EvalExpression(binaryExpression.Left)
@@ -94,10 +94,10 @@ func (e *Evaluator) EvalExpression(node Node.Node) (EnvironmentData, error) {
 		}
 
 		return e.BinaryOp(leftData, binaryExpression.Op, rightData)
-	case "LiteralValue":
+	case Node.LITERAL_VALUE:
 		literal := node.(*Node.LiteralValue)
 		return LiteralDataFromParserLiteral(*literal), nil
-	case "UnaryExpression":
+	case Node.UNARY_EXPRESSION:
 		unary := node.(*Node.UnaryExpression)
 
 		if unary.Op == L.BANG {
@@ -111,14 +111,14 @@ func (e *Evaluator) EvalExpression(node Node.Node) (EnvironmentData, error) {
 			return BooleanLiteral(!value.GetBoolean()), nil
 		}
 		return nil, e.NewError(unary.Token, JoError.DefaultError, "Unknown operator "+unary.Op)
-	case "Identifier":
+	case Node.IDENTIFIER:
 		return e.identifier(node)
-	case "FunctionCall":
+	case Node.FUNCTION_CALL:
 		return e.functionCall(node)
-	case "GetExpr":
+	case Node.GET_EXPR:
 		return e._get(node)
 	default:
-		return nil, e.NewError(e.NewTokenFromLine(node.GetLine()), JoError.DefaultError, "Unknown nodename")
+		return nil, e.NewError(e.NewTokenFromLine(node.GetLine()), JoError.DefaultError, fmt.Sprintf("unknown node %s", node.NodeName()))
 	}
 }
 
@@ -264,14 +264,14 @@ func (e *Evaluator) _get(node Node.Node) (EnvironmentData, error) {
 	// fmt.Println(*&getExpr.Identifier, getExpr.Expr)
 	var calleeValue EnvironmentData
 	switch getExpr.Expr.NodeName() {
-	case "Identifier":
+	case Node.IDENTIFIER:
 		val, err := e.identifier(getExpr.Expr)
 		if err != nil {
 			return nil, err
 		}
 		calleeValue = val
 
-	case "FunctionCall":
+	case Node.FUNCTION_CALL:
 		val, err := e.functionCall(getExpr.Expr)
 
 		if err != nil {

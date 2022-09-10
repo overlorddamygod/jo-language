@@ -10,7 +10,7 @@ type IfStatement struct {
 
 func NewIfStatement(If []*ConditionBlock) *IfStatement {
 	return &IfStatement{
-		name:     "IF",
+		name:     IF,
 		IfBlocks: If,
 		// ElseBlock: Else,
 	}
@@ -67,7 +67,7 @@ type ConditionBlock struct {
 
 func NewConditionBlock(Condition Node, Block *Block) *ConditionBlock {
 	return &ConditionBlock{
-		name:      "ConditionBlock",
+		name:      CONDITION_BLOCK,
 		Condition: Condition,
 		Block:     Block,
 	}

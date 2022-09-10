@@ -1,5 +1,9 @@
 let i = 0;
-while (i < 10) {
-    print(i);
-    i += 1;
+
+{
+    let i = 8213123;
+    let sad = 2;
+    print(i, sad);
 }
+
+print(i);

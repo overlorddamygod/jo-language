@@ -16,7 +16,7 @@ type BinaryExpression struct {
 
 func NewBinaryExpression(op string, left, right Node) *BinaryExpression {
 	return &BinaryExpression{
-		name:  "BinaryExpression",
+		name:  BINARY_EXPRESSION,
 		Op:    op,
 		Left:  left,
 		Right: right,
@@ -47,7 +47,7 @@ type UnaryExpression struct {
 
 func NewUnaryExpression(op string, identifier Node, token *L.Token) *UnaryExpression {
 	return &UnaryExpression{
-		name:       "UnaryExpression",
+		name:       UNARY_EXPRESSION,
 		Op:         op,
 		Identifier: identifier,
 		Token:      token,
@@ -78,7 +78,7 @@ type LiteralValue struct {
 
 func NewLiteralValue(Type, value string) *LiteralValue {
 	litVal := LiteralValue{
-		name:  "LiteralValue",
+		name:  LITERAL_VALUE,
 		Type:  Type,
 		Value: value,
 	}
@@ -159,8 +159,8 @@ type Identifier struct {
 
 func NewIdentifier(value string, token *L.Token) *Identifier {
 	return &Identifier{
-		name:  "Identifier",
-		Type:  "Identifier",
+		name:  IDENTIFIER,
+		Type:  IDENTIFIER,
 		Value: value,
 		Token: token,
 	}
@@ -185,7 +185,7 @@ type GetExpr struct {
 
 func NewGetExpr(identifier, expr Node) *GetExpr {
 	return &GetExpr{
-		name:       "GetExpr",
+		name:       GET_EXPR,
 		Identifier: identifier,
 		Expr:       expr,
 	}

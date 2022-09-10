@@ -1,5 +1,7 @@
 package node
 
+import "fmt"
+
 type Block struct {
 	name  string
 	Nodes []Node
@@ -7,8 +9,15 @@ type Block struct {
 
 func NewBlock(nodes []Node) *Block {
 	return &Block{
-		name:  "Block",
+		name:  BLOCK,
 		Nodes: nodes,
+	}
+}
+
+func (b Block) Print() {
+	fmt.Println(b.name)
+	for _, node := range b.Nodes {
+		node.Print()
 	}
 }
 

@@ -30,8 +30,7 @@ func (d DiscordIO) Print(a ...interface{}) (n int, err error) {
 }
 
 func (d DiscordIO) Println(a ...interface{}) (n int, err error) {
-	d.dg.ChannelMessageSend(d.channel, fmt.Sprint(a...))
-	return 1, nil
+	return d.Print(a...)
 }
 
 func (d DiscordIO) Error(a string) (n int, err error) {

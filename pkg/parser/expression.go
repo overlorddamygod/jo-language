@@ -113,7 +113,7 @@ func (p *Parser) primary() (node.Node, error) {
 	// fmt.Println("BOOO", token)
 
 	if err != nil {
-		return nil, JoError.New(p.lexer, token, JoError.SyntaxError, "Expected value")
+		return nil, JoError.New(p.lexer, token, JoError.SyntaxError, "Expected primary value")
 	}
 
 	if token.Type == L.STRING || token.Type == L.INT || token.Type == L.FLOAT {

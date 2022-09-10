@@ -16,7 +16,7 @@ type ForStatement struct {
 
 func NewForStatement(Initial, Condition Node, Expression Node, block *Block) *ForStatement {
 	return &ForStatement{
-		name:       "FOR",
+		name:       FOR,
 		Initial:    Initial,
 		Condition:  Condition,
 		Expression: Expression,
@@ -47,7 +47,7 @@ type WhileStatement struct {
 
 func NewWhileStatement(Condition Node, block *Block) *WhileStatement {
 	return &WhileStatement{
-		name:      "WHILE",
+		name:      WHILE,
 		Condition: Condition,
 		Block:     block,
 	}
@@ -73,7 +73,7 @@ type BreakStatement struct {
 
 func NewBreakStatement() *BreakStatement {
 	return &BreakStatement{
-		name: "BreakStatement",
+		name: BREAK,
 	}
 }
 
@@ -97,7 +97,7 @@ type ContinueStatement struct {
 
 func NewContinueStatement() *ContinueStatement {
 	return &ContinueStatement{
-		name: "ContinueStatement",
+		name: CONTINUE,
 	}
 }
 

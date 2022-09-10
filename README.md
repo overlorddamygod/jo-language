@@ -1,7 +1,9 @@
 # Jo Programming Language
 
-An interpreted toy programming language built with golang. [Sample program here.](#sample-program)
+An interpreted dynamic typed toy programming language built with golang. [Sample program here.](#sample-program)
 More examples in [examples folder](./examples).
+
+It is a mixture of many programming languages ( C, C++, Javascript, Python, etc). Syntax wise and Performance wise.
 
 Language Grammar in [`jo-grammar.cfg`](./jo-grammar.cfg)
 
@@ -48,19 +50,21 @@ user@main:~$ make
     * [Assignment Operator](#assignment-operator)
     * [Relational Operator](#relational-operator)
     * [Logical Operator](#logical-operator)
-* [Declarations](#declarations)
-    * [Variable Declaration](#variable-declaration)
-    * [Function Declaration](#function-declaration)
-    * [Struct Declaration](#struct-declaration)
 * [Statements](#statements)
-    * [If-Else Statement](#if-else-statement)
-    * [For Loop Statement](#for-loop-statement)
-    * [While Loop Statement](#while-loop-statement)
+    * [Declaration Statements](#declaration-statements)
+        * [Variable Declaration](#variable-declaration)
+        * [Function Declaration](#function-declaration)
+        * [Struct Declaration](#struct-declaration)
+    * [Conditional Statements](#conditional-statements)
+        * [If-Else Statement](#if-else-statement)
+    * [Looping Statements](#looping-statements)
+        * [For Loop Statement](#for-loop-statement)
+        * [While Loop Statement](#while-loop-statement)
 * [Built-In Functions](#built-in-functions)
     * [Input](#input)
     * [Print](#print)
 ---
-## Data Types
+# Data Types
 ```js
 let a = true; // boolean
 let a = 2; // int
@@ -80,7 +84,7 @@ let p = Person(); // struct instance
 
 ---
 
-## Operators
+# Operators
 ### Arithmetic Operator
 | Operator |             Meaning of Operator            | Same as |
 |:--------:|:------------------------------------------:|:-------:|
@@ -113,13 +117,14 @@ let p = Person(); // struct instance
 | >=       | Greater than or equal to | 5 >= 3 is evaluated to 1 |
 | <=       | Less than or equal to    | 5 <= 3 is evaluated to 0 |
 ### Logical Operator
-| Operator |                       Meaning                       |                                Example                               |   |   |
-|:--------:|:---------------------------------------------------:|:--------------------------------------------------------------------:|---|---|
-| &&       | Logical AND. True only if all operands are true     | If c = 5 and d = 2 then, expression ((c==5) && (d>5)) equals to 0.   |   |   |
-| \|\|     | Logical OR. True only if either one operand is true | If c = 5 and d = 2 then, expression ((c==5) \|\| (d>5)) equals to 1. |   |   |
-| !        | Logical NOT. True only if the operand is 0          | If c = 5 then, expression !(c==5) equals to 0.                       |   |   |
+| Operator |                       Meaning                       |                                Example                               |
+|:--------:|:---------------------------------------------------:|:--------------------------------------------------------------------:|
+| &&       | Logical AND. True only if all operands are true     | If c = 5 and d = 2 then, expression ((c==5) && (d>5)) equals to 0.   |
+| \|\|     | Logical OR. True only if either one operand is true | If c = 5 and d = 2 then, expression ((c==5) \|\| (d>5)) equals to 1. |
+| !        | Logical NOT. True only if the operand is 0          | If c = 5 then, expression !(c==5) equals to 0.                       |
 ---
-## Declarations
+# Statements
+## Declaration Statements
 
 ### Variable Declaration
 
@@ -178,7 +183,7 @@ p1.printinfo();
 p1.walk(5, 10);
 ```
 ---
-## Statements
+## Conditional Statements
 ### If-Else Statement
 ```js
 let a = 3;
@@ -190,7 +195,8 @@ if ( a == 0 ) {
     print(a, "is odd");
 }
 ```
-
+---
+## Looping Statements
 ### For Loop Statement
 ```js
 for (let i = 0; i < 10; i += 1) {

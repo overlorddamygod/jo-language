@@ -10,7 +10,7 @@ type VarDeclStatement struct {
 
 func NewVarDeclStatement(identifier, expression Node) *VarDeclStatement {
 	return &VarDeclStatement{
-		name:       "VarDecl",
+		name:       VAR_DECL,
 		Identifier: identifier,
 		Expression: &expression,
 	}

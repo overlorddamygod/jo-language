@@ -11,7 +11,7 @@ type StructDeclStatement struct {
 
 func NewStructDeclStatement(identifier Node, methods []FunctionDeclStatement) *StructDeclStatement {
 	return &StructDeclStatement{
-		name:       "StructDecl",
+		name:       STRUCT_DECL,
 		Identifier: identifier,
 		// Attributes: attr,
 		Methods: methods,

@@ -1,20 +1,16 @@
 package parser
 
 import (
-	JoError "github.com/overlorddamygod/jo/pkg/error"
 	L "github.com/overlorddamygod/jo/pkg/lexer"
 	"github.com/overlorddamygod/jo/pkg/parser/node"
 )
 
 func (p *Parser) block() (*node.Block, error) {
-	leftCurly, err := p.lexer.NextToken()
+	_, err := p.match(L.PUNCTUATION, L.LBRACE)
 
-	// fmt.Println("LEFTCURLY", leftCurly)
-	if err != nil || !(leftCurly.Type == L.PUNCTUATION && leftCurly.Literal == L.LBRACE) {
-		return nil, JoError.New(p.lexer, leftCurly, JoError.SyntaxError, "Expected {")
+	if err != nil {
+		return nil, err
 	}
-
-	// fmt.Println("BLOCK")
 
 	block, err := p.declarations()
 
@@ -22,10 +18,10 @@ func (p *Parser) block() (*node.Block, error) {
 		return nil, err
 	}
 
-	rightCurly, err := p.lexer.NextToken()
+	_, err = p.match(L.PUNCTUATION, L.RBRACE)
 
-	if err != nil || !(rightCurly.Type == L.PUNCTUATION && rightCurly.Literal == L.RBRACE) {
-		return nil, JoError.New(p.lexer, rightCurly, JoError.SyntaxError, "Expected }")
+	if err != nil {
+		return nil, err
 	}
 
 	return node.NewBlock(block), nil

@@ -80,12 +80,12 @@ func (e *Evaluator) EvalStatements(statements []Node.Node) (EnvironmentData, err
 			return nil, err
 		}
 
-		if s.NodeName() == "ReturnStatement" {
+		if s.NodeName() == Node.RETURN {
 			// fmt.Println()
 			return data, nil
 		}
 
-		if s.NodeName() == "IF" || s.NodeName() == "WHILE" || s.NodeName() == "FOR" || s.NodeName() == "ReturnStatement" {
+		if s.NodeName() == Node.IF || s.NodeName() == Node.WHILE || s.NodeName() == Node.FOR || s.NodeName() == Node.RETURN {
 			if data != nil {
 				return data, nil
 			}
@@ -105,33 +105,45 @@ func (e *Evaluator) EvalStatement(node Node.Node) (EnvironmentData, error) {
 	// fmt.Println("___")
 	// return nil, nil
 	switch node.NodeName() {
-	case "VarDecl":
+	case Node.VAR_DECL:
 		return e.varDecl(node)
-	case "StructDecl":
+	case Node.STRUCT_DECL:
 		return e.structDecl(node)
-	case "FunctionDecl":
+	case Node.FUNCTION_DECL:
 		return e.functionDecl(node)
-	case "ASSIGNMENT":
+	case Node.ASSIGNMENT:
 		return e.assignment(node)
-	case "FunctionCall":
+	case Node.FUNCTION_CALL:
 		return e.functionCall(node)
-	case "IF":
+	case Node.IF:
 		return e.IfElse(node)
-	case "FOR":
+	case Node.FOR:
 		return e.For(node)
-	case "WHILE":
+	case Node.WHILE:
 		return e.While(node)
-	case "Identifier", "BinaryExpression", "GetExpr":
+	case Node.BLOCK:
+		blockStmt := node.(*Node.Block)
+		e.begin()
+
+		_, err := e.EvalStatements(blockStmt.Nodes)
+
+		e.end()
+
+		if err != nil {
+			return nil, err
+		}
+		return nil, nil
+	case Node.IDENTIFIER, Node.BINARY_EXPRESSION, Node.GET_EXPR:
 		return e.EvalExpression(node)
-	case "ReturnStatement":
+	case Node.RETURN:
 		return e.Return(node)
-	case "BreakStatement":
-		if e.current != nil && (e.current.NodeName() == "FOR" || e.current.NodeName() == "WHILE") {
+	case Node.BREAK:
+		if e.current != nil && (e.current.NodeName() == Node.FOR || e.current.NodeName() == Node.WHILE) {
 			return nil, ErrBreak
 		}
 		return nil, nil
-	case "ContinueStatement":
-		if e.current != nil && (e.current.NodeName() == "FOR" || e.current.NodeName() == "WHILE") {
+	case Node.CONTINUE:
+		if e.current != nil && (e.current.NodeName() == Node.FOR || e.current.NodeName() == Node.WHILE) {
 			return nil, ErrContinue
 		}
 		return nil, nil

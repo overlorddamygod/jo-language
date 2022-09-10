@@ -11,7 +11,7 @@ type AssignmentStatement struct {
 
 func NewAssignmentStatement(identifier Node, op string, exp Node) *AssignmentStatement {
 	return &AssignmentStatement{
-		name:       "ASSIGNMENT",
+		name:       ASSIGNMENT,
 		Identifier: identifier,
 		Op:         op,
 		Expression: exp,
