@@ -86,13 +86,13 @@ let p = Person(); // struct instance
 
 # Operators
 ### Arithmetic Operator
-| Operator |             Meaning of Operator            | Same as |
-|:--------:|:------------------------------------------:|:-------:|
-| +        | addition or unary plus                     | a = b   |
-| -        | subtraction or unary minus                 | a = a+b |
-| *        | multiplication                             | a = a-b |
-| /        | division                                   | a = a*b |
-| %        | remainder after division (modulo division) | a = a/b |
+| Operator |             Meaning of Operator            |
+|:--------:|:------------------------------------------:|
+| +        | addition or unary plus                     |
+| -        | subtraction or unary minus                 |
+| *        | multiplication                             |
+| /        | division                                   |
+| %        | remainder after division (modulo division) |
 ### Assignment Operator
 | Operator | Example |
 |:--------:|:-------:|
@@ -108,20 +108,20 @@ let p = Person(); // struct instance
 | &=        | a &= 6;|
 
 ### Relational Operator
-| Operator |    Meaning of Operator   |          Example         |
-|:--------:|:------------------------:|:------------------------:|
-| ==       | Equal to                 | 5 == 3 is evaluated to 0 |
-| >        | Greater than             | 5 > 3 is evaluated to 1  |
-| <        | Less than                | 5 < 3 is evaluated to 0  |
-| !=       | Not equal to             | 5 != 3 is evaluated to 1 |
-| >=       | Greater than or equal to | 5 >= 3 is evaluated to 1 |
-| <=       | Less than or equal to    | 5 <= 3 is evaluated to 0 |
+| Operator |    Meaning of Operator   |
+|:--------:|:------------------------:|
+| ==       | Equal to                 |
+| >        | Greater than             |
+| <        | Less than                |
+| !=       | Not equal to             |
+| >=       | Greater than or equal to |
+| <=       | Less than or equal to    |
 ### Logical Operator
-| Operator |                       Meaning                       |                                Example                               |
-|:--------:|:---------------------------------------------------:|:--------------------------------------------------------------------:|
-| &&       | Logical AND. True only if all operands are true     | If c = 5 and d = 2 then, expression ((c==5) && (d>5)) equals to 0.   |
-| \|\|     | Logical OR. True only if either one operand is true | If c = 5 and d = 2 then, expression ((c==5) \|\| (d>5)) equals to 1. |
-| !        | Logical NOT. True only if the operand is 0          | If c = 5 then, expression !(c==5) equals to 0.                       |
+| Operator |                       Meaning                       |
+|:--------:|:---------------------------------------------------:|
+| &&       | Logical AND. True only if all operands are true     |
+| \|\|     | Logical OR. True only if either one operand is true |
+| !        | Logical NOT. True only if the operand is 0          |
 ---
 # Statements
 ## Declaration Statements

@@ -1,9 +1,11 @@
-let i = 0;
-
-{
-    let i = 8213123;
-    let sad = 2;
-    print(i, sad);
+fn loopPrint(func) {
+    for (let i = 0; i < 10; i +=1) {
+        func(i);
+    }
 }
 
-print(i);
+fn consolelog(i) {
+    print(i);
+}
+
+loopPrint(consolelog);
