@@ -1,15 +1,1 @@
-struct Person {
-    fn init(name) {
-        self.name = name;
-    }
-}
-
-let personArray = [];
-
-for (let i = 0; i < 2; i += 1) {
-    print("Enter person", i, "name:");
-    let name = input("");
-    personArray.push(Person(name));
-}
-
-print(personArray.get(0).name);
+print(rand.float());

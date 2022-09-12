@@ -6,7 +6,6 @@ import (
 
 	JoError "github.com/overlorddamygod/jo/pkg/error"
 	Node "github.com/overlorddamygod/jo/pkg/parser/node"
-	"github.com/overlorddamygod/jo/pkg/stdio"
 )
 
 func (e *Evaluator) functionDecl(node Node.Node) (EnvironmentData, error) {
@@ -31,46 +30,6 @@ func (e *Evaluator) functionCall(node Node.Node) (EnvironmentData, error) {
 	var function EnvironmentData
 	switch functionCall.Identifier.NodeName() {
 	case Node.IDENTIFIER:
-		if functionName.Value == "print" {
-			output := ""
-			for i, arg := range functionCall.Arguments {
-				exp, err := e.EvalExpression(arg)
-
-				if err != nil {
-					return nil, err
-				}
-
-				if i > 0 {
-					output += " "
-				}
-
-				if exp == nil {
-					output += "null"
-				} else {
-					output += exp.GetString()
-				}
-			}
-			stdio.Io.Println(output)
-			return nil, nil
-		} else if functionName.Value == "input" {
-			if len(functionCall.Arguments) != 1 {
-				e.NewError(functionName.Token, JoError.DefaultError, "must have 1 argument.")
-				return nil, e.NewError(functionName.Token, JoError.DefaultError, "must have 1 argument.")
-			}
-			arg1 := functionCall.Arguments[0]
-			arg, err := e.EvalExpression(arg1)
-
-			if err != nil {
-				return nil, err
-			}
-			argLiteral := arg.(LiteralData)
-
-			stdio.Io.Print(argLiteral.GetString())
-
-			text := stdio.Io.Input()
-			return StringLiteral(text), nil
-		}
-
 		fun, err := e.environment.Get(functionName.Value)
 		if err != nil {
 
@@ -107,7 +66,6 @@ func (e *Evaluator) functionCall(node Node.Node) (EnvironmentData, error) {
 		}
 
 		structData, ok := left.(*StructData)
-		// fmt.Println(structData, ok)
 		if ok {
 			returnData, err := structData.Call(e, name.Value, functionCall.Arguments)
 
@@ -116,6 +74,7 @@ func (e *Evaluator) functionCall(node Node.Node) (EnvironmentData, error) {
 			}
 			return returnData, nil
 		}
+
 		// node.Print()
 		return nil, errors.New("unknown")
 		// function = val
@@ -146,6 +105,16 @@ func (e *Evaluator) functionCall(node Node.Node) (EnvironmentData, error) {
 			return nil, e.NewError(functionName.Token, JoError.DefaultError, err.Error())
 		}
 		return a, err
+	}
+
+	c, ok := function.(*CallableFunc)
+
+	if ok {
+		name := functionCall.Identifier.(*Node.Identifier)
+		if c.Arity == -1 || len(functionCall.Arguments) == c.Arity {
+			return c.Call(e, name.Value, functionCall.Arguments)
+		}
+		return nil, e.NewError(functionName.Token, JoError.DefaultError, "Arguments length doesnot match")
 	}
 
 	structDecl, ok := function.(*StructDataDecl)

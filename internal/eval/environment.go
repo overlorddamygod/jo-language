@@ -46,9 +46,14 @@ func (env *Environment) Print() {
 	for key, val := range env.data {
 		// fmt.Println(key)
 		if val.Type() == Function {
-			f := val.(*CallableFunction)
-
-			println("FUNC", key, f.Type())
+			f, ok := val.(*CallableFunction)
+			if ok {
+				println("FUNC", key, f.Type())
+			}
+			g, ok := val.(*CallableFunc)
+			if ok {
+				println("FUNC", key, g.Type())
+			}
 		} else if val.Type() == string(Literal) {
 			lit := val.(LiteralData)
 			println("VAL", key, lit.Value)

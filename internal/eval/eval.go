@@ -48,6 +48,7 @@ func Init(src string) {
 	// }
 
 	evaluator := NewEvaluator(_lexer, node)
+	evaluator.LoadNative()
 
 	_, err = evaluator.Eval()
 
@@ -55,6 +56,12 @@ func Init(src string) {
 		stdio.Io.Error("[Evaluator]\n\n" + err.Error())
 		return
 	}
+}
+
+func (e *Evaluator) LoadNative() {
+	e.environment.Define("print", NewCallableFunc("print", e.global, -1, Print))
+	e.environment.Define("input", NewCallableFunc("input", e.global, 1, Input))
+	e.environment.Define("rand", MathRand(e))
 }
 
 func (e *Evaluator) SetLexerNode(lexer *L.Lexer, node []Node.Node) {

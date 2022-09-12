@@ -132,6 +132,24 @@ func NewStructData(structDecl StructDataDecl) *StructData {
 	return structData
 }
 
+func NewNativeStruct(env *Environment, name string, methods []*CallableFunc) *StructData {
+	env = NewEnvironmentWithParent(env)
+
+	structData := &StructData{
+		name:  name,
+		_type: Struct,
+		env:   env,
+	}
+
+	env.Define("self", structData)
+
+	for _, method := range methods {
+		env.Define(method.name, method)
+	}
+
+	return structData
+}
+
 func (s *StructData) Get(key string) (EnvironmentData, error) {
 	return s.env.Get(key)
 }
@@ -146,17 +164,31 @@ func (s *StructData) Call(e *Evaluator, funcName string, args []Node.Node) (Envi
 
 	fun, ok := data.(*CallableFunction)
 
-	if !ok {
+	if ok {
 		// return nil, L.NewJoError(e.lexer, nil, "not a function")
-		return nil, errors.New("not a function")
+		return fun.Call(e, funcName, args)
 	}
-	return fun.Call(e, funcName, args)
+
+	f, ok := data.(*CallableFunc)
+
+	if ok {
+		// return nil, L.NewJoError(e.lexer, nil, "not a function")
+		return f.Call(e, funcName, args)
+	}
+	return nil, errors.New("not a function")
 }
 
 func (f StructData) Type() string {
 	return f._type
 }
 
+func (f *StructData) SetName(name string) {
+	f.name = name
+}
+
 func (s StructData) GetString() string {
+	if s.name != Struct {
+		return fmt.Sprintf("[struct %s]", s.name)
+	}
 	return fmt.Sprintf("[struct %s]", s.StructDecl.Identifier.(*Node.Identifier).Value)
 }
