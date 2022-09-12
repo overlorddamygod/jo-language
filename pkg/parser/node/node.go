@@ -19,6 +19,7 @@ const (
 	GET_EXPR          = "GET_EXPR"
 	ASSIGNMENT        = "ASSIGNMENT"
 	CONDITION_BLOCK   = "CONDITION_BLOCK"
+	ARRAY             = "ARRAY"
 )
 
 type Node interface {

@@ -1,6 +1,7 @@
 package eval
 
 import (
+	"errors"
 	"fmt"
 	"strconv"
 
@@ -96,4 +97,17 @@ func StringLiteral(val string) LiteralData {
 
 func LiteralDataFromParserLiteral(li node.LiteralValue) LiteralData {
 	return *NewLiteralData(li.Type, li.Value)
+}
+
+func (l *LiteralData) Call(env *Evaluator, name string, arguments []node.Node) (EnvironmentData, error) {
+	switch name {
+	case "len":
+		return NewLiteralData(L.INT, strconv.Itoa(len(l.Value))), nil
+	case "type":
+		if len(arguments) != 0 {
+			return nil, errors.New("argument length must be 0")
+		}
+		return StringLiteral(l._type), nil
+	}
+	return nil, errors.New("no method")
 }

@@ -1,6 +1,7 @@
 package eval
 
 import (
+	"errors"
 	"fmt"
 
 	JoError "github.com/overlorddamygod/jo/pkg/error"
@@ -22,6 +23,8 @@ func (e *Evaluator) functionDecl(node Node.Node) (EnvironmentData, error) {
 
 func (e *Evaluator) functionCall(node Node.Node) (EnvironmentData, error) {
 	functionCall := node.(*Node.FunctionCall)
+	// functionCall.Print()
+	// fmt.Println(functionCall.Identifier, functionCall.Arguments)
 
 	functionName, _ := functionCall.Identifier.(*Node.Identifier)
 
@@ -75,12 +78,47 @@ func (e *Evaluator) functionCall(node Node.Node) (EnvironmentData, error) {
 		}
 		function = fun
 	case Node.GET_EXPR:
-		_structMethod, err := e._get(functionCall.Identifier)
+		getexpr := functionCall.Identifier.(*Node.GetExpr)
+
+		name, _ := getexpr.Identifier.(*Node.Identifier)
+
+		left, err := e.EvalExpression(getexpr.Expr)
+		// fmt.Println("ZZZ", left)
 		if err != nil {
 			return nil, err
 		}
 
-		function = _structMethod
+		// Todo merge all types
+		data, ok := left.(LiteralData)
+		if ok {
+			name, _ := getexpr.Identifier.(*Node.Identifier)
+			return data.Call(e, name.Value, functionCall.Arguments)
+		}
+
+		arrayData, ok := left.(*Array)
+		if ok {
+			name, _ := getexpr.Identifier.(*Node.Identifier)
+			returnData, err := arrayData.Call(e, name.Value, functionCall.Arguments)
+
+			if err != nil {
+				return nil, e.NewError(name.Token, JoError.DefaultError, err.Error())
+			}
+			return returnData, nil
+		}
+
+		structData, ok := left.(*StructData)
+		// fmt.Println(structData, ok)
+		if ok {
+			returnData, err := structData.Call(e, name.Value, functionCall.Arguments)
+
+			if err != nil {
+				return nil, e.NewError(name.Token, JoError.DefaultError, err.Error())
+			}
+			return returnData, nil
+		}
+		// node.Print()
+		return nil, errors.New("unknown")
+		// function = val
 	case Node.FUNCTION_CALL:
 		fun, err := e.functionCall(functionCall.Identifier)
 		if err != nil {
@@ -101,17 +139,19 @@ func (e *Evaluator) functionCall(node Node.Node) (EnvironmentData, error) {
 		// &callableFunction.parent.env.
 		// callableFunction.
 		// }
+		name := functionCall.Identifier.(*Node.Identifier)
+		a, err := callableFunction.Call(e, name.Value, functionCall.Arguments)
 
-		a, err := callableFunction.Call(e, node, functionCall.Arguments)
+		if err != nil {
+			return nil, e.NewError(functionName.Token, JoError.DefaultError, err.Error())
+		}
 		return a, err
 	}
 
 	structDecl, ok := function.(*StructDataDecl)
 
 	if ok {
-		data := NewStructData(*structDecl)
-
-		return data, nil
+		return structDecl.Initialize(e, functionCall.Arguments)
 	}
 
 	_, ok = function.(*StructData)

@@ -105,3 +105,8 @@ func (env *Environment) Assign(key string, value EnvironmentDataValue) error {
 	env.data[key] = value
 	return nil
 }
+
+func (env *Environment) Remove(key string) error {
+	delete(env.data, key)
+	return nil
+}

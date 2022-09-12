@@ -117,9 +117,26 @@ func (e *Evaluator) EvalExpression(node Node.Node) (EnvironmentData, error) {
 		return e.functionCall(node)
 	case Node.GET_EXPR:
 		return e._get(node)
+	case Node.ARRAY:
+		return e.array(node)
 	default:
 		return nil, e.NewError(e.NewTokenFromLine(node.GetLine()), JoError.DefaultError, fmt.Sprintf("unknown node %s", node.NodeName()))
 	}
+}
+
+func (e *Evaluator) array(node Node.Node) (EnvironmentData, error) {
+	assignment := node.(*Node.ArrayDecl)
+	var vals []EnvironmentData = make([]EnvironmentData, 0)
+	for _, val := range assignment.Values {
+		data, err := e.EvalExpression(val)
+
+		if err != nil {
+			return nil, err
+		}
+		vals = append(vals, data)
+	}
+
+	return NewArray(vals), nil
 }
 
 func (e *Evaluator) assignment(node Node.Node) (EnvironmentData, error) {
@@ -261,36 +278,21 @@ func (e *Evaluator) _get(node Node.Node) (EnvironmentData, error) {
 	getExpr := node.(*Node.GetExpr)
 
 	identifier := getExpr.Identifier.(*Node.Identifier)
-	// fmt.Println(*&getExpr.Identifier, getExpr.Expr)
-	var calleeValue EnvironmentData
-	switch getExpr.Expr.NodeName() {
-	case Node.IDENTIFIER:
-		val, err := e.identifier(getExpr.Expr)
-		if err != nil {
-			return nil, err
-		}
-		calleeValue = val
 
-	case Node.FUNCTION_CALL:
-		val, err := e.functionCall(getExpr.Expr)
+	left, err := e.EvalExpression(getExpr.Expr)
 
-		if err != nil {
-			return nil, err
-		}
-
-		calleeValue = val
-	// TODO FOR Literal Data
-	default:
-		return nil, e.NewError(e.NewTokenFromLine(node.GetLine()), JoError.DefaultError, "unknown callee")
+	if err != nil {
+		return nil, err
 	}
 
-	if calleeValue == nil {
+	if left == nil {
 		return nil, e.NewError(identifier.Token, JoError.ReferenceError, fmt.Sprintf("can't access property `%s` from a null data", identifier.Value))
 	}
 
-	switch calleeValue.Type() {
+	// fmt.Println(left.)
+	switch left.Type() {
 	case Struct:
-		struct_ := calleeValue.(*StructData)
+		struct_ := left.(*StructData)
 		v, err := struct_.env.GetOne(identifier.Value)
 		if err != nil {
 			return nil, e.NewError(identifier.Token, JoError.DefaultError, fmt.Sprintf("method/attribute `%s` not defined", identifier.Value))
@@ -304,6 +306,9 @@ func (e *Evaluator) _get(node Node.Node) (EnvironmentData, error) {
 	case StructDecl:
 		return nil, e.NewError(identifier.Token, JoError.DefaultError, fmt.Sprintf("can't access property `%s` from a struct declaration", identifier.Value))
 	// TODO FOR Literal Data
+	case "STRING":
+		return nil, e.NewError(e.NewTokenFromLine(node.GetLine()), JoError.DefaultError, "unknown callee string")
+
 	default:
 		return nil, e.NewError(e.NewTokenFromLine(node.GetLine()), JoError.DefaultError, "unknown callee")
 	}

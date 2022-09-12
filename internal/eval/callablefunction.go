@@ -1,9 +1,9 @@
 package eval
 
 import (
+	"errors"
 	"fmt"
 
-	JoError "github.com/overlorddamygod/jo/pkg/error"
 	Node "github.com/overlorddamygod/jo/pkg/parser/node"
 )
 
@@ -42,18 +42,18 @@ func (f *CallableFunction) GetString() string {
 	return fmt.Sprintf("[method %s.%s]", structName, fName)
 }
 
-func (f *CallableFunction) Call(e *Evaluator, node Node.Node, arguments []Node.Node) (EnvironmentData, error) {
+func (f *CallableFunction) Call(e *Evaluator, name string, arguments []Node.Node) (EnvironmentData, error) {
 	paramsLen := len(f.FunctionDecl.Params)
 	argsLen := len(arguments)
 
 	if argsLen > paramsLen {
 		// iden := f.FunctionDecl.Identifier.(*parser.Identifier)
-		return nil, e.NewError(e.NewTokenFromLine(node.GetLine()), JoError.DefaultError, "Arg length greater than params length")
+		return nil, errors.New("Arg length greater than params length")
 	}
 
 	if argsLen < paramsLen {
 		// iden := f.FunctionDecl.Identifier.(*parser.Identifier)
-		return nil, e.NewError(e.NewTokenFromLine(node.GetLine()), JoError.DefaultError, "Arg length less than params length")
+		return nil, errors.New("Arg length less than params length")
 	}
 	evaluator := NewEvaluatorWithParent(e, f.Closure)
 

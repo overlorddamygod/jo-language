@@ -44,6 +44,7 @@ user@main:~$ make
     * [Int](#data-types)
     * [Float](#data-types)
     * [String](#data-types)
+    * [Array](#data-types)
     * [Struct](#data-types)
 * [Operators](#operators)
     * [Arithmetic Operator](#arithmetic-operator)
@@ -65,11 +66,15 @@ user@main:~$ make
     * [Print](#print)
 ---
 # Data Types
+* All types have the following methods
+    * len - length of the data ***works only for string and array***
+    * type - returns the type of the data
 ```js
 let a = true; // boolean
 let a = 2; // int
 let b = 2.2; // float
 let name = "Jo" // string
+let nums = [2,3,4,5]; // array
 
 struct Person {
     fn walk() {
@@ -79,7 +84,7 @@ struct Person {
 
 let p = Person(); // struct instance
 
-// Coming Soon: array and map [maybe lol]
+// Coming Soon: map [maybe lol]
 ```
 
 ---
@@ -141,10 +146,11 @@ fn add(a, b) {
 
 ### Struct Declaration
 * Struct uses `self` keyword inside the struct methods/functions to assign attributes to the struct. [ ***like `this` keyword*** ] 
+* Constructor method name should be `init`
 ```c
 
 struct Person {
-    // Doesnt have constructor for now in the language. So we create a function to initialize and return the same struct object
+    // Constructor
     fn init(name, address, age) {
         self.name = name;
         self.address = address;
@@ -175,10 +181,10 @@ struct Person {
     }
 }
 
-// Making // Making instance of the struct and calling a fucntion as constructor
-let p1 = Person().init("John", "USA", 20);
-// Calling methods of the Person struct instance
+// Making instance of the struct
+let p1 = Person("John", "USA", 20);
 
+// Calling methods of the Person struct instance
 p1.printinfo();
 p1.walk(5, 10);
 ```

@@ -148,6 +148,26 @@ func (p *Parser) primary() (node.Node, error) {
 		}
 		return e, nil
 	}
+
+	if token.Type == L.PUNCTUATION && token.Literal == L.LBRACKET {
+		r, err := p.lexer.PeekToken(0)
+		if err == nil && r.Type == L.PUNCTUATION && r.Literal == L.RBRACKET {
+			p.lexer.NextToken()
+			return node.NewArrayDecl(token, []node.Node{}), nil
+		}
+
+		e, err := p.arguments()
+
+		if err != nil {
+			return nil, err
+		}
+		Rtoken, err := p.lexer.NextToken()
+
+		if err != nil || !(Rtoken.Type == L.PUNCTUATION && Rtoken.Literal == L.RBRACKET) {
+			return nil, JoError.New(p.lexer, Rtoken, JoError.SyntaxError, "Expected ]")
+		}
+		return node.NewArrayDecl(token, e), nil
+	}
 	return nil, JoError.New(p.lexer, token, JoError.SyntaxError, "unexpected value")
 }
 

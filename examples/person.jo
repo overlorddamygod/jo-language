@@ -22,5 +22,5 @@ struct Person {
 }
 
 // Making instance of the struct
-let p1 = Person().init("John", "USA", 20);
+let p1 = Person("John", "USA", 20);
 p1.printinfo();

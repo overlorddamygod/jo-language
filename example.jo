@@ -1,11 +1,15 @@
-fn loopPrint(func) {
-    for (let i = 0; i < 10; i +=1) {
-        func(i);
+struct Person {
+    fn init(name) {
+        self.name = name;
     }
 }
 
-fn consolelog(i) {
-    print(i);
+let personArray = [];
+
+for (let i = 0; i < 2; i += 1) {
+    print("Enter person", i, "name:");
+    let name = input("");
+    personArray.push(Person(name));
 }
 
-loopPrint(consolelog);
+print(personArray.get(0).name);
