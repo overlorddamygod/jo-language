@@ -1,0 +1,12 @@
+let correctNum = (math.random() * 10).getInt();
+print("------- Guessing Game -------");
+
+while (true) {
+    let guess = input("Enter your guess: ");
+    if (guess == correctNum) {
+        print("You guessed correctly! The number was", correctNum);
+        break;
+    } else {
+        print("You guessed incorrectly! Please try again");
+    }
+}

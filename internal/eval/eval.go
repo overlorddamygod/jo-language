@@ -61,12 +61,15 @@ func Init(src string) {
 func (e *Evaluator) LoadNative() {
 	e.environment.Define("print", NewCallableFunc("print", e.global, -1, Print))
 	e.environment.Define("input", NewCallableFunc("input", e.global, 1, Input))
-	e.environment.Define("rand", MathRand(e))
+	e.environment.Define("math", Math(e))
 }
 
 func (e *Evaluator) SetLexerNode(lexer *L.Lexer, node []Node.Node) {
 	e.lexer = lexer
 	e.node = node
+}
+func (e *Evaluator) Env() *Environment {
+	return e.environment
 }
 
 func NewEvaluatorWithParent(e *Evaluator, parent *Environment) *Evaluator {

@@ -3,9 +3,7 @@ package eval
 import (
 	"errors"
 	"fmt"
-	"strconv"
 
-	L "github.com/overlorddamygod/jo/pkg/lexer"
 	"github.com/overlorddamygod/jo/pkg/parser/node"
 )
 
@@ -46,7 +44,7 @@ func (a Array) GetString() string {
 func (a *Array) Call(e *Evaluator, name string, arguments []node.Node) (EnvironmentData, error) {
 	switch name {
 	case "len":
-		return NewLiteralData(L.INT, strconv.Itoa(len(a.data))), nil
+		return NumberLiteralInt(int64(len(a.data))), nil
 	case "get":
 		if len(arguments) != 1 {
 			return nil, errors.New("argument length must be 1")
@@ -63,7 +61,7 @@ func (a *Array) Call(e *Evaluator, name string, arguments []node.Node) (Environm
 
 		i, _ := index.(LiteralData)
 
-		indexInt := int(i.NumericalValue)
+		indexInt := int(i.IntVal)
 
 		if indexInt < 0 || indexInt > len(a.data)-1 {
 			return nil, errors.New("index out of bound")
@@ -103,7 +101,7 @@ func (a *Array) Call(e *Evaluator, name string, arguments []node.Node) (Environm
 
 		i, _ := index.(LiteralData)
 
-		indexInt := int(i.NumericalValue)
+		indexInt := int(i.IntVal)
 
 		if indexInt < 0 || indexInt > len(a.data)-1 {
 			return nil, errors.New("index out of bound")

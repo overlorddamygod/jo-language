@@ -9,11 +9,21 @@ import (
 	"github.com/overlorddamygod/jo/pkg/parser/node"
 )
 
+// type Number struct {
+// 	FloatVal float64
+// 	IntVal   int64
+// }
+
+// func NewNumber() Number{
+// 	return
+// }
+
 type LiteralData struct {
-	name           LangData
-	_type          string
-	Value          string
-	NumericalValue float64
+	name     LangData
+	_type    string
+	Value    string
+	FloatVal float64
+	IntVal   int64
 }
 
 func NewLiteralData(Type, value string) *LiteralData {
@@ -22,9 +32,9 @@ func NewLiteralData(Type, value string) *LiteralData {
 		_type: Type,
 		Value: value,
 	}
-	if Type == L.FLOAT || Type == L.INT {
-		litVal.NumericalValue, _ = strconv.ParseFloat(litVal.Value, 32)
-	}
+	litVal.FloatVal, _ = strconv.ParseFloat(litVal.Value, 64)
+	litVal.IntVal, _ = strconv.ParseInt(litVal.Value, 10, 64)
+	// fmt.Println(litVal)
 	return &litVal
 }
 
@@ -44,28 +54,36 @@ func (l *LiteralData) IsBoolean() bool {
 	return l.Type() == L.BOOLEAN
 }
 
-func (l *LiteralData) GetNumber() float64 {
+func (l *LiteralData) GetNumber() (int64, float64) {
 	if l.IsBoolean() {
 		if l.Value == "true" {
-			return 1
+			return 1, 1
 		}
-		return 0
+		return 0, 0
 	}
 
 	if l.IsString() {
-		NumericalValue, err := strconv.ParseFloat(l.Value, 32)
+		floatVal, err := strconv.ParseFloat(l.Value, 64)
 
 		if err != nil {
-			return 1
+			return 1, 1
 		}
-		return NumericalValue
+		intVal, err := strconv.ParseInt(l.Value, 10, 64)
+
+		if err != nil {
+			return 1, 1
+		}
+		return intVal, floatVal
 	}
-	return l.NumericalValue
+	return l.IntVal, l.FloatVal
 }
 
 func (l *LiteralData) GetBoolean() bool {
 	if l.IsNumber() {
-		return l.GetNumber() > 0
+		if l.Type() == L.INT {
+			return l.IntVal > 0
+		}
+		return l.FloatVal > 0
 	}
 	if l.IsString() {
 		return true
@@ -87,8 +105,13 @@ func (l *LiteralData) Print() {
 func BooleanLiteral(boolean bool) LiteralData {
 	return *NewLiteralData(L.BOOLEAN, fmt.Sprintf("%v", boolean))
 }
-func NumberLiteral(val float64) LiteralData {
+
+func NumberLiteralFloat(val float64) LiteralData {
 	return *NewLiteralData(L.FLOAT, fmt.Sprintf("%f", val))
+}
+
+func NumberLiteralInt(val int64) LiteralData {
+	return *NewLiteralData(L.INT, fmt.Sprintf("%d", val))
 }
 
 func StringLiteral(val string) LiteralData {
@@ -102,12 +125,38 @@ func LiteralDataFromParserLiteral(li node.LiteralValue) LiteralData {
 func (l *LiteralData) Call(env *Evaluator, name string, arguments []node.Node) (EnvironmentData, error) {
 	switch name {
 	case "len":
-		return NewLiteralData(L.INT, strconv.Itoa(len(l.Value))), nil
+		return NumberLiteralInt(int64(len(l.Value))), nil
 	case "type":
 		if len(arguments) != 0 {
 			return nil, errors.New("argument length must be 0")
 		}
 		return StringLiteral(l._type), nil
+	case "getInt":
+		if len(arguments) != 0 {
+			return nil, errors.New("argument length must be 0")
+		}
+
+		intVal, err := strconv.ParseFloat(l.Value, 64)
+		if err != nil {
+			return nil, errors.New("cannot parse to int")
+		}
+		return NumberLiteralInt(int64(intVal)), nil
+	case "getFloat":
+		if len(arguments) != 0 {
+			return nil, errors.New("argument length must be 0")
+		}
+
+		floatVal, err := strconv.ParseFloat(l.Value, 64)
+		if err != nil {
+			return nil, errors.New("cannot parse to float")
+		}
+		return NumberLiteralFloat(floatVal), nil
+	case "getString":
+		if len(arguments) != 0 {
+			return nil, errors.New("argument length must be 0")
+		}
+
+		return StringLiteral(l.Value), nil
 	}
 	return nil, errors.New("no method")
 }

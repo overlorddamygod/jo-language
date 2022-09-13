@@ -50,8 +50,8 @@ const (
 	ASTERISK    = "*"
 	SLASH       = "/"
 	PERCENT     = "%"
-	UNARY_PLUS  = "++"
-	UNARY_MINUS = "--"
+	UNARY_PLUS  = "+"
+	UNARY_MINUS = "-"
 
 	// Relational Operators
 	EQ     = "=="

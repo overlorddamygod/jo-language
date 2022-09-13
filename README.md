@@ -7,6 +7,9 @@ It is a mixture of many programming languages ( C, C++, Javascript, Python, etc)
 
 Language Grammar in [`jo-grammar.cfg`](./jo-grammar.cfg)
 
+```
+print("Hello World");
+```
 ### References:
 * [Crafting Interpreters](https://craftinginterpreters.com/appendix-i.html)
     
@@ -61,9 +64,33 @@ user@main:~$ make
     * [Looping Statements](#looping-statements)
         * [For Loop Statement](#for-loop-statement)
         * [While Loop Statement](#while-loop-statement)
-* [Built-In Functions](#built-in-functions)
+* [Built-In Libraries](#built-in-functions)
     * [Input](#input)
     * [Print](#print)
+    <details>
+    <summary>Math Struct</summary>
+
+    * [Math Struct](#math-struct)
+        * [Attributes](#math-struct)
+            * [pi](#math-struct)
+            * [e](#math-struct)
+        * [Methods](#math-struct)
+            * [random](#math-struct)
+            * [pow](#math-struct)
+            * [exp](#math-struct)
+            * [log](#math-struct)
+            * [log2](#math-struct)
+            * [log10](#math-struct)
+            * [sqrt](#math-struct)
+            * [abs](#math-struct)
+            * [sin](#math-struct)
+            * [cos](#math-struct)
+            * [tan](#math-struct)
+            * [round](#math-struct)
+            * [ceil](#math-struct)
+            * [floor](#math-struct)
+    </details>
+    
 ---
 # Data Types
 * All types have the following methods
@@ -235,6 +262,34 @@ Accepts any number of arguments.
 ```
 let name = input("Enter your name:");
 print("Your name is", name);
+```
+
+### Math Struct
+Has attributes and methods to perform mathematical tasks on numbers
+```js
+// Attributes
+print(math.pi); // Value of Pi
+print(math.e); // Value of Euler's number
+
+// Methods
+print(math.random()); // random float between 0 and 1
+print(math.pow(2,2)); // x to the power y
+print(math.exp(2)); // value of e ^ x
+
+print(math.log(2)); // natural log
+print(math.log2(2)); // log base 2
+print(math.log10(2)); // log base 10
+
+print(math.sqrt(4)); // square root
+print(math.abs(-69)); // absolute (positive)
+
+print(math.sin(6)); // sine value
+print(math.cos(29)); // cosine value
+print(math.tan(30)); // tan value
+
+print(math.round(7.89)); // rounds to nearest integer
+print(math.ceil(7.89)); // rounds up to nearest integer
+print(math.floor(7.89)); // rounds down to nearest integer
 ```
 ---
 ## Sample Program

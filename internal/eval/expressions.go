@@ -17,30 +17,61 @@ func (e *Evaluator) BinaryOp(left EnvironmentData, op string, right EnvironmentD
 	// 	right = right.(LiteralData)
 	// }
 
+	if leftData.IsNumber() && leftData.Type() == L.INT && rightData.Type() == L.INT {
+		switch op {
+		case L.PLUS:
+			return NumberLiteralInt(leftData.IntVal + rightData.IntVal), nil
+		case L.MINUS:
+			return NumberLiteralInt(leftData.IntVal - rightData.IntVal), nil
+		case L.SLASH:
+			return NumberLiteralInt(leftData.IntVal / rightData.IntVal), nil
+		case L.ASTERISK:
+			return NumberLiteralInt(leftData.IntVal * rightData.IntVal), nil
+		case L.PERCENT:
+			return NumberLiteralInt(leftData.IntVal % rightData.IntVal), nil
+		case L.EQ:
+			return BooleanLiteral(leftData.IntVal == rightData.IntVal), nil
+		case L.NOT_EQ:
+			return BooleanLiteral(leftData.IntVal != rightData.IntVal), nil
+		case L.GT:
+			return BooleanLiteral(leftData.IntVal > rightData.IntVal), nil
+		case L.GT_EQ:
+			return BooleanLiteral(leftData.IntVal >= rightData.IntVal), nil
+		case L.LT:
+			return BooleanLiteral(leftData.IntVal < rightData.IntVal), nil
+		case L.LT_EQ:
+			return BooleanLiteral(leftData.IntVal <= rightData.IntVal), nil
+		case L.AND:
+			return BooleanLiteral(leftData.GetBoolean() && rightData.GetBoolean()), nil
+		case L.OR:
+			return BooleanLiteral(leftData.GetBoolean() || rightData.GetBoolean()), nil
+		}
+	}
+
 	if leftData.IsNumber() {
 		switch op {
 		case L.PLUS:
-			return NumberLiteral(leftData.GetNumber() + rightData.GetNumber()), nil
+			return NumberLiteralFloat(leftData.FloatVal + rightData.FloatVal), nil
 		case L.MINUS:
-			return NumberLiteral(leftData.GetNumber() - rightData.GetNumber()), nil
+			return NumberLiteralFloat(leftData.FloatVal - rightData.FloatVal), nil
 		case L.SLASH:
-			return NumberLiteral(leftData.GetNumber() / rightData.GetNumber()), nil
+			return NumberLiteralFloat(leftData.FloatVal / rightData.FloatVal), nil
 		case L.ASTERISK:
-			return NumberLiteral(leftData.GetNumber() * rightData.GetNumber()), nil
+			return NumberLiteralFloat(leftData.FloatVal * rightData.FloatVal), nil
 		case L.PERCENT:
-			return NumberLiteral(math.Mod(leftData.GetNumber(), rightData.GetNumber())), nil
+			return NumberLiteralFloat(math.Mod(leftData.FloatVal, rightData.FloatVal)), nil
 		case L.EQ:
-			return BooleanLiteral(leftData.GetNumber() == rightData.GetNumber()), nil
+			return BooleanLiteral(leftData.FloatVal == rightData.FloatVal), nil
 		case L.NOT_EQ:
-			return BooleanLiteral(leftData.GetNumber() != rightData.GetNumber()), nil
+			return BooleanLiteral(leftData.FloatVal != rightData.FloatVal), nil
 		case L.GT:
-			return BooleanLiteral(leftData.GetNumber() > rightData.GetNumber()), nil
+			return BooleanLiteral(leftData.FloatVal > rightData.FloatVal), nil
 		case L.GT_EQ:
-			return BooleanLiteral(leftData.GetNumber() >= rightData.GetNumber()), nil
+			return BooleanLiteral(leftData.FloatVal >= rightData.FloatVal), nil
 		case L.LT:
-			return BooleanLiteral(leftData.GetNumber() < rightData.GetNumber()), nil
+			return BooleanLiteral(leftData.FloatVal < rightData.FloatVal), nil
 		case L.LT_EQ:
-			return BooleanLiteral(leftData.GetNumber() <= rightData.GetNumber()), nil
+			return BooleanLiteral(leftData.FloatVal <= rightData.FloatVal), nil
 		case L.AND:
 			return BooleanLiteral(leftData.GetBoolean() && rightData.GetBoolean()), nil
 		case L.OR:
@@ -73,7 +104,7 @@ func (e *Evaluator) BinaryOp(left EnvironmentData, op string, right EnvironmentD
 			return BooleanLiteral(leftData.GetString() != rightData.GetString()), nil
 		}
 	}
-	return NumberLiteral(2), nil
+	return NumberLiteralInt(2), nil
 }
 
 func (e *Evaluator) EvalExpression(node Node.Node) (EnvironmentData, error) {
@@ -109,6 +140,29 @@ func (e *Evaluator) EvalExpression(node Node.Node) (EnvironmentData, error) {
 			value := d.(LiteralData)
 
 			return BooleanLiteral(!value.GetBoolean()), nil
+		}
+		d, err := e.EvalExpression(unary.Identifier)
+		if err != nil {
+			return nil, err
+		}
+
+		value, ok := d.(LiteralData)
+
+		if ok && value.IsNumber() {
+			if unary.Op == L.UNARY_PLUS {
+				if value.Type() == L.INT {
+					return NumberLiteralInt(value.IntVal), nil
+				} else if value.Type() == L.FLOAT {
+					return NumberLiteralFloat(value.FloatVal), nil
+				}
+			}
+			if unary.Op == L.UNARY_MINUS {
+				if value.Type() == L.INT {
+					return NumberLiteralInt(-value.IntVal), nil
+				} else if value.Type() == L.FLOAT {
+					return NumberLiteralFloat(-value.FloatVal), nil
+				}
+			}
 		}
 		return nil, e.NewError(unary.Token, JoError.DefaultError, "Unknown operator "+unary.Op)
 	case Node.IDENTIFIER:
