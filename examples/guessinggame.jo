@@ -1,8 +1,8 @@
-let correctNum = (math.random() * 10).getInt();
+let correctNum = (math.random() * 10+1).getInt();
 print("------- Guessing Game -------");
 
 while (true) {
-    let guess = input("Enter your guess: ");
+    let guess = input("Enter your guess (1-10): ");
     if (guess == correctNum) {
         print("You guessed correctly! The number was", correctNum);
         break;

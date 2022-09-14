@@ -61,6 +61,11 @@ func (s *StructDataDecl) Initialize(e *Evaluator, args []Node.Node) (*StructData
 	}
 	env.Define("self", structData)
 
+	env.Define("type", NewCallableFunc("type", env, 0, func(e *Evaluator, name string, n []Node.Node) (EnvironmentData, error) {
+		id := s.StructDecl.Identifier.(*Node.Identifier)
+		return StringLiteral(id.Value), nil
+	}))
+
 	d, err := structData.Get(INIT_METHOD)
 
 	if err != nil {

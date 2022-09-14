@@ -347,6 +347,10 @@ func (e *Evaluator) _get(node Node.Node) (EnvironmentData, error) {
 	switch left.Type() {
 	case Struct:
 		struct_ := left.(*StructData)
+
+		if identifier.Value == "self" {
+			return nil, e.NewError(identifier.Token, JoError.DefaultError, "cannot access attribute `self` outside the struct")
+		}
 		v, err := struct_.env.GetOne(identifier.Value)
 		if err != nil {
 			return nil, e.NewError(identifier.Token, JoError.DefaultError, fmt.Sprintf("method/attribute `%s` not defined", identifier.Value))

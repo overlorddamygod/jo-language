@@ -90,7 +90,7 @@ func (e *Evaluator) While(node Node.Node) (EnvironmentData, error) {
 			break
 		}
 
-		_, err = e.EvalStatements(whileStatement.Block.Nodes)
+		data, err := e.EvalStatements(whileStatement.Block.Nodes)
 		e.end()
 
 		if err != nil {
@@ -101,6 +101,10 @@ func (e *Evaluator) While(node Node.Node) (EnvironmentData, error) {
 				continue
 			}
 			return nil, err
+		}
+
+		if data != nil {
+			return data, nil
 		}
 	}
 	e.current = prev
