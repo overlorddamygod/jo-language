@@ -1,0 +1,26 @@
+fn menu() {
+    print("1. Print a random number between 1 and 10");
+    print("2. Print LOL");
+    print("3. Exit");
+}
+
+let choice = 1;
+
+while (choice != 3) {
+    menu();
+    choice = input("Enter your choice: ").getInt();
+
+    switch (choice) {
+        case 1:
+            print("Random number: " + (math.random() * 10 + 1).getInt());
+            break;
+        case 2:
+            print("LOL");
+            break;
+        case 3:
+            print("Exiting...");
+            break;
+        default:
+            print("Invalid choice");
+    }
+}

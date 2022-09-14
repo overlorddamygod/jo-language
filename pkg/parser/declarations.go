@@ -30,6 +30,8 @@ func (p *Parser) declaration() (node.Node, error) {
 		return p.functionDecl()
 	case "struct":
 		return p.structDecl()
+	case "switch":
+		return p.switchDecl()
 	case "let":
 		decl, err := p.vardecl()
 

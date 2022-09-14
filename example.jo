@@ -1,23 +1,10 @@
-// Attributes
-print(math.pi);
-print(math.e);
-
-// Methods
-print(math.random());
-print(math.pow(2,2));
-print(math.exp(2));
-
-print(math.log(2));
-print(math.log2(2));
-print(math.log10(2));
-
-print(math.sqrt(4));
-print(math.abs(-69));
-
-print(math.sin(6));
-print(math.cos(29));
-print(math.tan(30));
-
-print(math.round(7.89));
-print(math.ceil(7.89));
-print(math.floor(7.89));
+let a = -1;
+switch (a) {
+    case 1:
+        print("1");
+        break;
+    case 2, 3:
+        print("2 or 3");
+    default:
+        print("NOT 1 or 2 or 3");
+}

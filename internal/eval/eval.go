@@ -90,12 +90,7 @@ func (e *Evaluator) EvalStatements(statements []Node.Node) (EnvironmentData, err
 			return nil, err
 		}
 
-		if s.NodeName() == Node.RETURN {
-			// fmt.Println()
-			return data, nil
-		}
-
-		if s.NodeName() == Node.IF || s.NodeName() == Node.WHILE || s.NodeName() == Node.FOR || s.NodeName() == Node.RETURN {
+		if s.NodeName() == Node.IF || s.NodeName() == Node.WHILE || s.NodeName() == Node.FOR || s.NodeName() == Node.RETURN || s.NodeName() == Node.SWITCH {
 			if data != nil {
 				return data, nil
 			}
@@ -125,6 +120,8 @@ func (e *Evaluator) EvalStatement(node Node.Node) (EnvironmentData, error) {
 		return e.assignment(node)
 	case Node.FUNCTION_CALL:
 		return e.functionCall(node)
+	case Node.SWITCH:
+		return e.Switch(node)
 	case Node.IF:
 		return e.IfElse(node)
 	case Node.FOR:
@@ -148,7 +145,7 @@ func (e *Evaluator) EvalStatement(node Node.Node) (EnvironmentData, error) {
 	case Node.RETURN:
 		return e.Return(node)
 	case Node.BREAK:
-		if e.current != nil && (e.current.NodeName() == Node.FOR || e.current.NodeName() == Node.WHILE) {
+		if e.current != nil && (e.current.NodeName() == Node.FOR || e.current.NodeName() == Node.WHILE || e.current.NodeName() == Node.SWITCH) {
 			return nil, ErrBreak
 		}
 		return nil, nil

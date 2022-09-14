@@ -61,6 +61,7 @@ user@main:~$ make
         * [Struct Declaration](#struct-declaration)
     * [Conditional Statements](#conditional-statements)
         * [If-Else Statement](#if-else-statement)
+        * [Switch Statement](#switch-statement)
     * [Looping Statements](#looping-statements)
         * [For Loop Statement](#for-loop-statement)
         * [While Loop Statement](#while-loop-statement)
@@ -226,6 +227,19 @@ if ( a == 0 ) {
     print(a, "is even");
 } else {
     print(a, "is odd");
+}
+```
+### Switch Statement
+```js
+let a = 3;
+switch (a) {
+    case 1:
+        print("1");
+        break;
+    case 2, 3:
+        print("2 or 3");
+    default:
+        print("NOT 1 or 2 or 3");
 }
 ```
 ---

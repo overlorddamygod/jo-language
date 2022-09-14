@@ -20,6 +20,7 @@ const (
 	ASSIGNMENT        = "ASSIGNMENT"
 	CONDITION_BLOCK   = "CONDITION_BLOCK"
 	ARRAY             = "ARRAY"
+	SWITCH            = "SWITCH"
 )
 
 type Node interface {
