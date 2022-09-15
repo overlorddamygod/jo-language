@@ -56,6 +56,7 @@ func (f *CallableFunction) Call(e *Evaluator, name string, arguments []Node.Node
 		return nil, errors.New("Arg length less than params length")
 	}
 	evaluator := NewEvaluatorWithParent(e, f.Closure)
+	evaluator.FunctionScope = e.FunctionScope
 
 	for i, param := range f.FunctionDecl.Params {
 		paramId := param.(*Node.Identifier)
@@ -74,6 +75,42 @@ func (f *CallableFunction) Call(e *Evaluator, name string, arguments []Node.Node
 	if err != nil {
 		return nil, err
 	}
+	if data != nil {
+		return data, nil
+	}
+	return NullLiteral(), nil
+}
 
-	return data, nil
+func (f *CallableFunction) CallWithEnvData(e *Evaluator, name string, arguments []EnvironmentData) (EnvironmentData, error) {
+	paramsLen := len(f.FunctionDecl.Params)
+	argsLen := len(arguments)
+
+	if argsLen > paramsLen {
+		// iden := f.FunctionDecl.Identifier.(*parser.Identifier)
+		return nil, errors.New("Arg length greater than params length")
+	}
+
+	if argsLen < paramsLen {
+		// iden := f.FunctionDecl.Identifier.(*parser.Identifier)
+		return nil, errors.New("Arg length less than params length")
+	}
+	evaluator := NewEvaluatorWithParent(e, f.Closure)
+	evaluator.FunctionScope = e.FunctionScope
+
+	for i, param := range f.FunctionDecl.Params {
+		paramId := param.(*Node.Identifier)
+
+		evaluator.environment.Define(paramId.Value, arguments[i])
+	}
+
+	bodyNodes := f.FunctionDecl.Body.Nodes
+	data, err := evaluator.EvalStatements(bodyNodes)
+	if err != nil {
+		return nil, err
+	}
+
+	if data != nil {
+		return data, nil
+	}
+	return NullLiteral(), nil
 }

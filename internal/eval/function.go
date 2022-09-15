@@ -22,6 +22,12 @@ func (e *Evaluator) functionDecl(node Node.Node) (EnvironmentData, error) {
 
 func (e *Evaluator) functionCall(node Node.Node) (EnvironmentData, error) {
 	functionCall := node.(*Node.FunctionCall)
+	prevFunctionScope := e.FunctionScope
+	e.FunctionScope = true
+
+	defer func() {
+		e.FunctionScope = prevFunctionScope
+	}()
 	// functionCall.Print()
 	// fmt.Println(functionCall.Identifier, functionCall.Arguments)
 
@@ -32,7 +38,6 @@ func (e *Evaluator) functionCall(node Node.Node) (EnvironmentData, error) {
 	case Node.IDENTIFIER:
 		fun, err := e.environment.Get(functionName.Value)
 		if err != nil {
-
 			return nil, e.NewError(functionName.Token, JoError.DefaultError, fmt.Sprintf("unknown function ` %s `", functionName.Value))
 		}
 		function = fun
@@ -68,7 +73,6 @@ func (e *Evaluator) functionCall(node Node.Node) (EnvironmentData, error) {
 		structData, ok := left.(*StructData)
 		if ok {
 			returnData, err := structData.Call(e, name.Value, functionCall.Arguments)
-
 			if err != nil {
 				return nil, e.NewError(name.Token, JoError.DefaultError, err.Error())
 			}
@@ -133,10 +137,14 @@ func (e *Evaluator) functionCall(node Node.Node) (EnvironmentData, error) {
 }
 
 func (e *Evaluator) Return(node Node.Node) (EnvironmentData, error) {
+
+	if !e.FunctionScope {
+		return nil, errors.New("not inside a function")
+	}
 	returnStmt := node.(*Node.ReturnStatement)
 
 	if returnStmt.Expression == nil {
-		return StringLiteral("null"), nil
+		return NullLiteral(), nil
 	}
 
 	val, err := e.EvalExpression(returnStmt.Expression)

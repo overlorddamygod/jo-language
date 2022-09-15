@@ -16,11 +16,15 @@ type Evaluator struct {
 	global      *Environment
 	environment *Environment
 	current     Node.Node
+
+	// workaround for discarding return when outside a function
+	// TODO: find another approach?? Stack?
+	FunctionScope bool
 }
 
 func NewEvaluator(lexer *L.Lexer, node []Node.Node) *Evaluator {
 	env := NewEnvironment()
-	return &Evaluator{lexer: lexer, node: node, global: env, environment: env}
+	return &Evaluator{lexer: lexer, node: node, global: env, environment: env, FunctionScope: false}
 }
 
 func Init(src string) {
@@ -90,7 +94,7 @@ func (e *Evaluator) EvalStatements(statements []Node.Node) (EnvironmentData, err
 			return nil, err
 		}
 
-		if s.NodeName() == Node.IF || s.NodeName() == Node.WHILE || s.NodeName() == Node.FOR || s.NodeName() == Node.RETURN || s.NodeName() == Node.SWITCH {
+		if s.NodeName() == Node.IF || s.NodeName() == Node.WHILE || s.NodeName() == Node.FOR || s.NodeName() == Node.RETURN || s.NodeName() == Node.SWITCH || s.NodeName() == Node.BLOCK {
 			if data != nil {
 				return data, nil
 			}
@@ -132,14 +136,14 @@ func (e *Evaluator) EvalStatement(node Node.Node) (EnvironmentData, error) {
 		blockStmt := node.(*Node.Block)
 		e.begin()
 
-		_, err := e.EvalStatements(blockStmt.Nodes)
+		data, err := e.EvalStatements(blockStmt.Nodes)
 
 		e.end()
 
 		if err != nil {
 			return nil, err
 		}
-		return nil, nil
+		return data, nil
 	case Node.IDENTIFIER, Node.BINARY_EXPRESSION, Node.GET_EXPR:
 		return e.EvalExpression(node)
 	case Node.RETURN:

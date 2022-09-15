@@ -18,11 +18,7 @@ func Print(e *Evaluator, name string, arguments []Node.Node) (EnvironmentData, e
 			output += " "
 		}
 
-		if exp == nil {
-			output += "null"
-		} else {
-			output += exp.GetString()
-		}
+		output += exp.GetString()
 	}
 	stdio.Io.Println(output)
 	return nil, nil

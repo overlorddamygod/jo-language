@@ -54,6 +54,10 @@ func (l *LiteralData) IsBoolean() bool {
 	return l.Type() == L.BOOLEAN
 }
 
+func (l *LiteralData) IsNull() bool {
+	return l.Type() == L.NULL
+}
+
 func (l *LiteralData) GetNumber() (int64, float64) {
 	if l.IsBoolean() {
 		if l.Value == "true" {
@@ -88,6 +92,9 @@ func (l *LiteralData) GetBoolean() bool {
 	if l.IsString() {
 		return true
 	}
+	if l.IsNull() {
+		return false
+	}
 	return l.Value == "true"
 }
 
@@ -116,6 +123,10 @@ func NumberLiteralInt(val int64) LiteralData {
 
 func StringLiteral(val string) LiteralData {
 	return *NewLiteralData(L.STRING, val)
+}
+
+func NullLiteral() LiteralData {
+	return *NewLiteralData(L.NULL, "null")
 }
 
 func LiteralDataFromParserLiteral(li node.LiteralValue) LiteralData {

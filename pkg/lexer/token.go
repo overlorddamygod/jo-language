@@ -19,7 +19,8 @@ const (
 	INT         = "INT"        // 1343456
 	FLOAT       = "FLOAT"      // 12.34
 	BOOLEAN     = "BOOLEAN"    // true, false
-	STRING      = "STRING"     // "LOL 12312213"
+	NULL        = "NULL"
+	STRING      = "STRING" // "LOL 12312213"
 	OPERATOR    = "OPERATOR"
 	PUNCTUATION = "PUNCTUATION"
 	COMMENT     = "COMMENT"

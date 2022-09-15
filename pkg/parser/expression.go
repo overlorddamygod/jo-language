@@ -125,6 +125,10 @@ func (p *Parser) primary() (node.Node, error) {
 		// token.Print()
 		return node.NewLiteralValue("BOOLEAN", token.Literal), nil
 	}
+	if token.Type == L.KEYWORD && (token.Literal == "null") {
+		// token.Print()
+		return node.NewLiteralValue(L.NULL, token.Literal), nil
+	}
 
 	if token.Type == L.IDENTIFIER {
 		// token.Print()

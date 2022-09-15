@@ -1,6 +1,7 @@
 package eval
 
 import (
+	"errors"
 	"fmt"
 	"math"
 
@@ -9,12 +10,81 @@ import (
 	Node "github.com/overlorddamygod/jo/pkg/parser/node"
 )
 
+var opMethodMap = map[string]string{
+	"+":  "_add_",
+	"-":  "_subtract_",
+	"*":  "_multiply_",
+	"/":  "_divide_",
+	"==": "_eq_",
+	"!=": "_neq_",
+}
+
+func (e *Evaluator) StructBinaryOp(left EnvironmentData, op string, right EnvironmentData) (EnvironmentData, error) {
+	if left.Type() == Struct {
+		leftStruct := left.(*StructData)
+		methodName, ok := opMethodMap[op]
+
+		if ok {
+
+			if _, err := leftStruct.env.GetOne(methodName); err != nil {
+				return nil, errors.New("method `" + methodName + "` not implemented ")
+			}
+
+			val, err := leftStruct.CallWithEnvData(e, methodName, []EnvironmentData{right})
+
+			if err != nil {
+				return nil, err
+			}
+
+			return val, nil
+		}
+	}
+	return nil, errors.New("UNIMPLEMENTED")
+}
+
+func isLiteral(left EnvironmentData) bool {
+	switch left.Type() {
+	case L.NULL, L.STRING, L.INT, L.FLOAT, L.BOOLEAN:
+		return true
+	}
+	return false
+}
+
 func (e *Evaluator) BinaryOp(left EnvironmentData, op string, right EnvironmentData) (EnvironmentData, error) {
+	if left.Type() == L.NULL || right.Type() == L.NULL {
+		switch op {
+		case L.EQ:
+			return BooleanLiteral(left.Type() == right.Type()), nil
+		case L.NOT_EQ:
+			return BooleanLiteral(left.Type() != right.Type()), nil
+		default:
+			return nil, errors.New("cannot perform operation on null type")
+		}
+	}
+	// fmt.Println(left.Type(), right.Type())
+	if !isLiteral(left) || !isLiteral(right) {
+		return e.StructBinaryOp(left, op, right)
+	}
+	// fmt.Println("SADDDDDD")
 	leftData := left.(LiteralData)
+
 	rightData := right.(LiteralData)
+
+	// fmt.Println("SADDDDDDD", leftData, rightData)
 
 	// if right.Type() == "LiteralData" {
 	// 	right = right.(LiteralData)
+	// }
+
+	// if leftData.IsNull() || rightData.IsNull() {
+	// 	switch op {
+	// 	case L.EQ:
+	// 		return BooleanLiteral(left.Type() == right.Type()), nil
+	// 	case L.NOT_EQ:
+	// 		return BooleanLiteral(left.Type() != right.Type()), nil
+	// 	default:
+	// 		return nil, errors.New("cannot perform operation on null type")
+	// 	}
 	// }
 
 	if leftData.IsNumber() && leftData.Type() == L.INT && rightData.Type() == L.INT {
@@ -47,8 +117,7 @@ func (e *Evaluator) BinaryOp(left EnvironmentData, op string, right EnvironmentD
 			return BooleanLiteral(leftData.GetBoolean() || rightData.GetBoolean()), nil
 		}
 	}
-
-	if leftData.IsNumber() {
+	if leftData.IsNumber() && rightData.IsNumber() {
 		switch op {
 		case L.PLUS:
 			return NumberLiteralFloat(leftData.FloatVal + rightData.FloatVal), nil
@@ -104,7 +173,7 @@ func (e *Evaluator) BinaryOp(left EnvironmentData, op string, right EnvironmentD
 			return BooleanLiteral(leftData.GetString() != rightData.GetString()), nil
 		}
 	}
-	return NumberLiteralInt(2), nil
+	return nil, errors.New("invalid operator or data type")
 }
 
 func (e *Evaluator) EvalExpression(node Node.Node) (EnvironmentData, error) {

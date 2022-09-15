@@ -15,6 +15,7 @@ var (
 	StructDecl          = "StructDataDecl"
 	Struct              = "StructData"
 	JoArray    LangData = "Array"
+	Null                = "Null"
 )
 
 const INIT_METHOD = "init"
@@ -180,6 +181,27 @@ func (s *StructData) Call(e *Evaluator, funcName string, args []Node.Node) (Envi
 		// return nil, L.NewJoError(e.lexer, nil, "not a function")
 		return f.Call(e, funcName, args)
 	}
+	return nil, errors.New("not a function")
+}
+
+func (s *StructData) CallWithEnvData(e *Evaluator, funcName string, args []EnvironmentData) (EnvironmentData, error) {
+	data, err := s.Get(funcName)
+
+	if err != nil {
+		return nil, err
+	}
+
+	fun, ok := data.(*CallableFunction)
+	if ok {
+		return fun.CallWithEnvData(e, funcName, args)
+	}
+
+	// f, ok := data.(*CallableFunc)
+
+	// if ok {
+	// 	// return nil, L.NewJoError(e.lexer, nil, "not a function")
+	// 	return f.Call(e, funcName, args)
+	// }
 	return nil, errors.New("not a function")
 }
 

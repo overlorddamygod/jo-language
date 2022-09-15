@@ -1,76 +1,19 @@
-struct Node {
-    fn init(data, prev) {
-        self.data = data;
-        self.next = "null";
-        self.prev = prev;
+struct Math {
+    fn init(num) {
+        self.num = num;
     }
-}
-
-struct LL {
-    fn init() {
-        self.head = "null";
-    }
-    fn appendFirst(data) {
-        if (self.head.type() != "Node") {
-            self.head = Node(data, "null");
-        } else {
-            let temp = self.head;
-            self.head = Node(data, temp);
-            self.head.next = temp;
-        }
-    }
-    fn pushlast(data) {
-        if (self.head.type() != "Node") {
-            self.head = Node(data, "null");
-        } else {
-            let temp = self.head;
-            while (temp.next.type() == "Node") {
-                temp = temp.next;
-            }
-            temp.next = Node(data, temp);
-        }
-    }
-    fn get(index) {
-        if (self.head.type() != "Node") {
-            return "null";
-        }
-
-        let temp = self.head;
-        let i = 0;
-
-        while (temp.next.type() == "Node") {
-            if (i == index) {
-                print("SAD", temp.data);
-                return temp.data;
-                break;
-            }
-            temp = temp.next;
-            i = i + 1;
-        }
-        if ( i == index) {
-            return temp.data;
-        }
-    }
-    fn printdata() {
-        let temp = self.head;
-        if (temp.type() != "Node") {
-            print("EMPTY");
-        } else {
-            while (temp.type() == "Node") {
-                print(temp.data);
-                temp = temp.next;
-            }
+    fn _eq_(right) {
+        {
+            return self.num == right.num;
         }
     }
 }
 
-let ll = LL();
-print(ll.get(0));
+let math1 = Math(0);
+let math2 = Math(1);
 
-ll.pushlast(2);
-ll.appendFirst(69);
-ll.pushlast(3);
+fn sad() {
+    return;
+}
 
-ll.printdata();
-
-print(ll.get(3));
+print(math1==math2);

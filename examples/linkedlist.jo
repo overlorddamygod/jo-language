@@ -1,18 +1,18 @@
 struct Node {
     fn init(data, prev) {
         self.data = data;
-        self.next = "null";
+        self.next = null;
         self.prev = prev;
     }
 }
 
 struct LL {
     fn init() {
-        self.head = "null";
+        self.head = null;
     }
     fn appendFirst(data) {
-        if (self.head.type() != "Node") {
-            self.head = Node(data, "null");
+        if (self.head == null) {
+            self.head = Node(data, null);
         } else {
             let temp = self.head;
             self.head = Node(data, temp);
@@ -20,25 +20,25 @@ struct LL {
         }
     }
     fn pushlast(data) {
-        if (self.head.type() != "Node") {
+        if (self.head == null) {
             self.head = Node(data, "null");
         } else {
             let temp = self.head;
-            while (temp.next.type() == "Node") {
+            while (temp.next != null ) {
                 temp = temp.next;
             }
             temp.next = Node(data, temp);
         }
     }
     fn get(index) {
-        if (self.head.type() != "Node") {
-            return "null";
+        if (self.head == null) {
+            return null;
         }
 
         let temp = self.head;
         let i = 0;
 
-        while (temp.next.type() == "Node") {
+        while (temp.next != null) {
             if (i == index) {
                 print("SAD", temp.data);
                 return temp.data;
@@ -53,7 +53,7 @@ struct LL {
     }
     fn printdata() {
         let temp = self.head;
-        if (temp.type() != "Node") {
+        if (temp == null) {
             print("EMPTY");
         } else {
             while (temp.type() == "Node") {
