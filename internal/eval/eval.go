@@ -2,6 +2,7 @@ package eval
 
 import (
 	"fmt"
+	"os"
 
 	JoError "github.com/overlorddamygod/jo/pkg/error"
 	L "github.com/overlorddamygod/jo/pkg/lexer"
@@ -63,6 +64,12 @@ func Init(src string) {
 }
 
 func (e *Evaluator) LoadNative() {
+	// CLI Args
+	var osArgs []EnvironmentData
+	for _, arg := range os.Args {
+		osArgs = append(osArgs, StringLiteral(arg))
+	}
+	e.environment.Define("osArgs", NewArray(osArgs))
 	e.environment.Define("print", NewCallableFunc("print", e.global, -1, Print))
 	e.environment.Define("input", NewCallableFunc("input", e.global, 1, Input))
 	e.environment.Define("math", Math(e))

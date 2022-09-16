@@ -1,0 +1,1 @@
+print(osArgs, osArgs.len(), osArgs.get(0));
