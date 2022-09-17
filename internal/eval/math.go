@@ -6,7 +6,6 @@ import (
 	"math/rand"
 	"time"
 
-	L "github.com/overlorddamygod/jo/pkg/lexer"
 	Node "github.com/overlorddamygod/jo/pkg/parser/node"
 )
 
@@ -185,7 +184,7 @@ func getNumber(e *Evaluator, node Node.Node) (*LiteralData, error) {
 		return nil, ErrArgNumber
 	}
 
-	if lit.Type() != L.INT && lit.Type() != L.FLOAT {
+	if lit.Type() != JoInt && lit.Type() != JoFloat {
 		return nil, ErrArgNumber
 	}
 

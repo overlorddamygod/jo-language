@@ -55,13 +55,11 @@ func (e *Evaluator) functionCall(node Node.Node) (EnvironmentData, error) {
 		// Todo merge all types
 		data, ok := left.(LiteralData)
 		if ok {
-			name, _ := getexpr.Identifier.(*Node.Identifier)
 			return data.Call(e, name.Value, functionCall.Arguments)
 		}
 
 		arrayData, ok := left.(*Array)
 		if ok {
-			name, _ := getexpr.Identifier.(*Node.Identifier)
 			returnData, err := arrayData.Call(e, name.Value, functionCall.Arguments)
 
 			if err != nil {
@@ -79,8 +77,17 @@ func (e *Evaluator) functionCall(node Node.Node) (EnvironmentData, error) {
 			return returnData, nil
 		}
 
+		structDataDecl, ok := left.(*StructDataDecl)
+		if ok {
+			returnData, err := structDataDecl.Call(e, name.Value, functionCall.Arguments)
+			if err != nil {
+				return nil, e.NewError(name.Token, JoError.DefaultError, err.Error())
+			}
+			return returnData, nil
+		}
+
 		// node.Print()
-		return nil, errors.New("unknown")
+		return nil, errors.New("unknown " + left.Type())
 		// function = val
 	case Node.FUNCTION_CALL:
 		fun, err := e.functionCall(functionCall.Identifier)

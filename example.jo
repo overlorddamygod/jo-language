@@ -1,19 +1,44 @@
-struct Math {
-    fn init(num) {
-        self.num = num;
-    }
-    fn _eq_(right) {
-        {
-            return self.num == right.num;
-        }
+
+let name = input("Enter your name: ");
+
+let hasName = name != "";
+
+if (!hasName) {
+    name = "World";
+}
+
+// Printing Hello, World if name is empty
+// else Hello, {name} 
+print("Hello,", name);
+
+
+// Print if number is even or odd from 0 to 10
+
+// Helper Functions
+fn mod(num, by) {
+    return num % by;
+}
+
+fn isEven(num) {
+    return mod(num, 2) == 0;
+}
+
+for ( let i = 0; i <= 10; i += 1 ) {
+    if ( isEven(i) ) {
+        print("is even", i);
+    } else {
+        print("is odd", i);
     }
 }
 
-let math1 = Math(0);
-let math2 = Math(1);
-
-fn sad() {
-    return;
+// Fibonacci
+fn fib(num) {
+    if (num == 0 || num == 1) {
+        return 1;
+    }
+    return fib(num - 1) + fib(num - 2);
 }
 
-print(math1==math2);
+for ( let i = 0; i < 10; i += 1 ) {
+    print("FIB", i, fib(i));
+}

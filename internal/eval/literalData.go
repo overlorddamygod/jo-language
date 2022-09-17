@@ -1,11 +1,9 @@
 package eval
 
 import (
-	"errors"
 	"fmt"
 	"strconv"
 
-	L "github.com/overlorddamygod/jo/pkg/lexer"
 	"github.com/overlorddamygod/jo/pkg/parser/node"
 )
 
@@ -19,7 +17,7 @@ import (
 // }
 
 type LiteralData struct {
-	name     LangData
+	name     string
 	_type    string
 	Value    string
 	FloatVal float64
@@ -28,7 +26,7 @@ type LiteralData struct {
 
 func NewLiteralData(Type, value string) *LiteralData {
 	litVal := LiteralData{
-		name:  Literal,
+		name:  JoLiteral,
 		_type: Type,
 		Value: value,
 	}
@@ -43,19 +41,19 @@ func (l LiteralData) Type() string {
 }
 
 func (l *LiteralData) IsNumber() bool {
-	return l.Type() == L.INT || l.Type() == L.FLOAT
+	return l.Type() == JoInt || l.Type() == JoFloat
 }
 
 func (l *LiteralData) IsString() bool {
-	return l.Type() == L.STRING
+	return l.Type() == JoString
 }
 
 func (l *LiteralData) IsBoolean() bool {
-	return l.Type() == L.BOOLEAN
+	return l.Type() == JoBoolean
 }
 
 func (l *LiteralData) IsNull() bool {
-	return l.Type() == L.NULL
+	return l.Type() == JoNull
 }
 
 func (l *LiteralData) GetNumber() (int64, float64) {
@@ -82,9 +80,9 @@ func (l *LiteralData) GetNumber() (int64, float64) {
 	return l.IntVal, l.FloatVal
 }
 
-func (l *LiteralData) GetBoolean() bool {
+func (l LiteralData) GetBoolean() bool {
 	if l.IsNumber() {
-		if l.Type() == L.INT {
+		if l.Type() == JoInt {
 			return l.IntVal > 0
 		}
 		return l.FloatVal > 0
@@ -102,7 +100,7 @@ func (l LiteralData) GetString() string {
 	return l.Value
 }
 
-func (l *LiteralData) NodeName() LangData {
+func (l *LiteralData) NodeName() string {
 	return l.name
 }
 func (l *LiteralData) Print() {
@@ -110,64 +108,93 @@ func (l *LiteralData) Print() {
 }
 
 func BooleanLiteral(boolean bool) LiteralData {
-	return *NewLiteralData(L.BOOLEAN, fmt.Sprintf("%v", boolean))
+	return *NewLiteralData(JoBoolean, fmt.Sprintf("%v", boolean))
 }
 
 func NumberLiteralFloat(val float64) LiteralData {
-	return *NewLiteralData(L.FLOAT, fmt.Sprintf("%f", val))
+	return *NewLiteralData(JoFloat, fmt.Sprintf("%f", val))
 }
 
 func NumberLiteralInt(val int64) LiteralData {
-	return *NewLiteralData(L.INT, fmt.Sprintf("%d", val))
+	return *NewLiteralData(JoInt, fmt.Sprintf("%d", val))
 }
 
 func StringLiteral(val string) LiteralData {
-	return *NewLiteralData(L.STRING, val)
+	return *NewLiteralData(JoString, val)
 }
 
 func NullLiteral() LiteralData {
-	return *NewLiteralData(L.NULL, "null")
+	return *NewLiteralData(JoNull, JoNull)
+}
+
+var parserToLiteralData = map[string]string{
+	"NULL":    JoNull,
+	"INT":     JoInt,
+	"FLOAT":   JoFloat,
+	"BOOLEAN": JoBoolean,
+	"STRING":  JoString,
 }
 
 func LiteralDataFromParserLiteral(li node.LiteralValue) LiteralData {
-	return *NewLiteralData(li.Type, li.Value)
+	JoType, ok := parserToLiteralData[li.Type]
+
+	if !ok {
+		panic("UNKNOWN DATA TYPE" + li.Type)
+	}
+	return *NewLiteralData(JoType, li.Value)
 }
 
 func (l *LiteralData) Call(env *Evaluator, name string, arguments []node.Node) (EnvironmentData, error) {
 	switch name {
 	case "len":
+		if _, err := expectArgLength(arguments, 0); err != nil {
+			return nil, err
+		}
+
+		if l.Type() != JoArray && l.Type() != JoString {
+			break
+		}
 		return NumberLiteralInt(int64(len(l.Value))), nil
 	case "type":
-		if len(arguments) != 0 {
-			return nil, errors.New("argument length must be 0")
+		if _, err := expectArgLength(arguments, 0); err != nil {
+			return nil, err
 		}
-		return StringLiteral(l._type), nil
+
+		return StringLiteral(l.Type()), nil
 	case "getInt":
-		if len(arguments) != 0 {
-			return nil, errors.New("argument length must be 0")
+		if _, err := expectArgLength(arguments, 0); err != nil {
+			return nil, err
+		}
+
+		if l.Type() != JoInt && l.Type() != JoFloat && l.Type() != JoString {
+			break
 		}
 
 		intVal, err := strconv.ParseFloat(l.Value, 64)
 		if err != nil {
-			return nil, errors.New("cannot parse to int")
+			return nil, ErrParseInt
 		}
 		return NumberLiteralInt(int64(intVal)), nil
 	case "getFloat":
-		if len(arguments) != 0 {
-			return nil, errors.New("argument length must be 0")
+		if _, err := expectArgLength(arguments, 0); err != nil {
+			return nil, err
+		}
+
+		if l.Type() != JoInt && l.Type() != JoFloat && l.Type() != JoString {
+			break
 		}
 
 		floatVal, err := strconv.ParseFloat(l.Value, 64)
 		if err != nil {
-			return nil, errors.New("cannot parse to float")
+			return nil, ErrParseFloat
 		}
 		return NumberLiteralFloat(floatVal), nil
 	case "getString":
-		if len(arguments) != 0 {
-			return nil, errors.New("argument length must be 0")
+		if _, err := expectArgLength(arguments, 0); err != nil {
+			return nil, err
 		}
 
 		return StringLiteral(l.Value), nil
 	}
-	return nil, errors.New("no method")
+	return nil, ErrNoMethod(name, l.Type())
 }

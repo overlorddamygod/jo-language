@@ -12,15 +12,13 @@ func (e *Evaluator) IfElse(node Node.Node) (EnvironmentData, error) {
 
 	if ifStatement.HasIfs() {
 		for _, block := range ifStatement.IfBlocks {
-			literalData, err := e.EvalExpression(block.Condition)
+			data, err := e.EvalExpression(block.Condition)
 
 			if err != nil {
 				return nil, err
 			}
 
-			literal := literalData.(LiteralData)
-
-			if literal.GetBoolean() {
+			if data.GetBoolean() {
 				e.begin()
 				data, err := e.EvalStatements(block.Block.Nodes)
 				e.end()
@@ -58,8 +56,8 @@ func (e *Evaluator) match(testVal EnvironmentData, values []Node.Node) (bool, er
 			return false, err
 		}
 
-		if boolVal.Type() != L.BOOLEAN {
-			return false, errors.New("unexpected")
+		if boolVal.Type() != JoBoolean {
+			return false, ErrUnexpected
 		}
 
 		boolLiteral := boolVal.(LiteralData)

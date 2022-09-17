@@ -17,7 +17,7 @@ type FuncType func(*Evaluator, string, []Node.Node) (EnvironmentData, error)
 func NewCallableFunc(name string, env *Environment, arity int, fun FuncType) *CallableFunc {
 	return &CallableFunc{
 		name:    name,
-		_type:   Function,
+		_type:   JoFunction,
 		fun:     fun,
 		Arity:   arity,
 		Closure: env,
@@ -30,6 +30,10 @@ func (f CallableFunc) Type() string {
 
 func (f CallableFunc) GetString() string {
 	return f.name
+}
+
+func (f CallableFunc) GetBoolean() bool {
+	return true
 }
 
 func (f *CallableFunc) Call(e *Evaluator, name string, arguments []Node.Node) (EnvironmentData, error) {

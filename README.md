@@ -43,12 +43,13 @@ user@main:~$ make
 ---
 # JoLang Docs
 * [Data Types](#data-types)
-    * [Boolean](#data-types)
-    * [Int](#data-types)
-    * [Float](#data-types)
-    * [String](#data-types)
-    * [Array](#data-types)
-    * [Struct](#data-types)
+    * [Null](#null)
+    * [Boolean](#boolean)
+    * [Int](#int--float)
+    * [Float](#int--float)
+    * [String](#string)
+    * [Array](#array)
+    * [Struct](#struct)
 * [Operators](#operators)
     * [Arithmetic Operator](#arithmetic-operator)
     * [Assignment Operator](#assignment-operator)
@@ -97,24 +98,129 @@ user@main:~$ make
 * All types have the following methods
     * len - length of the data ***works only for string and array***
     * type - returns the type of the data
-```js
-let a = true; // boolean
-let a = 2; // int
-let b = 2.2; // float
-let name = "Jo" // string
-let nums = [2,3,4,5]; // array
 
+### Null
+Methods:
+* type - returns the data type
+* getInt - returns the integer value
+* getFloat - returns the float value
+* getString - returns the string value of the number
+
+Example:
+```js
+let a = null;
+
+print(a.type());
+if (a) {
+    print("Is not null");
+}
+```
+
+### Boolean
+Methods:
+* type - returns the data type
+
+Example:
+```js
+let a = true;
+
+print(a.type());
+if (a) {
+    print("Is true");
+}
+```
+
+### Int & Float
+
+Methods:
+* type - returns the data type
+* getInt - returns the integer value
+* getFloat - returns the float value
+* getString - returns the string value of the number
+
+Example:
+```js
+let numInt = 2;
+let numFloat = 2.3;
+
+print(numInt.type());
+print(numFloat.type());
+
+print(numInt.getFloat());
+print(numFloat.getInt());
+
+print(numInt.getString());
+```
+### String
+Methods:
+* type - returns the data type
+* len - returns the string length
+* getInt - returns the integer value if parsable
+* getFloat - returns the float value if parsable
+* getString - returns the string value of the number
+
+Example:
+```js
+let num = "29.2";
+
+print(num);
+print(num.len());
+print(num.type());
+print(num.getInt());
+print(num.getFloat());
+```
+### Array
+Methods:
+* type - returns the data type
+* len - returns the array length
+* get - get data from an index
+* slice -  get part of the array
+* push -  push to the end of array
+* pop -  pop from the end of array
+* set -  set value to an index
+* join -  join the contents of the array with a join string
+* contains -  return bool if the array contains the data
+
+Example:
+```js
+let arr = [1,2,3,4,5];
+print("Initial Array:", arr);
+
+print("Array Length:", arr.len());
+print("Array Sliced:", arr.slice(1,5));
+print("Array Get from index:", arr.get(2));
+
+print("rray Push:", arr.push(6));
+print("Array Pop:", arr.pop());
+
+print("Array Set:", arr.set(2, 69));
+
+print("Array Join:", arr.join(" "));
+print("Array Contains:", arr.contains(2));
+
+print("Final Array:", arr);
+```
+
+### Struct
+Methods:
+* type - returns the struct type
+
+Example:
+```js
 struct Person {
+    fn init(name) {
+        print("constructor called");
+        self.name = name;
+    }
     fn walk() {
         print("walking");
     }
 }
 
-let p = Person(); // struct instance
-
-// Coming Soon: map [maybe lol]
+let p = Person("Nick"); // struct instance
+print(p.type());
+p.walk();
 ```
-
 ---
 
 # Operators
@@ -176,14 +282,12 @@ fn add(a, b) {
 * Struct uses `self` keyword inside the struct methods/functions to assign attributes to the struct. [ ***like `this` keyword*** ] 
 * Constructor method name should be `init`
 ```c
-
 struct Person {
     // Constructor
     fn init(name, address, age) {
         self.name = name;
         self.address = address;
         self.age = age;
-        return self;
     }
     fn printinfo() {
         print("Name", self.getName());

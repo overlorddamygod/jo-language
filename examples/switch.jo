@@ -9,7 +9,6 @@ let choice = 1;
 while (choice != 3) {
     menu();
     choice = input("Enter your choice: ").getInt();
-
     switch (choice) {
         case 1:
             print("Random number: " + (math.random() * 10 + 1).getInt());

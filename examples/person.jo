@@ -1,14 +1,22 @@
 struct Person {
+    // Constructor
     fn init(name, address, age) {
         self.name = name;
         self.address = address;
         self.age = age;
-        return self;
     }
     fn printinfo() {
         print("Name", self.getName());
         print("Address", self.getAddress());
         print("Age", self.getAge());
+    }
+    fn walk(steps, limit) {
+        for (let i = 0; i < steps; i = i + 1) {
+            if (i >= limit) {
+                break;
+            }
+            print("Person Walking", i + 1, "step");
+        }
     }
     fn getName() {
         return self.name;
@@ -23,4 +31,7 @@ struct Person {
 
 // Making instance of the struct
 let p1 = Person("John", "USA", 20);
+
+// Calling methods of the Person struct instance
 p1.printinfo();
+p1.walk(5, 10);

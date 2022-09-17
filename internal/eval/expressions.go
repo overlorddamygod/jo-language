@@ -20,7 +20,7 @@ var opMethodMap = map[string]string{
 }
 
 func (e *Evaluator) StructBinaryOp(left EnvironmentData, op string, right EnvironmentData) (EnvironmentData, error) {
-	if left.Type() == Struct {
+	if left.Type() == JoStruct {
 		leftStruct := left.(*StructData)
 		methodName, ok := opMethodMap[op]
 
@@ -44,14 +44,14 @@ func (e *Evaluator) StructBinaryOp(left EnvironmentData, op string, right Enviro
 
 func isLiteral(left EnvironmentData) bool {
 	switch left.Type() {
-	case L.NULL, L.STRING, L.INT, L.FLOAT, L.BOOLEAN:
+	case JoNull, JoString, JoInt, JoFloat, JoBoolean:
 		return true
 	}
 	return false
 }
 
 func (e *Evaluator) BinaryOp(left EnvironmentData, op string, right EnvironmentData) (EnvironmentData, error) {
-	if left.Type() == L.NULL || right.Type() == L.NULL {
+	if left.Type() == JoNull || right.Type() == JoNull {
 		switch op {
 		case L.EQ:
 			return BooleanLiteral(left.Type() == right.Type()), nil
@@ -87,7 +87,7 @@ func (e *Evaluator) BinaryOp(left EnvironmentData, op string, right EnvironmentD
 	// 	}
 	// }
 
-	if leftData.IsNumber() && leftData.Type() == L.INT && rightData.Type() == L.INT {
+	if leftData.IsNumber() && leftData.Type() == JoInt && rightData.Type() == JoInt {
 		switch op {
 		case L.PLUS:
 			return NumberLiteralInt(leftData.IntVal + rightData.IntVal), nil
@@ -219,16 +219,16 @@ func (e *Evaluator) EvalExpression(node Node.Node) (EnvironmentData, error) {
 
 		if ok && value.IsNumber() {
 			if unary.Op == L.UNARY_PLUS {
-				if value.Type() == L.INT {
+				if value.Type() == JoInt {
 					return NumberLiteralInt(value.IntVal), nil
-				} else if value.Type() == L.FLOAT {
+				} else if value.Type() == JoFloat {
 					return NumberLiteralFloat(value.FloatVal), nil
 				}
 			}
 			if unary.Op == L.UNARY_MINUS {
-				if value.Type() == L.INT {
+				if value.Type() == JoInt {
 					return NumberLiteralInt(-value.IntVal), nil
-				} else if value.Type() == L.FLOAT {
+				} else if value.Type() == JoFloat {
 					return NumberLiteralFloat(-value.FloatVal), nil
 				}
 			}
@@ -284,7 +284,7 @@ func (e *Evaluator) assignment(node Node.Node) (EnvironmentData, error) {
 		}
 
 		switch data.Type() {
-		case Struct:
+		case JoStruct:
 			struct_ := data.(*StructData)
 			id, ok := getExpr.Identifier.(*Node.Identifier)
 			// fmt.Println(id, ok)
@@ -412,9 +412,8 @@ func (e *Evaluator) _get(node Node.Node) (EnvironmentData, error) {
 		return nil, e.NewError(identifier.Token, JoError.ReferenceError, fmt.Sprintf("can't access property `%s` from a null data", identifier.Value))
 	}
 
-	// fmt.Println(left.)
 	switch left.Type() {
-	case Struct:
+	case JoStruct:
 		struct_ := left.(*StructData)
 
 		if identifier.Value == "self" {
@@ -425,15 +424,15 @@ func (e *Evaluator) _get(node Node.Node) (EnvironmentData, error) {
 			return nil, e.NewError(identifier.Token, JoError.DefaultError, fmt.Sprintf("method/attribute `%s` not defined", identifier.Value))
 		}
 		return v, nil
-	case Function:
+	case JoFunction:
 		// id := getExpr.Expr.(*parser.Identifier)
 
 		// fun.FunctionDecl.Identifier
 		return nil, e.NewError(identifier.Token, JoError.DefaultError, fmt.Sprintf("can't access property `%s` from a function declaration", identifier.Value))
-	case StructDecl:
+	case JoStuctDecl:
 		return nil, e.NewError(identifier.Token, JoError.DefaultError, fmt.Sprintf("can't access property `%s` from a struct declaration", identifier.Value))
 	// TODO FOR Literal Data
-	case "STRING":
+	case JoString:
 		return nil, e.NewError(e.NewTokenFromLine(node.GetLine()), JoError.DefaultError, "unknown callee string")
 
 	default:

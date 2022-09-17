@@ -1,0 +1,16 @@
+let arr = [1,2,3,4,5];
+print("Initial Array:", arr);
+
+print("Array Length:", arr.len());
+print("Array Sliced:", arr.slice(1,5));
+print("Array Get from index:", arr.get(2));
+
+print("rray Push:", arr.push(6));
+print("Array Pop:", arr.pop());
+
+print("Array Set:", arr.set(2, 69));
+
+print("Array Join:", arr.join(" "));
+print("Array Contains:", arr.contains(2));
+
+print("Final Array:", arr);

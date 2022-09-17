@@ -2,13 +2,12 @@ package eval
 
 import (
 	"errors"
-	"fmt"
 
 	"github.com/overlorddamygod/jo/pkg/parser/node"
 )
 
 type Array struct {
-	name  LangData
+	name  string
 	_type string
 	data  []EnvironmentData
 }
@@ -16,7 +15,7 @@ type Array struct {
 func NewArray(data []EnvironmentData) *Array {
 	return &Array{
 		name:  JoArray,
-		_type: string(JoArray),
+		_type: JoArray,
 		data:  data,
 	}
 }
@@ -41,38 +40,38 @@ func (a Array) GetString() string {
 	return output
 }
 
+func (a Array) GetBoolean() bool {
+	return true
+}
+
 func (a *Array) Call(e *Evaluator, name string, arguments []node.Node) (EnvironmentData, error) {
 	switch name {
 	case "len":
 		return NumberLiteralInt(int64(len(a.data))), nil
 	case "get":
-		if len(arguments) != 1 {
-			return nil, errors.New("argument length must be 1")
+		if _, err := expectArgLength(arguments, 1); err != nil {
+			return nil, err
 		}
 
-		index, err := e.EvalExpression(arguments[0])
+		index, err := getArg(e, JoInt, arguments[0])
 
 		if err != nil {
 			return nil, err
 		}
-		if index.Type() != "INT" {
-			return nil, errors.New("argument must be of type int")
-		}
 
-		i, _ := index.(LiteralData)
-
-		indexInt := int(i.IntVal)
+		indexLit, _ := index.(LiteralData)
+		indexInt := int(indexLit.IntVal)
 
 		if indexInt < 0 || indexInt > len(a.data)-1 {
-			return nil, errors.New("index out of bound")
+			return nil, ErrIndexOutofBound
 		}
 
 		data := a.data[indexInt]
 
 		return data, nil
 	case "push":
-		if len(arguments) == 0 {
-			return nil, errors.New("argument length must be greater than 0")
+		if _, err := expectArgLength(arguments, -1); err != nil {
+			return nil, err
 		}
 
 		for _, args := range arguments {
@@ -84,27 +83,35 @@ func (a *Array) Call(e *Evaluator, name string, arguments []node.Node) (Environm
 
 			a.data = append(a.data, data)
 		}
-		return nil, nil
-	case "set":
-		if len(arguments) != 2 {
-			return nil, errors.New("argument length must be 2")
+		return NullLiteral(), nil
+	case "pop":
+		if _, err := expectArgLength(arguments, 0); err != nil {
+			return nil, err
 		}
-		index, err := e.EvalExpression(arguments[0])
+
+		if len(a.data) == 0 {
+			return nil, errors.New("array is empty")
+		}
+		last := a.data[len(a.data)-1]
+		a.data = a.data[:len(a.data)-1]
+
+		return last, nil
+	case "set":
+		if _, err := expectArgLength(arguments, 2); err != nil {
+			return nil, err
+		}
+
+		index, err := getArg(e, JoInt, arguments[0])
 
 		if err != nil {
 			return nil, err
 		}
 
-		if index.Type() != "INT" {
-			return nil, errors.New("argument must be of type int")
-		}
-
-		i, _ := index.(LiteralData)
-
-		indexInt := int(i.IntVal)
+		indexLit, _ := index.(LiteralData)
+		indexInt := int(indexLit.IntVal)
 
 		if indexInt < 0 || indexInt > len(a.data)-1 {
-			return nil, errors.New("index out of bound")
+			return nil, ErrIndexOutofBound
 		}
 
 		val, err := e.EvalExpression(arguments[1])
@@ -114,12 +121,85 @@ func (a *Array) Call(e *Evaluator, name string, arguments []node.Node) (Environm
 		}
 
 		a.data[indexInt] = val
-		return nil, nil
-	case "type":
-		if len(arguments) != 0 {
-			return nil, errors.New("argument length must be 0")
+		return NullLiteral(), nil
+	case "contains":
+		if _, err := expectArgLength(arguments, 1); err != nil {
+			return nil, err
 		}
-		return StringLiteral("Array"), nil
+
+		data, err := e.EvalExpression(arguments[0])
+
+		if err != nil {
+			return nil, err
+		}
+
+		for _, d := range a.data {
+			if d == data {
+				return BooleanLiteral(true), nil
+			}
+		}
+
+		return BooleanLiteral(false), nil
+	case "join":
+		if _, err := expectArgLength(arguments, 1); err != nil {
+			return nil, err
+		}
+		joinStr, err := getArg(e, JoString, arguments[0])
+
+		if err != nil {
+			return nil, err
+		}
+
+		joinStrLit, _ := joinStr.(LiteralData)
+
+		str := ""
+
+		for i, val := range a.data {
+			str += val.GetString()
+
+			if i != len(a.data)-1 {
+				str += joinStrLit.GetString()
+			}
+		}
+
+		return StringLiteral(str), nil
+	case "slice":
+		if _, err := expectArgLength(arguments, 2); err != nil {
+			return nil, err
+		}
+
+		start, err := getArg(e, JoInt, arguments[0])
+
+		if err != nil {
+			return nil, err
+		}
+
+		startLit, _ := start.(LiteralData)
+		startInt := int(startLit.IntVal)
+
+		if startInt < 0 || startInt > len(a.data)-1 {
+			return nil, ErrIndexOutofBound
+		}
+
+		end, err := getArg(e, JoInt, arguments[1])
+
+		if err != nil {
+			return nil, err
+		}
+
+		endLit, _ := end.(LiteralData)
+		endInt := int(endLit.IntVal)
+
+		if endInt < 0 || endInt > len(a.data) {
+			return nil, ErrIndexOutofBound
+		}
+
+		return NewArray(a.data[startInt:endInt]), nil
+	case "type":
+		if _, err := expectArgLength(arguments, 0); err != nil {
+			return nil, err
+		}
+		return StringLiteral(a.Type()), nil
 	}
-	return nil, fmt.Errorf("no method `%s`", name)
+	return nil, ErrNoMethod(name, a.Type())
 }

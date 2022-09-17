@@ -4,18 +4,8 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/overlorddamygod/jo/pkg/parser/node"
 	Node "github.com/overlorddamygod/jo/pkg/parser/node"
-)
-
-type LangData string
-
-var (
-	Literal    LangData = "LiteralData"
-	Function            = "CallableFunction"
-	StructDecl          = "StructDataDecl"
-	Struct              = "StructData"
-	JoArray    LangData = "Array"
-	Null                = "Null"
 )
 
 const INIT_METHOD = "init"
@@ -27,11 +17,12 @@ type StructDataDecl struct {
 	Closure    *Environment
 }
 
-func NewStructDataDecl(functionDecl Node.StructDeclStatement, env *Environment) *StructDataDecl {
+func NewStructDataDecl(structDecl Node.StructDeclStatement, env *Environment) *StructDataDecl {
+	id := structDecl.Identifier.(*node.Identifier)
 	return &StructDataDecl{
-		name:       StructDecl,
-		_type:      StructDecl,
-		StructDecl: functionDecl,
+		name:       id.Value,
+		_type:      JoStuctDecl,
+		StructDecl: structDecl,
 		Closure:    env,
 	}
 }
@@ -42,8 +33,8 @@ func (s *StructDataDecl) Initialize(e *Evaluator, args []Node.Node) (*StructData
 	methods := s.StructDecl.Methods
 
 	structData := &StructData{
-		name:       Struct,
-		_type:      Struct,
+		name:       JoStruct,
+		_type:      JoStruct,
 		StructDecl: s.StructDecl,
 		env:        env,
 	}
@@ -87,12 +78,27 @@ func (s *StructDataDecl) Initialize(e *Evaluator, args []Node.Node) (*StructData
 	return structData, nil
 }
 
+func (s *StructDataDecl) Call(env *Evaluator, name string, arguments []node.Node) (EnvironmentData, error) {
+	switch name {
+	case "type":
+		if _, err := expectArgLength(arguments, 0); err != nil {
+			return nil, err
+		}
+		return StringLiteral(s.name), nil
+	}
+	return nil, ErrNoMethod(name, s.name)
+}
+
 func (s StructDataDecl) Type() string {
 	return s._type
 }
 
 func (s StructDataDecl) GetString() string {
 	return fmt.Sprintf("[structDecl %s]", s.StructDecl.Identifier.(*Node.Identifier).Value)
+}
+
+func (s StructDataDecl) GetBoolean() bool {
+	return true
 }
 
 type StructData struct {
@@ -108,8 +114,8 @@ func NewStructData(structDecl StructDataDecl) *StructData {
 	methods := structDecl.StructDecl.Methods
 
 	structData := &StructData{
-		name:       Struct,
-		_type:      Struct,
+		name:       JoStruct,
+		_type:      JoStruct,
 		StructDecl: structDecl.StructDecl,
 		env:        env,
 	}
@@ -143,7 +149,7 @@ func NewNativeStruct(env *Environment, name string, methods []*CallableFunc) *St
 
 	structData := &StructData{
 		name:  name,
-		_type: Struct,
+		_type: JoStruct,
 		env:   env,
 	}
 
@@ -214,8 +220,12 @@ func (f *StructData) SetName(name string) {
 }
 
 func (s StructData) GetString() string {
-	if s.name != Struct {
+	if s.name != JoStruct {
 		return fmt.Sprintf("[struct %s]", s.name)
 	}
 	return fmt.Sprintf("[struct %s]", s.StructDecl.Identifier.(*Node.Identifier).Value)
+}
+
+func (s StructData) GetBoolean() bool {
+	return true
 }

@@ -10,6 +10,7 @@ var ErrKeyNotDefined = errors.New("key not defined in the environment")
 type EnvironmentData interface {
 	Type() string
 	GetString() string
+	GetBoolean() bool
 }
 
 type EnvironmentDataValue EnvironmentData
@@ -45,7 +46,7 @@ func (env *Environment) Print() {
 	}
 	for key, val := range env.data {
 		// fmt.Println(key)
-		if val.Type() == Function {
+		if val.Type() == JoFunction {
 			f, ok := val.(*CallableFunction)
 			if ok {
 				println("FUNC", key, f.Type())
@@ -54,10 +55,10 @@ func (env *Environment) Print() {
 			if ok {
 				println("FUNC", key, g.Type())
 			}
-		} else if val.Type() == string(Literal) {
+		} else if val.Type() == JoLiteral {
 			lit := val.(LiteralData)
 			println("VAL", key, lit.Value)
-		} else if val.Type() == Struct {
+		} else if val.Type() == JoStruct {
 			s := val.(*StructData)
 			println("Struct", key, s)
 		} else {

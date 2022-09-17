@@ -1,7 +1,6 @@
 package eval
 
 import (
-	"errors"
 	"fmt"
 
 	Node "github.com/overlorddamygod/jo/pkg/parser/node"
@@ -21,8 +20,8 @@ type CallableFunction struct {
 
 func NewCallableFunction(functionDecl Node.FunctionDeclStatement, env *Environment, parent *StructData) *CallableFunction {
 	return &CallableFunction{
-		name:         Function,
-		_type:        Function,
+		name:         JoFunction,
+		_type:        JoFunction,
 		FunctionDecl: functionDecl,
 		parent:       parent,
 		Closure:      env,
@@ -31,6 +30,10 @@ func NewCallableFunction(functionDecl Node.FunctionDeclStatement, env *Environme
 
 func (f CallableFunction) Type() string {
 	return f._type
+}
+
+func (f CallableFunction) GetBoolean() bool {
+	return true
 }
 
 func (f *CallableFunction) GetString() string {
@@ -48,12 +51,12 @@ func (f *CallableFunction) Call(e *Evaluator, name string, arguments []Node.Node
 
 	if argsLen > paramsLen {
 		// iden := f.FunctionDecl.Identifier.(*parser.Identifier)
-		return nil, errors.New("Arg length greater than params length")
+		return nil, ErrArgLengthGreater
 	}
 
 	if argsLen < paramsLen {
 		// iden := f.FunctionDecl.Identifier.(*parser.Identifier)
-		return nil, errors.New("Arg length less than params length")
+		return nil, ErrArgLengthLess
 	}
 	evaluator := NewEvaluatorWithParent(e, f.Closure)
 	evaluator.FunctionScope = e.FunctionScope
@@ -87,12 +90,12 @@ func (f *CallableFunction) CallWithEnvData(e *Evaluator, name string, arguments 
 
 	if argsLen > paramsLen {
 		// iden := f.FunctionDecl.Identifier.(*parser.Identifier)
-		return nil, errors.New("Arg length greater than params length")
+		return nil, ErrArgLengthGreater
 	}
 
 	if argsLen < paramsLen {
 		// iden := f.FunctionDecl.Identifier.(*parser.Identifier)
-		return nil, errors.New("Arg length less than params length")
+		return nil, ErrArgLengthLess
 	}
 	evaluator := NewEvaluatorWithParent(e, f.Closure)
 	evaluator.FunctionScope = e.FunctionScope

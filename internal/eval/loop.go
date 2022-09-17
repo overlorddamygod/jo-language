@@ -6,11 +6,6 @@ import (
 	Node "github.com/overlorddamygod/jo/pkg/parser/node"
 )
 
-var (
-	ErrBreak    = errors.New("Statement:Break")
-	ErrContinue = errors.New("Statement:Continue")
-)
-
 func (e *Evaluator) For(node Node.Node) (EnvironmentData, error) {
 	defer func() {
 		e.end()
