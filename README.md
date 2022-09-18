@@ -155,9 +155,15 @@ print(numInt.getString());
 Methods:
 * type - returns the data type
 * len - returns the string length
+* get - get string from an index
+* slice - get part of the string
+* lower - convert string to lowercase letters.
+* upper - convert string to uppercase letters.
+* split - splits a string into an array of substrings.
 * getInt - returns the integer value if parsable
 * getFloat - returns the float value if parsable
 * getString - returns the string value of the number
+* replace - replace a string with new string
 
 Example:
 ```js
@@ -168,6 +174,17 @@ print(num.len());
 print(num.type());
 print(num.getInt());
 print(num.getFloat());
+
+print("abc".upper());
+print("ABCDEF".lower());
+
+print("String Sliced:", num.slice(0, 3));
+print("String Get from index:", num.get(2));
+print("String Split:", num.split("."));
+
+// replace method takes 2 or 3 args
+print("hello world hello".replace("world", "earth")); // takes 2 args if we want to replace only 1 occurance
+print("hello world hello".replace("hello", "earth", -1)); // takes 3 args if we want to replace `n` occurance. if n < 0 all the matched string are replaced
 ```
 ### Array
 Methods:

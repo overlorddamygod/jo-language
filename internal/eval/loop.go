@@ -30,9 +30,7 @@ func (e *Evaluator) For(node Node.Node) (EnvironmentData, error) {
 			return nil, err
 		}
 
-		condition := conditionData.(LiteralData)
-
-		if !condition.GetBoolean() {
+		if !conditionData.GetBoolean() {
 			e.end()
 			break
 		}
@@ -78,9 +76,8 @@ func (e *Evaluator) While(node Node.Node) (EnvironmentData, error) {
 			e.end()
 			return nil, err
 		}
-		condition := conditionData.(LiteralData)
 
-		if !condition.GetBoolean() {
+		if !conditionData.GetBoolean() {
 			e.end()
 			break
 		}

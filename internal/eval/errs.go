@@ -7,7 +7,7 @@ import (
 
 var (
 	ErrUnexpected       = errors.New("UNEXPECTED ERROR")
-	ErrIndexOutofBound  = errors.New("index our of bound")
+	ErrIndexOutofBound  = errors.New("index out of bound")
 	ErrArgLengthLess    = errors.New("arg length less than params length")
 	ErrArgLengthGreater = errors.New("arg length greater than params length")
 	ErrParseInt         = errors.New("cannot parse to int")
