@@ -1,10 +1,12 @@
 package eval
 
 import (
+	"errors"
 	"fmt"
 	"os"
 
 	JoError "github.com/overlorddamygod/jo/pkg/error"
+	joerror "github.com/overlorddamygod/jo/pkg/error"
 	L "github.com/overlorddamygod/jo/pkg/lexer"
 	"github.com/overlorddamygod/jo/pkg/parser"
 	Node "github.com/overlorddamygod/jo/pkg/parser/node"
@@ -17,18 +19,25 @@ type Evaluator struct {
 	global      *Environment
 	environment *Environment
 	current     Node.Node
+	Context     *Context
 
 	// workaround for discarding return when outside a function
 	// TODO: find another approach?? Stack?
 	FunctionScope bool
+	TryCatchScope bool
 }
 
 func NewEvaluator(lexer *L.Lexer, node []Node.Node) *Evaluator {
 	env := NewEnvironment()
-	return &Evaluator{lexer: lexer, node: node, global: env, environment: env, FunctionScope: false}
+	return &Evaluator{lexer: lexer, node: node, global: env, environment: env, Context: NewContext("main", 0, nil), TryCatchScope: false, FunctionScope: false}
 }
 
 func Init(src string) {
+	// defer func() {
+	// 	if r := recover(); r != nil {
+	// 		fmt.Println("Recovered ", r)
+	// 	}
+	// }()
 	_lexer := L.NewLexer(src)
 
 	_, token, err := _lexer.Lex()
@@ -56,9 +65,18 @@ func Init(src string) {
 	evaluator.LoadNative()
 
 	_, err = evaluator.Eval()
-
+	// evaluator.Context.Print()
+	// fmt.Println(evaluator.Context, evaluator.Context.parent, evaluator.Context.parent.parent)
 	if err != nil {
-		stdio.Io.Error("[Evaluator]\n\n" + err.Error())
+
+		errr, ok := err.(*joerror.JoRuntimeError)
+
+		if ok {
+			errr.Token.Literal = "<main>"
+			stdio.Io.Error("Traceback (most recent call last)\n" + errr.Error())
+			return
+		}
+		stdio.Io.Error("Traceback (most recent call last)\n" + err.Error())
 		return
 	}
 }
@@ -85,7 +103,7 @@ func (e *Evaluator) Env() *Environment {
 
 func NewEvaluatorWithParent(e *Evaluator, parent *Environment) *Evaluator {
 	env := NewEnvironmentWithParent(parent)
-	return &Evaluator{lexer: e.lexer, node: e.node, global: env, environment: env}
+	return &Evaluator{lexer: e.lexer, node: e.node, global: env, environment: env, TryCatchScope: e.TryCatchScope, FunctionScope: e.FunctionScope}
 }
 
 func (e *Evaluator) Eval() (EnvironmentData, error) {
@@ -98,10 +116,13 @@ func (e *Evaluator) EvalStatements(statements []Node.Node) (EnvironmentData, err
 		// fmt.Println("EVALSTATEMENT", s, data, err, err != nil)
 
 		if err != nil {
+			if errors.Is(err, ErrThrow) {
+				return data, err
+			}
 			return nil, err
 		}
 
-		if s.NodeName() == Node.IF || s.NodeName() == Node.WHILE || s.NodeName() == Node.FOR || s.NodeName() == Node.RETURN || s.NodeName() == Node.SWITCH || s.NodeName() == Node.BLOCK {
+		if s.NodeName() == Node.IF || s.NodeName() == Node.WHILE || s.NodeName() == Node.FOR || s.NodeName() == Node.RETURN || s.NodeName() == Node.SWITCH || s.NodeName() == Node.TRY_CATCH || s.NodeName() == Node.THROW || s.NodeName() == Node.BLOCK {
 			if data != nil {
 				return data, nil
 			}
@@ -139,6 +160,10 @@ func (e *Evaluator) EvalStatement(node Node.Node) (EnvironmentData, error) {
 		return e.For(node)
 	case Node.WHILE:
 		return e.While(node)
+	case Node.TRY_CATCH:
+		return e.tryCatch(node)
+	case Node.THROW:
+		return e.throw(node)
 	case Node.BLOCK:
 		blockStmt := node.(*Node.Block)
 		e.begin()
@@ -148,7 +173,7 @@ func (e *Evaluator) EvalStatement(node Node.Node) (EnvironmentData, error) {
 		e.end()
 
 		if err != nil {
-			return nil, err
+			return data, err
 		}
 		return data, nil
 	case Node.IDENTIFIER, Node.BINARY_EXPRESSION, Node.GET_EXPR:
@@ -186,6 +211,6 @@ func (e *Evaluator) NewTokenFromLine(line int) *L.Token {
 	return L.NewToken(L.IDENTIFIER, "", line, 0, 0)
 }
 
-func (e *Evaluator) NewError(token *L.Token, _type JoError.JoErrorType, message string) error {
-	return JoError.New(e.lexer, token, _type, message)
+func (e *Evaluator) NewError(token *L.Token, _type JoError.JoErrorType, message interface{}) error {
+	return JoError.NewRuntimeError(e.lexer, token, _type, message)
 }

@@ -113,6 +113,7 @@ func (p *Parser) vardecl() (node.Node, error) {
 
 	expression, err := p.expression()
 
+	// fmt.Println("SAD", expression, err)
 	if err != nil {
 		return nil, err
 	}

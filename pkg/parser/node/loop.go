@@ -68,12 +68,13 @@ func (a WhileStatement) GetLine() int {
 
 type BreakStatement struct {
 	name  string
-	token lexer.Token
+	token *lexer.Token
 }
 
-func NewBreakStatement() *BreakStatement {
+func NewBreakStatement(token *lexer.Token) *BreakStatement {
 	return &BreakStatement{
-		name: BREAK,
+		name:  BREAK,
+		token: token,
 	}
 }
 
@@ -92,12 +93,13 @@ func (a BreakStatement) GetLine() int {
 
 type ContinueStatement struct {
 	name  string
-	token lexer.Token
+	token *lexer.Token
 }
 
-func NewContinueStatement() *ContinueStatement {
+func NewContinueStatement(token *lexer.Token) *ContinueStatement {
 	return &ContinueStatement{
-		name: CONTINUE,
+		name:  CONTINUE,
+		token: token,
 	}
 }
 

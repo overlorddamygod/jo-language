@@ -95,21 +95,21 @@ func (p *Parser) ifElse() (node.Node, error) {
 }
 
 func (p *Parser) _break() (node.Node, error) {
-	_, err := p.match(L.KEYWORD, "break")
+	breakToken, err := p.match(L.KEYWORD, "break")
 
 	if err != nil {
 		return nil, err
 	}
 
-	return node.NewBreakStatement(), nil
+	return node.NewBreakStatement(breakToken), nil
 }
 
 func (p *Parser) _continue() (node.Node, error) {
-	_, err := p.match(L.KEYWORD, "continue")
+	continueToken, err := p.match(L.KEYWORD, "continue")
 
 	if err != nil {
 		return nil, err
 	}
 
-	return node.NewContinueStatement(), nil
+	return node.NewContinueStatement(continueToken), nil
 }

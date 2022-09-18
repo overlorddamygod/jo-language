@@ -176,6 +176,9 @@ func (i *Identifier) Print() {
 func (i Identifier) GetLine() int {
 	return i.Token.GetLine()
 }
+func (i *Identifier) GetToken() *L.Token {
+	return i.Token
+}
 
 type GetExpr struct {
 	name       string

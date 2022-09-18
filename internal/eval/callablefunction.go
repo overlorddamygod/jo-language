@@ -1,8 +1,10 @@
 package eval
 
 import (
+	"errors"
 	"fmt"
 
+	joerror "github.com/overlorddamygod/jo/pkg/error"
 	Node "github.com/overlorddamygod/jo/pkg/parser/node"
 )
 
@@ -58,8 +60,15 @@ func (f *CallableFunction) Call(e *Evaluator, name string, arguments []Node.Node
 		// iden := f.FunctionDecl.Identifier.(*parser.Identifier)
 		return nil, ErrArgLengthLess
 	}
+	// e.Context = NewContext(name, 0, e.Context)
 	evaluator := NewEvaluatorWithParent(e, f.Closure)
-	evaluator.FunctionScope = e.FunctionScope
+	// evaluator.FunctionScope = e.FunctionScope
+
+	evaluator.Context = NewContext(name, 0, e.Context)
+	e.Context = evaluator.Context
+	// fmt.Printf(name, evaluator.Context, evaluator.Context.parent, "\n")
+	// evaluator.Context.Print()
+	// panic("SAD")
 
 	for i, param := range f.FunctionDecl.Params {
 		paramId := param.(*Node.Identifier)
@@ -75,12 +84,34 @@ func (f *CallableFunction) Call(e *Evaluator, name string, arguments []Node.Node
 	bodyNodes := f.FunctionDecl.Body.Nodes
 	data, err := evaluator.EvalStatements(bodyNodes)
 
+	// errr, ok := err.(*joerror.JoError)
+
+	// if ok {
+	// 	id := f.FunctionDecl.Identifier.(*Node.Identifier)
+	// 	errr.Token = id.GetToken()
+
+	// }
+
+	// fmt.Println(f.FunctionDecl.Identifier, f.FunctionDecl.Identifier.GetLine())
 	if err != nil {
+		errr, ok := err.(*joerror.JoRuntimeError)
+
+		if ok {
+			id := f.FunctionDecl.Identifier.(*Node.Identifier)
+			errr.Token.Literal = id.GetToken().Literal
+			return nil, errr
+		}
+
+		if errors.Is(err, ErrThrow) {
+			return data, err
+		}
+		// fmt.Println("SADDDDD", err)
 		return nil, err
 	}
 	if data != nil {
 		return data, nil
 	}
+	// e.Context = evaluator.Context.Pop()
 	return NullLiteral(), nil
 }
 
@@ -98,7 +129,7 @@ func (f *CallableFunction) CallWithEnvData(e *Evaluator, name string, arguments 
 		return nil, ErrArgLengthLess
 	}
 	evaluator := NewEvaluatorWithParent(e, f.Closure)
-	evaluator.FunctionScope = e.FunctionScope
+	// evaluator.FunctionScope = e.FunctionScope
 
 	for i, param := range f.FunctionDecl.Params {
 		paramId := param.(*Node.Identifier)

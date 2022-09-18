@@ -82,13 +82,14 @@ func (f FunctionCall) GetLine() int {
 
 type ReturnStatement struct {
 	name       string
-	token      lexer.Token
+	token      *lexer.Token
 	Expression Node
 }
 
-func NewReturnStatement(expression Node) *ReturnStatement {
+func NewReturnStatement(token *lexer.Token, expression Node) *ReturnStatement {
 	return &ReturnStatement{
 		name:       RETURN,
+		token:      token,
 		Expression: expression,
 	}
 }

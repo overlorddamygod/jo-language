@@ -100,6 +100,10 @@ func (e *Evaluator) Switch(node Node.Node) (EnvironmentData, error) {
 				if errors.Is(err, ErrBreak) {
 					return nil, nil
 				}
+
+				if errors.Is(err, ErrThrow) {
+					return data, err
+				}
 				return nil, err
 			}
 
@@ -118,6 +122,9 @@ func (e *Evaluator) Switch(node Node.Node) (EnvironmentData, error) {
 		if err != nil {
 			if errors.Is(err, ErrBreak) {
 				return nil, nil
+			}
+			if errors.Is(err, ErrThrow) {
+				return data, err
 			}
 			return nil, err
 		}

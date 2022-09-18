@@ -193,7 +193,12 @@ func (e *Evaluator) EvalExpression(node Node.Node) (EnvironmentData, error) {
 			return nil, err
 		}
 
-		return e.BinaryOp(leftData, binaryExpression.Op, rightData)
+		data, err := e.BinaryOp(leftData, binaryExpression.Op, rightData)
+
+		if err != nil {
+			return nil, e.NewError(e.NewTokenFromLine(binaryExpression.Left.GetLine()), JoError.DefaultError, err)
+		}
+		return data, err
 	case Node.LITERAL_VALUE:
 		literal := node.(*Node.LiteralValue)
 		return LiteralDataFromParserLiteral(*literal), nil

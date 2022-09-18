@@ -21,6 +21,15 @@ func (p *Parser) statement() (node.Node, error) {
 			return nil, err
 		}
 		return p.matchSemicolon(ret)
+	case "try":
+		return p.tryCatch()
+	case "throw":
+		throw, err := p.throw()
+
+		if err != nil {
+			return nil, err
+		}
+		return p.matchSemicolon(throw)
 	case "{":
 		return p.block()
 	case "break":

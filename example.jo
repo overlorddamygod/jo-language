@@ -1,18 +1,26 @@
-let num = "29.2";
+fn lol1() {
+    for (let i = 0; i < 10; i+=1) {
+        {
+            throw "SADDD";
+        }
+    }
+}
 
-print(num);
-print(num.len());
-print(num.type());
-print(num.getInt());
-print(num.getFloat());
+fn lol() {
+    lol1();
+}
 
-print("abc".upper());
-print("ABCDEF".lower());
+fn sad() {
+    try {
+        try {
+            lol();
+        } catch(err) {
+            print("ERR", err);
+            throw err;
+        }
+    } catch (z) {
+        print("ERR2", z);
+    }
+}
 
-print("String Sliced:", num.slice(0, 3));
-print("String Get from index:", num.get(2));
-print("String Split:", num.split("."));
-
-// replace method takes 2 or 3 args
-print("hello world hello".replace("world", "earth")); // takes 2 args if we want to replace only 1 occurance
-print("hello world hello".replace("hello", "earth", -1)); // takes 3 args if we want to replace `n` occurance. if n < 0 all the matched string are replaced
+print(sad());

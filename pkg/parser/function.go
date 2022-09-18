@@ -115,7 +115,7 @@ func (p *Parser) call() (node.Node, error) {
 }
 
 func (p *Parser) _return() (node.Node, error) {
-	_, err := p.match(L.KEYWORD, "return")
+	returnToken, err := p.match(L.KEYWORD, "return")
 
 	if err != nil {
 		return nil, err
@@ -124,7 +124,7 @@ func (p *Parser) _return() (node.Node, error) {
 	semicolon, _ := p.lexer.PeekToken(0)
 
 	if semicolon.Type == L.PUNCTUATION && semicolon.Literal == L.SEMICOLON {
-		return node.NewReturnStatement(nil), nil
+		return node.NewReturnStatement(returnToken, nil), nil
 	}
 
 	exp, err := p.expression()
@@ -133,7 +133,7 @@ func (p *Parser) _return() (node.Node, error) {
 		return nil, err
 	}
 
-	return node.NewReturnStatement(exp), nil
+	return node.NewReturnStatement(returnToken, exp), nil
 }
 
 func (p *Parser) ParamOrArguments(leftRightParser func() (node.Node, error), midConditionFunc func(*L.Token) bool) ([]node.Node, error) {
