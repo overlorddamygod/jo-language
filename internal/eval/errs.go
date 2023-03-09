@@ -15,6 +15,7 @@ var (
 
 	ErrBreak    = errors.New("Statement:Break")
 	ErrContinue = errors.New("Statement:Continue")
+	ErrThrow    = errors.New("Statement:Throw")
 )
 
 func ErrArgumentType(Type string) error {
@@ -27,4 +28,8 @@ func ErrArgumentLength(length int) error {
 
 func ErrNoMethod(name string, Type string) error {
 	return fmt.Errorf("no method named `%s` on type `%s`", name, Type)
+}
+
+func ErrReference(msg string) error {
+	return fmt.Errorf("ReferenceError: %s", msg)
 }

@@ -38,7 +38,8 @@ func (e *Evaluator) functionCall(node Node.Node) (EnvironmentData, error) {
 	case Node.IDENTIFIER:
 		fun, err := e.environment.Get(functionName.Value)
 		if err != nil {
-			return nil, e.NewError(functionName.Token, JoError.DefaultError, fmt.Sprintf("unknown function ` %s `", functionName.Value))
+			// return nil, e.NewError(functionName.Token, JoError.DefaultError, fmt.Sprintf("unknown function ` %s `", functionName.Value))
+			return nil, e.NewError(functionName.Token, JoError.DefaultError, err)
 		}
 		function = fun
 	case Node.GET_EXPR:
@@ -63,7 +64,7 @@ func (e *Evaluator) functionCall(node Node.Node) (EnvironmentData, error) {
 			returnData, err := arrayData.Call(e, name.Value, functionCall.Arguments)
 
 			if err != nil {
-				return nil, e.NewError(name.Token, JoError.DefaultError, err.Error())
+				return nil, e.NewError(name.Token, JoError.DefaultError, err)
 			}
 			return returnData, nil
 		}
@@ -72,7 +73,7 @@ func (e *Evaluator) functionCall(node Node.Node) (EnvironmentData, error) {
 		if ok {
 			returnData, err := structData.Call(e, name.Value, functionCall.Arguments)
 			if err != nil {
-				return nil, e.NewError(name.Token, JoError.DefaultError, err.Error())
+				return nil, e.NewError(name.Token, JoError.DefaultError, err)
 			}
 			return returnData, nil
 		}
@@ -81,7 +82,7 @@ func (e *Evaluator) functionCall(node Node.Node) (EnvironmentData, error) {
 		if ok {
 			returnData, err := structDataDecl.Call(e, name.Value, functionCall.Arguments)
 			if err != nil {
-				return nil, e.NewError(name.Token, JoError.DefaultError, err.Error())
+				return nil, e.NewError(name.Token, JoError.DefaultError, err)
 			}
 			return returnData, nil
 		}
@@ -111,9 +112,11 @@ func (e *Evaluator) functionCall(node Node.Node) (EnvironmentData, error) {
 		// }
 		name := functionCall.Identifier.(*Node.Identifier)
 		a, err := callableFunction.Call(e, name.Value, functionCall.Arguments)
-
 		if err != nil {
-			return nil, e.NewError(functionName.Token, JoError.DefaultError, err.Error())
+			if errors.Is(err, ErrThrow) {
+				return a, err
+			}
+			return nil, e.NewError(functionName.Token, JoError.DefaultError, err)
 		}
 		return a, err
 	}

@@ -15,8 +15,10 @@ func (p *Parser) expression() (node.Node, error) {
 
 func (p *Parser) assignment() (node.Node, error) {
 	exp, err := p.logicOr()
-
-	// fmt.Println("ORRR", exp)
+	if err != nil {
+		return nil, err
+	}
+	// fmt.Println("ORRR", exp, err)
 	pos := p.lexer.GetTokenPos()
 	op, err := p.matchMany(L.OPERATOR, L.ASSIGN, L.PLUS_ASSIGN, L.MINUS_ASSIGN, L.ASTERISK_ASSIGN, L.SLASH_ASSIGN, L.BANG_ASSIGN, L.PIPE_ASSIGN, L.AND_ASSIGN, L.OR_ASSIGN, L.AMPERSAND_ASSIGN, L.PERCENT_ASSIGN)
 	if err != nil {
@@ -109,12 +111,13 @@ func (p *Parser) unary() (node.Node, error) {
 
 func (p *Parser) primary() (node.Node, error) {
 	token, err := p.lexer.NextToken()
-
 	// fmt.Println("BOOO", token)
 
 	if err != nil {
 		return nil, JoError.New(p.lexer, token, JoError.SyntaxError, "Expected primary value")
 	}
+
+	// if toke
 
 	if token.Type == L.STRING || token.Type == L.INT || token.Type == L.FLOAT {
 		// token.Print()

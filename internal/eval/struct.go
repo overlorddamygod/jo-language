@@ -70,7 +70,11 @@ func (s *StructDataDecl) Initialize(e *Evaluator, args []Node.Node) (*StructData
 		return nil, errors.New("failed to initialize struct. arguments length does not match")
 	}
 
-	structData.Call(e, INIT_METHOD, args)
+	_, err = structData.Call(e, INIT_METHOD, args)
+
+	if err != nil {
+		return nil, err
+	}
 
 	env.Remove(INIT_METHOD)
 	// env.Define("sad", NumberLiteral(69))

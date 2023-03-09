@@ -35,7 +35,7 @@ func (e *Evaluator) For(node Node.Node) (EnvironmentData, error) {
 			break
 		}
 
-		_, err = e.EvalStatements(forStatement.Block.Nodes)
+		data, err = e.EvalStatements(forStatement.Block.Nodes)
 		e.end()
 
 		if err != nil {
@@ -51,7 +51,15 @@ func (e *Evaluator) For(node Node.Node) (EnvironmentData, error) {
 
 				continue
 			}
+
+			if errors.Is(err, ErrThrow) {
+				return data, err
+			}
 			return nil, err
+		}
+
+		if data != nil {
+			return data, nil
 		}
 
 		_, err = e.EvalStatement(forStatement.Expression)
@@ -91,6 +99,10 @@ func (e *Evaluator) While(node Node.Node) (EnvironmentData, error) {
 			}
 			if errors.Is(err, ErrContinue) {
 				continue
+			}
+
+			if errors.Is(err, ErrThrow) {
+				return data, err
 			}
 			return nil, err
 		}

@@ -66,6 +66,7 @@ user@main:~$ make
     * [Looping Statements](#looping-statements)
         * [For Loop Statement](#for-loop-statement)
         * [While Loop Statement](#while-loop-statement)
+    * [Import Export Statements](#import-export-statements)
 * [Built-In Libraries](#built-in-functions)
     * [Input](#input)
     * [Print](#print)
@@ -381,6 +382,27 @@ while (i < 10) {
     print(i);
     i += 1;
 }
+```
+---
+## Import Export Statements
+```js
+// car.js
+struct Car {
+    fn init(name) {
+        self.name = name;
+    }
+    fn drive() {
+        print("Driving a car named " + self.name);
+    }
+}
+export Car;
+```
+```js
+// main.js
+import "car"
+
+let car1 = car("lambo");
+car1.drive();
 ```
 ---
 ## Built-In Functions
