@@ -60,15 +60,14 @@ func Init(src string) {
 	// for _, s := range node {
 	// 	s.Print()
 	// }
-
 	evaluator := NewEvaluator(_lexer, node)
 	evaluator.LoadNative()
-
 	_, err = evaluator.Eval()
+	// fmt.Println("SADD", err)
 	// evaluator.Context.Print()
 	// fmt.Println(evaluator.Context, evaluator.Context.parent, evaluator.Context.parent.parent)
 	if err != nil {
-
+		// fmt.Println(err)
 		errr, ok := err.(*joerror.JoRuntimeError)
 
 		if ok {
@@ -113,12 +112,13 @@ func (e *Evaluator) Eval() (EnvironmentData, error) {
 func (e *Evaluator) EvalStatements(statements []Node.Node) (EnvironmentData, error) {
 	for _, s := range statements {
 		data, err := e.EvalStatement(s)
-		// fmt.Println("EVALSTATEMENT", s, data, err, err != nil)
 
 		if err != nil {
 			if errors.Is(err, ErrThrow) {
 				return data, err
 			}
+			// fmt.Println("EVALSTATEMENT", s, data, err, err != nil)
+			// fmt.Println("___--___--___--___--___--")
 			return nil, err
 		}
 

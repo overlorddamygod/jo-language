@@ -1,26 +1,15 @@
-fn lol1() {
-    for (let i = 0; i < 10; i+=1) {
-        {
-            throw "SADDD";
-        }
+struct LL {
+    fn init() {
+        self.sad = 69;
+    }
+    fn number() {
+        return self.sad;
+    }
+    fn lol() {
+        return self.number();
     }
 }
 
-fn lol() {
-    lol1();
-}
-
-fn sad() {
-    try {
-        try {
-            lol();
-        } catch(err) {
-            print("ERR", err);
-            throw err;
-        }
-    } catch (z) {
-        print("ERR2", z);
-    }
-}
-
-print(sad());
+let ll = LL();
+print(ll.number());
+print(ll.lol());

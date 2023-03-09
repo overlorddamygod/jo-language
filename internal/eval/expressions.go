@@ -277,7 +277,6 @@ func (e *Evaluator) assignment(node Node.Node) (EnvironmentData, error) {
 		getExpr, _ := assignment.Identifier.(*Node.GetExpr)
 
 		data, err := e.EvalExpression(getExpr.Expr)
-
 		if err != nil {
 			return nil, err
 		}
@@ -358,11 +357,11 @@ func (e *Evaluator) assignment(node Node.Node) (EnvironmentData, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	// fmt.Println("LOLLL", exp)
 	switch assignment.Op {
 	case L.ASSIGN:
 		err = e.environment.Assign(id.Value, exp)
-
 		if err != nil {
 			return nil, e.NewError(id.Token, JoError.ReferenceError, fmt.Sprintf("Variable ` %s ` not defined", id.Value))
 		}

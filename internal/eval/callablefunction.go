@@ -97,6 +97,7 @@ func (f *CallableFunction) Call(e *Evaluator, name string, arguments []Node.Node
 		errr, ok := err.(*joerror.JoRuntimeError)
 
 		if ok {
+			fmt.Println(errr.Token)
 			id := f.FunctionDecl.Identifier.(*Node.Identifier)
 			errr.Token.Literal = id.GetToken().Literal
 			return nil, errr
