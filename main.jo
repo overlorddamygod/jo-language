@@ -1,0 +1,4 @@
+import "car"
+
+let car1 = car("lambo", 2);
+car1.drive();

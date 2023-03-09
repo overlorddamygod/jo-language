@@ -1,0 +1,11 @@
+struct Car {
+    fn init(name, wheels) {
+        self.name = name;
+        self.wheels = wheels;
+    }
+    fn drive() {
+        print("Driving a car named " + self.name);
+    }
+}
+let carName = "Ferrari";
+print("CAR.jo", carName);

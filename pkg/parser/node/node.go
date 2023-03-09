@@ -23,6 +23,9 @@ const (
 	SWITCH            = "SWITCH"
 	TRY_CATCH         = "TRY_CATCH"
 	THROW             = "THROW"
+
+	IMPORT = "IMPORT"
+	EXPORT = "EXPORT"
 )
 
 type Node interface {

@@ -24,4 +24,4 @@ buildlinux32:
 	GOOS=linux GOARCH=386 ${GO_BUILD} ${OUTPUT_PATH}/linux/jo32 ${ENTRY_FILE}
 
 run:
-	go run ${ENTRY_FILE} example.jo
+	go run ${ENTRY_FILE} main.jo

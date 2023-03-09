@@ -15,12 +15,5 @@ func main() {
 	}
 	file := os.Args[1]
 
-	dat, err := os.ReadFile(file)
-
-	if err != nil {
-		stdio.Io.Print("Unable to read file", dat)
-		return
-	}
-
-	Eval.Init(string(dat))
+	Eval.Init(file)
 }
