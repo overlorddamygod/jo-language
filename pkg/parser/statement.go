@@ -81,7 +81,22 @@ func (p *Parser) importStatement() (node.Node, error) {
 		return nil, errors.New("Expected import file name")
 	}
 
-	return node.NewImport(fileName), nil
+	if err := p.peekMatch(0, lexer.KEYWORD, "as"); err == nil {
+		p.lexer.NextToken()
+		alias, err := p.lexer.NextToken()
+
+		if err != nil {
+			return nil, errors.New("Expected Alias")
+		}
+
+		if alias.Type != lexer.IDENTIFIER {
+			return nil, errors.New("Expected Alias")
+		}
+
+		return node.NewImport(fileName, alias), nil
+	}
+
+	return node.NewImport(fileName, nil), nil
 }
 
 func (p *Parser) exportStatement() (node.Node, error) {

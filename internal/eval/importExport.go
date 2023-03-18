@@ -33,6 +33,10 @@ func (e *Evaluator) Import(node Node.Node) (EnvironmentData, error) {
 		return nil, errors.New("no export data found in file " + fileName)
 	}
 
+	if import_.Alias != nil {
+		key = import_.Alias.Literal
+	}
+
 	err = e.global.DefineOne(key, evaluator.exportData)
 
 	if err != nil {

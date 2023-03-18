@@ -1,4 +1,4 @@
-import "car"
+import "car" as Car
 
-let car1 = car("lambo", 2);
+let car1 = Car("lambo", 2);
 car1.drive();

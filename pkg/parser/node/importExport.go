@@ -7,14 +7,16 @@ import (
 )
 
 type ImportStatement struct {
-	name string
-	File *lexer.Token
+	name  string
+	File  *lexer.Token
+	Alias *lexer.Token
 }
 
-func NewImport(file *lexer.Token) *ImportStatement {
+func NewImport(file *lexer.Token, alias *lexer.Token) *ImportStatement {
 	return &ImportStatement{
-		name: IMPORT,
-		File: file,
+		name:  IMPORT,
+		File:  file,
+		Alias: alias,
 	}
 }
 

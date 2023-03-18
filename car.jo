@@ -9,3 +9,4 @@ struct Car {
 }
 let carName = "Ferrari";
 print("CAR.jo", carName);
+export Car;

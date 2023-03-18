@@ -399,9 +399,10 @@ export Car;
 ```
 ```js
 // main.js
-import "car"
+import "car" as Car
+// import "car"
 
-let car1 = car("lambo");
+let car1 = Car("lambo");
 car1.drive();
 ```
 ---

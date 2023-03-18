@@ -162,7 +162,7 @@ func (t *Token) Print() {
 
 func IsKeyword(identifier string) bool {
 	switch identifier {
-	case "import", "export", "return", "if", "let", "else", "struct", "fn", "var", "for", "while", "break", "continue", "true", "false", "null", "string", "char", "switch", "case", "default", "try", "catch", "throw":
+	case "as", "import", "export", "return", "if", "let", "else", "struct", "fn", "var", "for", "while", "break", "continue", "true", "false", "null", "string", "char", "switch", "case", "default", "try", "catch", "throw":
 		return true
 	}
 	return false
